@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-drive-client-id" content="119325536402-nv5ftckk3mgr9243t0ho1bpmrfvd46tq.apps.googleusercontent.com" />
+    <title>amigoingbroke.me</title>
+    <script>
+      (function () {
+        var key = "cash-flow-projector-theme-preference";
+        var stored = null;
+        var preference = "system";
+        var resolved = "dark";
+
+        try {
+          stored = window.localStorage.getItem(key);
+        } catch (error) {
+          stored = null;
+        }
+
+        if (stored === "dark" || stored === "light" || stored === "system") {
+          preference = stored;
+        }
+
+        if (preference === "system" && window.matchMedia) {
+          resolved = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        } else if (preference === "light" || preference === "dark") {
+          resolved = preference;
+        }
+
+        document.documentElement.setAttribute("data-theme", resolved);
+        document.documentElement.setAttribute("data-theme-preference", preference);
+      })();
+    </script>
+    <link id="app-favicon" rel="icon" href="./assets/logo-icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=payment-dates-20261016" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=forecast-compact-20260606b" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <div class="app-topbar">
+        <section class="hero">
+          <img
+            class="brand-mark"
+            src="./assets/logo-icon.svg"
+            alt="amigoingbroke.me"
+            data-theme-logo
+          />
+          <div class="hero-text">
+            <h1>Am I Going Broke?</h1>
+            <div
+              id="projection-answer"
+              class="projection-answer"
+              aria-live="polite"
+              aria-atomic="true"
+            ></div>
+            <p class="hero-copy">
+              Add what's coming in, what's going out, and see where your balance is headed.
+            </p>
+          </div>
+        </section>
+        <div class="topbar-utilities" aria-label="App utilities">
+          <details class="data-menu">
+            <summary aria-label="Open data and backup menu">
+              <span aria-hidden="true">⇅</span>
+              <span>Data</span>
+            </summary>
+            <div class="data-menu-panel">
+              <div class="data-menu-heading">
+                <strong>Your data</strong>
+                <span>Saved on this device</span>
+              </div>
+              <div class="data-menu-section">
+                <span class="data-menu-label">This device</span>
+                <button type="button" id="export-data" class="data-menu-action">
+                  <span class="data-menu-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM14 4v5h5M12 11v6m0 0-3-3m3 3 3-3" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span>Download backup</span>
+                    <small>Save a copy</small>
+                  </span>
+                </button>
+                <button type="button" id="import-data" class="data-menu-action">
+                  <span class="data-menu-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4zM12 17v-6m0 0-3 3m3-3 3 3" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span>Restore a file</span>
+                    <small>Use a backup</small>
+                  </span>
+                </button>
+              </div>
+              <div class="data-menu-section">
+                <span class="data-menu-label">Google Drive</span>
+                <button type="button" id="connect-drive" class="data-menu-action">
+                  <span class="data-menu-icon drive-connect-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M9.5 14.5l5-5M7.8 17.2l-1 1a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M16.2 6.8l1-1a3.5 3.5 0 0 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span id="drive-connection-label">Connect Drive</span>
+                    <small id="drive-connection-status">Not connected</small>
+                  </span>
+                </button>
+                <button type="button" id="save-drive" class="data-menu-action">
+                  <span class="data-menu-icon drive-save-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 18H6a4 4 0 0 1-.5-8A6.5 6.5 0 0 1 18 9a4.5 4.5 0 0 1 0 9h-1M12 19V11m0 0-3 3m3-3 3 3" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span>Back up to Drive</span>
+                    <small>Save current plan</small>
+                  </span>
+                </button>
+                <button type="button" id="restore-drive" class="data-menu-action">
+                  <span class="data-menu-icon drive-restore-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 18H6a4 4 0 0 1-.5-8A6.5 6.5 0 0 1 18 9a4.5 4.5 0 0 1 0 9h-1M12 10v9m0 0-3-3m3 3 3-3" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span>Restore from Drive</span>
+                    <small>Replace current plan</small>
+                  </span>
+                </button>
+                <span id="drive-backup-status" class="data-menu-note">No Drive backup yet</span>
+              </div>
+              <div class="data-menu-section data-menu-section-danger">
+                <button type="button" id="reset-data" class="data-menu-action danger-action">
+                  <span class="data-menu-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" /></svg>
+                  </span>
+                  <span class="data-menu-action-copy">
+                    <span>Start over</span>
+                    <small>Clear this plan</small>
+                  </span>
+                </button>
+              </div>
+              <p id="data-action-status" class="data-menu-status is-hidden" aria-live="polite"></p>
+            </div>
+          </details>
+          <div class="theme-switcher" aria-label="Theme">
+            <button type="button" data-theme-choice="system" aria-pressed="true" aria-label="Use system theme" title="System theme">
+              <span aria-hidden="true">◐</span>
+            </button>
+            <button type="button" data-theme-choice="dark" aria-pressed="false" aria-label="Use dark theme" title="Dark theme">
+              <span aria-hidden="true">☾</span>
+            </button>
+            <button type="button" data-theme-choice="light" aria-pressed="false" aria-label="Use light theme" title="Light theme">
+              <span aria-hidden="true">☼</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <dialog id="data-dialog" class="data-dialog">
+        <form method="dialog" class="data-dialog-card">
+          <div class="data-dialog-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 8v5m0 4h.01M4.5 19h15L12 5z" /></svg>
+          </div>
+          <div class="data-dialog-copy">
+            <p class="data-dialog-kicker">Data</p>
+            <h2 id="data-dialog-title">Confirm action</h2>
+            <p id="data-dialog-message"></p>
+          </div>
+          <div class="data-dialog-actions">
+            <button type="submit" value="cancel" class="button ghost" id="data-dialog-cancel">
+              Cancel
+            </button>
+            <button type="submit" value="confirm" class="button primary" id="data-dialog-confirm">
+              Continue
+            </button>
+          </div>
+        </form>
+      </dialog>
+
+      <section class="panel forecast-dashboard" aria-label="Projection dashboard">
+        <header class="forecast-dashboard-header">
+          <div class="forecast-status-block">
+            <p class="section-kicker">Your money forecast</p>
+            <div id="projection-summary" class="summary-grid"></div>
+          </div>
+          <form id="starting-balance-form" class="chart-run-form">
+            <div class="forecast-inputs">
+              <label class="field starting-balance-field" for="starting-balance">
+                <span>Cash</span>
+                <span class="money-input">
+                  <span aria-hidden="true">$</span>
+                  <input
+                    id="starting-balance"
+                    type="text"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    maxlength="15"
+                    required
+                    aria-describedby="as-of-label"
+                  />
+                </span>
+              </label>
+              <label class="field projection-window-field">
+                <span>Window</span>
+                <select id="projection-days" aria-label="Projection window">
+                  <option value="30">30 days</option>
+                  <option value="60">60 days</option>
+                  <option value="90">90 days</option>
+                  <option value="120">4 months</option>
+                  <option value="180">6 months</option>
+                  <option value="365">1 year</option>
+                </select>
+              </label>
+              <button type="submit" class="button primary compact-button">
+                Run the numbers
+              </button>
+            </div>
+            <p class="muted" id="as-of-label"></p>
+          </form>
+        </header>
+
+        <section class="chart-panel chart-panel-primary" aria-label="Projected cash balance chart">
+          <div id="chart-empty-state" class="chart-empty-state is-hidden">
+            <h2>Add cash to start, or try a sample.</h2>
+            <div class="empty-demo-actions" aria-label="Sample scenarios">
+              <button type="button" class="button secondary sample-button" data-sample-scenario="healthy">
+                Stable
+              </button>
+              <button type="button" class="button secondary sample-button" data-sample-scenario="tight">
+                Tight
+              </button>
+              <button type="button" class="button secondary sample-button" data-sample-scenario="risk">
+                At risk
+              </button>
+              <button type="button" class="button secondary sample-button" data-sample-scenario="random">
+                Surprise me
+              </button>
+            </div>
+          </div>
+          <div id="projection-chart"></div>
+          <div class="chart-controls">
+            <div class="chart-layer-controls">
+              <div class="chart-toggles" aria-label="Chart layers">
+                <label class="chart-toggle">
+                  <input id="toggle-cushion-lines" type="checkbox" checked />
+                  <span>Cushion</span>
+                </label>
+                <label class="chart-toggle">
+                  <input id="toggle-average-balance" type="checkbox" checked />
+                  <span>Average</span>
+                </label>
+                <label class="chart-toggle">
+                  <input id="toggle-extrema-points" type="checkbox" checked />
+                  <span>High/low</span>
+                </label>
+              </div>
+            </div>
+            <div class="chart-cushion-strip" aria-label="Cushion target">
+              <div class="cushion-label">
+                <span>Cushion targets</span>
+                <span class="help-tooltip">
+                  <button
+                    type="button"
+                    class="help-tooltip-trigger"
+                    aria-label="About cushion targets"
+                    aria-describedby="cushion-target-help"
+                  >?</button>
+                  <span id="cushion-target-help" role="tooltip">
+                    Red is danger, yellow is caution, and green is your comfortable balance.
+                    Keep them ordered from lowest to highest.
+                  </span>
+                </span>
+              </div>
+              <form id="threshold-form" class="thresholds-form">
+                <label class="threshold-chip threshold-chip-danger">
+                  <span>Red</span>
+                  <input id="threshold-red" type="text" inputmode="decimal" aria-label="Red cushion target" />
+                </label>
+                <label class="threshold-chip threshold-chip-warning">
+                  <span>Yellow</span>
+                  <input id="threshold-yellow" type="text" inputmode="decimal" aria-label="Yellow cushion target" />
+                </label>
+                <label class="threshold-chip threshold-chip-positive">
+                  <span>Green</span>
+                  <input id="threshold-green" type="text" inputmode="decimal" aria-label="Green cushion target" />
+                </label>
+                <p id="threshold-error" class="form-error is-hidden" aria-live="polite"></p>
+              </form>
+            </div>
+          </div>
+        </section>
+        <input id="import-file" type="file" accept="application/json" class="is-hidden" />
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading with-action">
+          <div>
+            <h2>Money moves</h2>
+            <p>
+              Add income and expenses using the dates money reaches or leaves your account. The forecast updates as you edit.
+            </p>
+          </div>
+          <div class="toolbar">
+            <button type="button" id="toggle-rules" class="button ghost">
+              Hide items
+            </button>
+            <button type="button" id="add-money-in-rule" class="button secondary">
+              Add money in
+            </button>
+            <button type="button" id="add-money-out-rule" class="button secondary">
+              Add money out
+            </button>
+          </div>
+        </div>
+        <div id="rules-panel-content">
+          <div id="empty-state" class="empty-state is-hidden">
+            <p>No money moves yet.</p>
+            <p class="muted">
+              Add income or an upcoming bill to turn the forecast from a guess into a plan.
+            </p>
+          </div>
+          <p id="rules-status" class="status-message is-hidden" aria-live="polite"></p>
+          <div id="rules-list" class="stack"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Projection details</h2>
+          <p>
+            The first row is your starting balance. Each upcoming item lands on its scheduled day and
+            updates the running balance across your chosen window.
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Money in</th>
+                <th>Money out</th>
+                <th>Balance</th>
+                <th>Scenario</th>
+              </tr>
+            </thead>
+            <tbody id="projection-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p>
+          Created by Milan Mijatovic with AI-assisted development. This tool is for personal
+          planning, not financial, legal, or tax advice.
+        </p>
+        <nav class="footer-links" aria-label="Legal">
+          <a href="mailto:milan@mijatovic.com">Contact Milan Mijatovic</a>
+          <a href="./privacy.html">Privacy Policy</a>
+          <a href="./terms.html">Terms of Service</a>
+        </nav>
+      </footer>
+    </main>
+
+    <script src="./projectionHealth.js?v=forecast-compact-20260606b"></script>
+    <script src="./content/projectionAnswerCopy.js?v=forecast-compact-20260606b"></script>
+    <script src="./components/projectionAnswer.js?v=forecast-compact-20260606b"></script>
+    <script src="./app.js?v=payment-dates-20261016"></script>
+  </body>
+</html>

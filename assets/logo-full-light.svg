@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 328 72" role="img" aria-labelledby="title">
+  <title id="title">Am I Going Broke?</title>
+  <defs>
+    <filter id="coastalGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 .15 0 0 0 0 .39 0 0 0 0 .92 0 0 0 .36 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g>
+    <rect width="72" height="72" rx="18" fill="#F8FAF7"/>
+    <rect x="4.5" y="4.5" width="63" height="63" rx="15.5" fill="#FFFFFF" stroke="#2563EB" stroke-opacity=".42" stroke-width="1.6"/>
+    <path d="M13 54 C22 48 32 48 41 54 C49 59 57 58 65 53" fill="none" stroke="#67E8F9" stroke-width="2.5" stroke-linecap="round" opacity=".85"/>
+    <circle cx="36" cy="36" r="27" fill="#F1F6FB" stroke="#0B1F44" stroke-width="3.4"/>
+    <path d="M21 19 L29 14" fill="none" stroke="#2563EB" stroke-width="3.4" stroke-linecap="round" filter="url(#coastalGlow)"/>
+    <path d="M47 15 L50 9 L53 16" fill="none" stroke="#F59E0B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="28" cy="28" r="4" fill="#0B1F44"/>
+    <circle cx="44" cy="28" r="4" fill="#0B1F44"/>
+    <path d="M30 38 Q36 33 42 38" fill="none" stroke="#0B1F44" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M10 45 L18 37 L25 48 L34 44" fill="none" stroke="#0B1F44" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M34 44 L41 51 L48 43" fill="none" stroke="#2563EB" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round" filter="url(#coastalGlow)"/>
+    <path d="M48 43 L55 50 L63 38" fill="none" stroke="#16A34A" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M57 38 H63 V44" fill="none" stroke="#16A34A" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text
+    x="88"
+    y="43"
+    fill="#0B1F44"
+    font-family="Inter, Arial, sans-serif"
+    font-size="28"
+    font-weight="800"
+    letter-spacing="0"
+  >Am I Going Broke?</text>
+  <path d="M88 51 H258" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-opacity=".8" filter="url(#coastalGlow)"/>
+</svg>
