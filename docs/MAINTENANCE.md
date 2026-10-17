@@ -14,8 +14,6 @@ Account identifiers, server addresses, personal filesystem locations, credential
 
 Keep deployment credentials outside version control. If a credential is compromised, revoke or rotate it at its issuing service; deleting a file alone does not remove historical copies. Investigate unexpected server host-key changes rather than bypassing verification.
 
-The deployment workflow reads account configuration from Actions secrets: `DREAMHOST_HOST`, `DREAMHOST_USER`, `DREAMHOST_WEB_ROOT`, `DREAMHOST_BACKUP_ROOT`, `DREAMHOST_KNOWN_HOSTS`, and `DREAMHOST_SSH_KEY`. Their values must not be committed. The verified host-key record is supplied privately; strict host checking remains enabled. Automatic project checks never receive these secrets.
-
 ## Recovery
 
 Deployment retains copies of replaced website files and preserves server-only files. This is not a complete site snapshot or a backup of users' financial plans. Obsolete files require a separate review before removal. Backup retention should be reviewed periodically.
