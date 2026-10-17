@@ -2,6 +2,8 @@
 
 ## Unreleased — Repository housekeeping
 
+- Retired four unused full/text logo variants and the completed implementation plan from the current GitHub tree. Local copies remain ignored for optional manual deletion; `docs/CLEANUP.md` records the inventory and rationale. Active icons and OAuth consent assets are retained. Existing Git history is preserved.
+- Recorded the verified private DreamHost history backup in the maintenance notes.
 - Added an explicit rights-reserved notice for the publicly inspectable, proprietary project. No open-source reuse license is granted; GitHub platform rights and third-party terms remain applicable.
 - Rewrote the README around the live app, data handling, current functionality, local setup, checks, deployment, and ownership. Removed outdated spreadsheet context and already-completed roadmap items.
 - Added solo-maintainer feedback guidelines, private security reporting, bug/suggestion templates, and maintenance/recovery notes.
