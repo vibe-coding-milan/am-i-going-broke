@@ -1,5 +1,7 @@
 # amigoingbroke.me
 
+Live app: [amigoingbroke.me](https://amigoingbroke.me/).
+
 A lightweight V1 web app for projecting cash balance from:
 
 - a starting cash balance
@@ -38,15 +40,17 @@ This prototype keeps that same core idea, but makes the daily projection generat
 
 ## Project structure
 
-- [index.html](/Users/milan/Documents/Financial%20Projection/index.html)
-- [privacy.html](/Users/milan/Documents/Financial%20Projection/privacy.html)
-- [terms.html](/Users/milan/Documents/Financial%20Projection/terms.html)
-- [styles.css](/Users/milan/Documents/Financial%20Projection/styles.css)
-- [app.js](/Users/milan/Documents/Financial%20Projection/app.js)
+- [index.html](./index.html)
+- [privacy.html](./privacy.html)
+- [terms.html](./terms.html)
+- [styles.css](./styles.css)
+- [app.js](./app.js)
 
 ## How to use it
 
-Open [index.html](/Users/milan/Documents/Financial%20Projection/index.html) in a browser.
+Use the live app at [amigoingbroke.me](https://amigoingbroke.me/).
+
+For local development, clone this repository and open [index.html](./index.html) in a browser.
 
 Suggested first setup:
 
@@ -84,13 +88,23 @@ TZ=Pacific/Auckland node --test tests/scheduling.test.cjs
 
 ## Hosting
 
-This app can be hosted as a simple static site. Upload:
+The production URL is [https://amigoingbroke.me/](https://amigoingbroke.me/).
 
-- [index.html](/Users/milan/Documents/Financial%20Projection/index.html)
-- [privacy.html](/Users/milan/Documents/Financial%20Projection/privacy.html)
-- [terms.html](/Users/milan/Documents/Financial%20Projection/terms.html)
-- [styles.css](/Users/milan/Documents/Financial%20Projection/styles.css)
-- [app.js](/Users/milan/Documents/Financial%20Projection/app.js)
+This app can be hosted as a simple static site. Publish these files and supporting directories, preserving their relative paths:
+
+- [index.html](./index.html)
+- [privacy.html](./privacy.html)
+- [terms.html](./terms.html)
+- [styles.css](./styles.css)
+- [app.js](./app.js)
+- [projectionHealth.js](./projectionHealth.js)
+- [assets/](./assets/)
+- [components/](./components/)
+- [content/](./content/)
+- [styles/](./styles/)
+
+Public pages: [Privacy Policy](https://amigoingbroke.me/privacy.html) and
+[Terms of Service](https://amigoingbroke.me/terms.html).
 
 User data is stored in the browser, so updating the HTML, CSS, or JS on the server should not erase existing local data. For extra safety, users can export a JSON backup before major updates.
 
@@ -104,7 +118,7 @@ After connecting, the app remembers the Drive connection in this browser. Google
 remain short-lived and are not stored in local storage; the app requests a fresh token when a
 later backup or restore needs one.
 
-To enable it, create a Google OAuth 2.0 Web client, add the site's origin as an authorized
+To enable it, create a Google OAuth 2.0 Web client, add `https://amigoingbroke.me` as an authorized
 JavaScript origin, enable the Google Drive API in the same Google Cloud project, and set the public client ID in
 `index.html`:
 
