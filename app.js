@@ -703,11 +703,8 @@
   var dataDialogMessage = document.querySelector("#data-dialog-message");
   var dataDialogCancel = document.querySelector("#data-dialog-cancel");
   var dataDialogConfirm = document.querySelector("#data-dialog-confirm");
-  var connectDriveButton = document.querySelector("#connect-drive");
   var saveDriveButton = document.querySelector("#save-drive");
   var restoreDriveButton = document.querySelector("#restore-drive");
-  var driveConnectionLabel = document.querySelector("#drive-connection-label");
-  var driveConnectionStatus = document.querySelector("#drive-connection-status");
   var driveBackupStatus = document.querySelector("#drive-backup-status");
   var sampleScenarioButtons = document.querySelectorAll("[data-sample-scenario]");
   var importFileInput = document.querySelector("#import-file");
@@ -2027,16 +2024,18 @@
     }, 2600);
   }
 
-  function showDataStatus(message) {
+  function showDataStatus(message, persistent) {
     if (dataStatusTimeoutId) {
       window.clearTimeout(dataStatusTimeoutId);
     }
 
     dataActionStatus.textContent = message;
     dataActionStatus.classList.remove("is-hidden");
-    dataStatusTimeoutId = window.setTimeout(function () {
-      dataActionStatus.classList.add("is-hidden");
-    }, 4200);
+    if (!persistent) {
+      dataStatusTimeoutId = window.setTimeout(function () {
+        dataActionStatus.classList.add("is-hidden");
+      }, 4200);
+    }
   }
 
   function closeDataMenu() {
@@ -2047,6 +2046,7 @@
 
   function requestDataConfirmation(copy, options) {
     var settings = options || {};
+    var returnFocus = settings.returnFocus || document.activeElement;
 
     closeDataMenu();
 
@@ -2068,6 +2068,9 @@
         dataDialog.removeEventListener("close", handleClose);
         if (dataMenu) {
           dataMenu.setAttribute("open", "");
+          var focusTarget = returnFocus && dataMenu.contains(returnFocus) && !returnFocus.disabled
+            ? returnFocus : dataMenu.querySelector("summary");
+          focusTarget.focus();
         }
         resolve(dataDialog.returnValue === "confirm");
       }
@@ -2114,26 +2117,10 @@
 
   function syncDriveStatus() {
     var backupAt = getLocalStorageValue(DRIVE_BACKUP_AT_STORAGE_KEY);
-    var driveLinked =
-      getLocalStorageValue(DRIVE_CONNECTED_STORAGE_KEY) === "true" ||
-      Boolean(getLocalStorageValue(DRIVE_FILE_ID_STORAGE_KEY));
     var formatted;
 
-    if (googleAccessToken) {
-      driveConnectionLabel.textContent = "Drive connected";
-      driveConnectionStatus.textContent = "Ready for backup";
-    } else if (driveLinked) {
-      driveConnectionLabel.textContent = "Drive linked";
-      driveConnectionStatus.textContent = "Reconnects when needed";
-    } else {
-      driveConnectionLabel.textContent = "Connect Drive";
-      driveConnectionStatus.textContent = "Not connected";
-    }
-
-    if (!backupAt) {
-      driveBackupStatus.textContent = "No Drive backup yet";
-      return;
-    }
+    driveBackupStatus.classList.add("is-hidden");
+    if (!backupAt || Number.isNaN(Date.parse(backupAt))) return;
 
     try {
       formatted = new Intl.DateTimeFormat("en-US", {
@@ -2144,8 +2131,9 @@
         minute: "2-digit",
       }).format(new Date(backupAt));
       driveBackupStatus.textContent = "Last backup · " + formatted;
+      driveBackupStatus.classList.remove("is-hidden");
     } catch (error) {
-      driveBackupStatus.textContent = "Drive backup available";
+      driveBackupStatus.textContent = "";
     }
   }
 
@@ -2244,7 +2232,7 @@
       (reason === "insufficientPermissions" ||
         normalizedMessage.indexOf("insufficient authentication scopes") !== -1)
     ) {
-      return "Google Drive permission was not granted. Reconnect Google Drive and allow file access.";
+      return "Google Drive permission was not granted. Try the action again and allow file access.";
     }
 
     if (status === 401) {
@@ -2285,6 +2273,12 @@
             return null;
           })
           .then(function (details) {
+            var apiError = details && details.error;
+            if (response.status === 403 && apiError &&
+                ((apiError.errors || []).some(function (item) { return item.reason === "insufficientPermissions"; }) ||
+                 String(apiError.message || "").toLowerCase().indexOf("insufficient authentication scopes") !== -1)) {
+              googleAccessToken = null;
+            }
             var error = new Error(driveErrorMessage(response.status, details));
             error.status = response.status;
             error.details = details;
@@ -2379,7 +2373,7 @@
   function saveBackupToDrive() {
     var savedAt;
 
-    findDriveBackupFileId()
+    return findDriveBackupFileId()
       .then(function (existingFileId) {
         if (existingFileId) {
           return requestDataConfirmation(UI_COPY.confirms.overwriteDrive).then(function (confirmed) {
@@ -2429,7 +2423,7 @@
   }
 
   function restoreBackupFromDrive() {
-    findDriveBackupFileId()
+    return findDriveBackupFileId()
       .then(function (fileId) {
         if (!fileId) {
           throw new Error("No Google Drive backup was found for this app.");
@@ -3019,18 +3013,33 @@
     });
   });
 
-  connectDriveButton.addEventListener("click", function () {
-    requestDriveAccess("")
-      .then(function () {
-        showDataStatus(UI_COPY.status.driveConnected);
-      })
-      .catch(function (error) {
-        showDataIssue(error.message || UI_COPY.status.driveFailed);
-      });
-  });
+  function runDriveAction(action, button, message) {
+    if (dataMenu.getAttribute("data-busy") === "true") return Promise.resolve();
+    var controls = [saveDriveButton, restoreDriveButton, importDataButton, resetDataButton];
+    dataMenu.setAttribute("data-busy", "true");
+    button.setAttribute("aria-busy", "true");
+    controls.forEach(function (control) { control.disabled = true; });
+    showDataStatus(message, true);
+    return Promise.resolve().then(action).finally(function () {
+      dataMenu.removeAttribute("data-busy");
+      button.removeAttribute("aria-busy");
+      controls.forEach(function (control) { control.disabled = false; });
+      if (dataActionStatus.textContent === message) dataActionStatus.classList.add("is-hidden");
+    });
+  }
 
-  saveDriveButton.addEventListener("click", saveBackupToDrive);
-  restoreDriveButton.addEventListener("click", restoreBackupFromDrive);
+  saveDriveButton.addEventListener("click", function () {
+    runDriveAction(saveBackupToDrive, saveDriveButton, "Backing up to Drive…");
+  });
+  restoreDriveButton.addEventListener("click", function () {
+    runDriveAction(restoreBackupFromDrive, restoreDriveButton, "Loading Drive backup…");
+  });
+  dataMenu.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closeDataMenu();
+    dataMenu.querySelector("summary").focus();
+  });
 
   document.addEventListener("click", function (event) {
     if (dataMenu && dataMenu.hasAttribute("open") && !dataMenu.contains(event.target)) {

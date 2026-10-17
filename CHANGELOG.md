@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-17 — Compact Data menu
+
+- Reduced the menu to four clearly labeled backup/restore actions and a separated Start over action; removed repeated helper text and the separate Drive connection/status row.
+- Kept local file and manual Google Drive backups directly accessible, standardized outline icons, retained 44px action targets, and compacted the mobile Appearance footer.
+- Drive actions authorize when needed and show progress while preventing duplicate operations. Expired-token retry remains bounded; insufficient-permission errors clear the cached token so the next user attempt can authorize again.
+- Kept known backup timestamps, visible errors, restore previews, download-first safeguards, and destructive confirmations. Cancelling a dialog restores menu focus; Escape closes the menu.
+- Validation: 21 regression tests in each of two time zones (42 runs), source/link checks, local download/preview/restore round trip, reset cancellation focus, light/dark review, and phone/landscape/desktop checks. Menu height fell from about 512px to 337px on desktop and 614px to 422px on mobile, without shrinking action targets.
+- Actual Google authorization/transfers and physical-device/screen-reader checks remain pending. See [menu review and implementation notes](docs/DATA_MENU_REVIEW.md).
+
 ## 2026-10-17 — Headline typography, colors, and response variety
 
 - Matched the response to the question's font, weight, and responsive size. Question and answer share normal inline wrapping; the hidden untyped suffix reserves space without reducing the answer's typography.

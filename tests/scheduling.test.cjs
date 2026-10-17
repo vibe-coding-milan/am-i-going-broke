@@ -256,3 +256,71 @@ test("reduced motion skips both effects and can finish a response already in pro
   assert.equal(h.visual(), "Nope. Actually, you can take me out to dinner.");
   assert.equal(h.timers.size, 0);
 });
+
+function isolatedFunctions(from, to, globals) {
+  const isolated = vm.createContext(globals);
+  const start = source.indexOf(from), end = source.indexOf(to, start);
+  assert.ok(start >= 0 && end > start);
+  vm.runInContext(source.slice(start, end), isolated);
+  return isolated;
+}
+
+test("Drive actions authorize on demand and retry expired access only once", async () => {
+  let authorizations = 0, fetches = 0;
+  const responses = [];
+  const drive = isolatedFunctions("  function ensureDriveAccess()", "  function createDriveBackup(", {
+    googleAccessToken: null, Headers,
+    requestDriveAccess: () => { drive.googleAccessToken = "token" + (++authorizations); return Promise.resolve(drive.googleAccessToken); },
+    syncDriveStatus() {},
+    window: { fetch: async (url, options) => { fetches++; assert.match(options.headers.get("Authorization"), /^Bearer token/); return responses.shift(); } },
+  });
+  const denied = { ok: false, status: 401, clone: () => ({ json: async () => ({}) }) };
+  responses.push(denied, { ok: true, status: 200 });
+  assert.equal((await drive.driveRequest("/backup")).status, 200);
+  assert.equal(authorizations, 2);
+  assert.equal(fetches, 2);
+  drive.googleAccessToken = null;
+  responses.push(denied, denied);
+  await assert.rejects(drive.driveRequest("/backup"), error => error.status === 401);
+  assert.equal(authorizations, 4);
+  assert.equal(fetches, 4);
+});
+
+test("Drive permission errors allow the next user retry to request authorization again", async () => {
+  let authorizations = 0;
+  const responses = [{ ok: false, status: 403, clone: () => ({ json: async () => ({
+    error: { errors: [{ reason: "insufficientPermissions" }] },
+  }) }) }, { ok: true, status: 200 }];
+  const drive = isolatedFunctions("  function ensureDriveAccess()", "  function createDriveBackup(", {
+    googleAccessToken: "old-token", Headers,
+    requestDriveAccess: () => { authorizations++; return Promise.resolve("fresh-token"); },
+    syncDriveStatus() {}, window: { fetch: async () => responses.shift() },
+  });
+  await assert.rejects(drive.driveRequest("/backup"), error => error.status === 403);
+  assert.equal(drive.googleAccessToken, null);
+  assert.equal(authorizations, 0);
+  assert.equal((await drive.driveRequest("/backup")).status, 200);
+  assert.equal(authorizations, 1);
+});
+
+test("busy Drive operations prevent duplicates and release controls on completion or failure", async () => {
+  const attrs = {};
+  const button = () => ({ disabled: false, setAttribute() {}, removeAttribute() {} });
+  const controls = [button(), button(), button(), button()];
+  const status = { textContent: "", classList: { add() {} } };
+  const ui = isolatedFunctions("  function runDriveAction(", "  saveDriveButton.addEventListener(", {
+    dataMenu: { getAttribute: key => attrs[key], setAttribute: (key, value) => { attrs[key] = value; }, removeAttribute: key => { delete attrs[key]; } },
+    saveDriveButton: controls[0], restoreDriveButton: controls[1], importDataButton: controls[2], resetDataButton: controls[3],
+    dataActionStatus: status, showDataStatus: message => { status.textContent = message; },
+  });
+  let finish, calls = 0;
+  const pending = ui.runDriveAction(() => { calls++; return new Promise(resolve => { finish = resolve; }); }, controls[0], "Saving…");
+  await ui.runDriveAction(() => { calls++; }, controls[0], "Saving…");
+  assert.equal(calls, 1);
+  assert.ok(controls.every(control => control.disabled));
+  finish(); await pending;
+  assert.ok(controls.every(control => !control.disabled));
+  assert.equal(attrs["data-busy"], undefined);
+  await assert.rejects(ui.runDriveAction(() => Promise.reject(new Error("network")), controls[1], "Loading…"));
+  assert.ok(controls.every(control => !control.disabled));
+});
