@@ -22,3 +22,6 @@ id_ed25519*
 /assets/logo-full-light.svg
 /assets/logo-text.svg
 /assets/logo-text-light.svg
+
+# Legacy local server-key file; live workflows use encrypted configuration.
+/scripts/dreamhost_known_hosts

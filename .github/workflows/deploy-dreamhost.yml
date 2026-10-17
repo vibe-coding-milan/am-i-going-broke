@@ -39,25 +39,36 @@ jobs:
       - name: Check project
         run: node scripts/check-project.cjs
 
-      - name: Prepare deployment key
+      - name: Prepare deployment credentials
         env:
           DEPLOY_KEY: ${{ secrets.DREAMHOST_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DREAMHOST_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           if [[ -z "$DEPLOY_KEY" ]]; then
             echo 'Add the DREAMHOST_SSH_KEY repository secret before running this workflow.' >&2
             exit 1
           fi
+          if [[ -z "$DEPLOY_KNOWN_HOSTS" ]]; then
+            echo 'Add the DREAMHOST_KNOWN_HOSTS repository secret before running this workflow.' >&2
+            exit 1
+          fi
           umask 077
           printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$RUNNER_TEMP/dreamhost_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" | tr -d '\r' > "$RUNNER_TEMP/dreamhost_known_hosts"
           ssh-keygen -y -P '' -f "$RUNNER_TEMP/dreamhost_key" > /dev/null
 
       - name: Preview or deploy public website files
         env:
           DEPLOY_MODE: ${{ inputs.mode }}
           DREAMHOST_KEY_FILE: ${{ runner.temp }}/dreamhost_key
+          DREAMHOST_KNOWN_HOSTS_FILE: ${{ runner.temp }}/dreamhost_known_hosts
+          DREAMHOST_HOST: ${{ secrets.DREAMHOST_HOST }}
+          DREAMHOST_USER: ${{ secrets.DREAMHOST_USER }}
+          DREAMHOST_WEB_ROOT: ${{ secrets.DREAMHOST_WEB_ROOT }}
+          DREAMHOST_BACKUP_ROOT: ${{ secrets.DREAMHOST_BACKUP_ROOT }}
         run: bash scripts/deploy-dreamhost.sh "$DEPLOY_MODE"
 
       - name: Remove temporary key
         if: always()
-        run: rm -f "$RUNNER_TEMP/dreamhost_key"
+        run: rm -f "$RUNNER_TEMP/dreamhost_key" "$RUNNER_TEMP/dreamhost_known_hosts"
