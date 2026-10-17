@@ -403,24 +403,6 @@ h1 {
   stroke-linejoin: round;
 }
 
-.data-menu-icon.drive-connect-icon {
-  border-color: var(--secondary-line);
-  background: var(--secondary-soft);
-  color: var(--secondary);
-}
-
-.data-menu-icon.drive-save-icon {
-  border-color: var(--positive-line);
-  background: var(--positive-soft);
-  color: var(--positive);
-}
-
-.data-menu-icon.drive-restore-icon {
-  border-color: var(--primary-line);
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
 .data-menu-action:hover {
   background: var(--hover-bg);
 }
@@ -2705,4 +2687,24 @@ button:disabled { opacity: .45; cursor: default; }
   .hero-text { display: block; font-size: clamp(1.1rem, 4.7vw, 1.45rem); line-height: 1.2; }
   .hero h1 { display: inline; font: inherit; line-height: inherit; }
   .hero .projection-answer { display: inline; font: inherit; line-height: inherit; }
+}
+
+/* Compact backup actions: visible labels, consistent icons, full touch targets. */
+.data-menu-panel { width: min(280px, calc(100vw - 24px)); }
+.data-menu-heading { display: block; margin: 0; padding: 7px 10px; background: none; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+.data-menu-section { padding: 5px 4px; gap: 0; }
+.data-menu-label { margin: 3px 8px 5px; font-size: .65rem; letter-spacing: .05em; }
+.data-menu-group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding-right: 8px; }
+.data-menu-hint { color: var(--muted); font-size: .66rem; }
+.data-menu-action { grid-template-columns: 24px minmax(0, 1fr); min-height: 44px; gap: 9px; padding: 6px 8px; }
+.data-menu-icon, .danger-action .data-menu-icon { width: 24px; height: 24px; border: 0; border-radius: 0; background: none; }
+.data-menu-icon { color: var(--muted-strong); }
+.data-menu-action-copy > span { font-size: .84rem; line-height: 1.35; }
+.data-menu-note { padding: 3px 8px 2px; font-size: .68rem; }
+.data-menu-section-danger { padding: 5px 4px; }
+@media (max-width: 860px) {
+  .data-menu-panel { width: min(300px, calc(100vw - 20px)); }
+  .data-menu .theme-switcher { gap: 4px; padding: 6px 4px; }
+  .mobile-theme-heading { padding: 2px 4px 4px; font-size: .74rem; }
+  .data-menu .theme-switcher button { min-height: 44px; }
 }

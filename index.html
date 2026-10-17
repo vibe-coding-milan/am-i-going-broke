@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=forecast-headline-20261017b" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=forecast-headline-20261017b" />
+    <link rel="stylesheet" href="./styles.css?v=compact-data-menu-20261017" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=compact-data-menu-20261017" />
   </head>
   <body>
     <main class="app-shell">
@@ -70,19 +70,15 @@
               <span>Data</span>
             </summary>
             <div class="data-menu-panel">
-              <div class="data-menu-heading">
-                <strong>Your data</strong>
-                <span>Saved in this browser</span>
-              </div>
-              <div class="data-menu-section">
-                <span class="data-menu-label">This browser</span>
+              <p class="data-menu-heading">Saved in this browser</p>
+              <div class="data-menu-section" role="group" aria-labelledby="file-backup-heading">
+                <span class="data-menu-label" id="file-backup-heading">Backup file</span>
                 <button type="button" id="export-data" class="data-menu-action">
                   <span class="data-menu-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM14 4v5h5M12 11v6m0 0-3-3m3 3 3-3" /></svg>
                   </span>
                   <span class="data-menu-action-copy">
                     <span>Download backup</span>
-                    <small>Save a copy</small>
                   </span>
                 </button>
                 <button type="button" id="import-data" class="data-menu-action">
@@ -90,42 +86,29 @@
                     <svg viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4zM12 17v-6m0 0-3 3m3-3 3 3" /></svg>
                   </span>
                   <span class="data-menu-action-copy">
-                    <span>Restore a file</span>
-                    <small>Use a backup</small>
+                    <span>Restore backup…</span>
                   </span>
                 </button>
               </div>
-              <div class="data-menu-section">
-                <span class="data-menu-label">Google Drive</span>
-                <p class="data-menu-note">Manual backups. Changes are not synced automatically.</p>
-                <button type="button" id="connect-drive" class="data-menu-action">
-                  <span class="data-menu-icon drive-connect-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M9.5 14.5l5-5M7.8 17.2l-1 1a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M16.2 6.8l1-1a3.5 3.5 0 0 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" /></svg>
-                  </span>
-                  <span class="data-menu-action-copy">
-                    <span id="drive-connection-label">Connect Drive</span>
-                    <small id="drive-connection-status">Not connected</small>
-                  </span>
-                </button>
-                <button type="button" id="save-drive" class="data-menu-action">
-                  <span class="data-menu-icon drive-save-icon" aria-hidden="true">
+              <div class="data-menu-section" role="group" aria-labelledby="drive-backup-heading">
+                <div class="data-menu-group-heading"><span class="data-menu-label" id="drive-backup-heading">Google Drive</span><span class="data-menu-hint">Manual backup</span></div>
+                <button type="button" id="save-drive" class="data-menu-action" aria-label="Back up to Google Drive">
+                  <span class="data-menu-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M7 18H6a4 4 0 0 1-.5-8A6.5 6.5 0 0 1 18 9a4.5 4.5 0 0 1 0 9h-1M12 19V11m0 0-3 3m3-3 3 3" /></svg>
                   </span>
                   <span class="data-menu-action-copy">
-                    <span>Back up to Drive</span>
-                    <small>Save current plan</small>
+                    <span>Back up</span>
                   </span>
                 </button>
-                <button type="button" id="restore-drive" class="data-menu-action">
-                  <span class="data-menu-icon drive-restore-icon" aria-hidden="true">
+                <button type="button" id="restore-drive" class="data-menu-action" aria-label="Restore from Google Drive">
+                  <span class="data-menu-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M7 18H6a4 4 0 0 1-.5-8A6.5 6.5 0 0 1 18 9a4.5 4.5 0 0 1 0 9h-1M12 10v9m0 0-3-3m3 3 3-3" /></svg>
                   </span>
                   <span class="data-menu-action-copy">
-                    <span>Restore from Drive</span>
-                    <small>Replace current plan</small>
+                    <span>Restore…</span>
                   </span>
                 </button>
-                <span id="drive-backup-status" class="data-menu-note">No Drive backup yet</span>
+                <span id="drive-backup-status" class="data-menu-note is-hidden"></span>
               </div>
               <div class="data-menu-section data-menu-section-danger">
                 <button type="button" id="reset-data" class="data-menu-action danger-action">
@@ -133,8 +116,7 @@
                     <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" /></svg>
                   </span>
                   <span class="data-menu-action-copy">
-                    <span>Start over</span>
-                    <small>Clear this plan</small>
+                    <span>Start over…</span>
                   </span>
                 </button>
               </div>
@@ -383,9 +365,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=forecast-headline-20261017b"></script>
-    <script src="./content/projectionAnswerCopy.js?v=forecast-headline-20261017b"></script>
-    <script src="./components/projectionAnswer.js?v=forecast-headline-20261017b"></script>
-    <script src="./app.js?v=forecast-headline-20261017b"></script>
+    <script src="./projectionHealth.js?v=compact-data-menu-20261017"></script>
+    <script src="./content/projectionAnswerCopy.js?v=compact-data-menu-20261017"></script>
+    <script src="./components/projectionAnswer.js?v=compact-data-menu-20261017"></script>
+    <script src="./app.js?v=compact-data-menu-20261017"></script>
   </body>
 </html>
