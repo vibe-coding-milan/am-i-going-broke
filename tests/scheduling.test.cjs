@@ -186,8 +186,9 @@ function responseHarness(reduced = false) {
     vm.runInContext(fs.readFileSync(require("node:path").join(__dirname, "..", file), "utf8"), headerContext);
   return { element, motion, timers,
     header: headerContext.ProjectionAnswer.create(element),
-    visual: () => children[".projection-answer-text"].textContent,
+    visual: () => children[element.className.includes("is-thinking") ? ".projection-answer-thinking" : ".projection-answer-text"].textContent.replace(/\u00a0/g, " "),
     announcement: () => children[".projection-answer-announcement"].textContent,
+    remainder: () => children[".projection-answer-sizer"].textContent.replace(/\u00a0/g, " "),
     advance(milliseconds) {
       const target = now + milliseconds;
       while (true) {
@@ -212,14 +213,16 @@ test("response thinks for a second, types at a readable pace, and announces only
   assert.equal(h.announcement(), "");
   h.advance(374);
   assert.equal(h.visual(), "N");
+  assert.equal(h.visual() + h.remainder(), "Not yet. Too close, babe.");
   assert.equal(h.element.attrs["aria-busy"], "true");
   h.advance(10000);
   assert.equal(h.visual(), "Not yet. Too close, babe.");
+  assert.equal(h.remainder(), "");
   assert.match(h.announcement(), /^Not yet.*selected forecast period/);
   assert.equal(h.element.attrs["aria-busy"], "false");
 });
 
-test("new edits replace unfinished responses; unchanged renders do not replay or reshuffle", () => {
+test("new edits refresh scenario responses; unchanged renders do not replay or reshuffle", () => {
   const h = responseHarness();
   h.header.update({ hasProjectionData: true, status: "Healthy", forecastKey: "one" });
   h.advance(1160);
@@ -233,6 +236,10 @@ test("new edits replace unfinished responses; unchanged renders do not replay or
   h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "three" });
   assert.equal(h.visual(), ".");
   h.advance(10000);
+  assert.equal(h.visual(), "Yep. I'm not saying rob a bank, but...");
+  assert.equal(h.element.attrs["data-answer"], "yes");
+  h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "three", refresh: true });
+  h.advance(10000);
   assert.equal(h.visual(), "Yep. Have you considered a life of crime?");
 });
 
@@ -240,6 +247,7 @@ test("reduced motion skips both effects and can finish a response already in pro
   const h = responseHarness(true);
   h.header.update({ hasProjectionData: true, status: "Tight", forecastKey: "one" });
   assert.match(h.visual(), /^Not yet\./);
+  assert.equal(h.element.attrs["data-answer"], "no");
   assert.equal(h.timers.size, 0);
   h.motion.matches = false;
   h.header.update({ hasProjectionData: true, status: "Healthy", forecastKey: "two" });

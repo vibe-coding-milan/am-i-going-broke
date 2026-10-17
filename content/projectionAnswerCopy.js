@@ -10,7 +10,7 @@
       ],
       Building: [
         "Nope. Look at you, having a financial arc.",
-        "Nope. Cushion loading.",
+        "Nope. Your balance is building.",
       ],
       Stable: ["Not today. The bills have been contained."],
       Tight: [

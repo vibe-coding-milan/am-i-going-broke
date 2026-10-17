@@ -739,6 +739,7 @@
   var ledgerLimit = 20;
   var inspectChartDay = function () {};
   var chartInspectionIndex = null;
+  var answerRefreshRequested = false;
   var mobileQuery = window.matchMedia("(max-width: 860px)");
   var themeSwitcher = document.querySelector(".theme-switcher");
   var utilityHome = themeSwitcher.parentNode;
@@ -1155,6 +1156,8 @@
   }
 
   function renderSummary(rows) {
+    var refreshAnswer = answerRefreshRequested;
+    answerRefreshRequested = false;
     var summary = summarizeProjection(rows);
     var health = summary.projectionHealth;
     var hasData = hasProjectionData();
@@ -1224,6 +1227,7 @@
         status: health.status,
         hasProjectionData: hasData,
         dropsBelowZero: Boolean(brokePoint),
+        refresh: refreshAnswer,
         forecastKey: JSON.stringify([state.startDate, state.startingBalance, state.projectionDays,
           state.recurringRules, state.skippedInstances, state.thresholds]),
       });
@@ -2724,7 +2728,7 @@
     persistAndRender(UI_COPY.status.sampleLoaded + " " + sample.label + ".");
   }
 
-  function refreshFromToday() {
+  function refreshFromToday(refreshAnswer) {
     var cash = startingBalanceInput.value.replace(/[$,\s]/g, "");
     var valid = /^-?(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cash);
     var balanceError = document.querySelector("#balance-error");
@@ -2735,6 +2739,7 @@
     state.lastRefreshDate = state.startDate;
     state.startingBalance = clampCashBalance(Number(cash));
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
+    answerRefreshRequested = refreshAnswer === true;
     persistAndRender("Forecast updated from today.");
   }
 
@@ -2850,7 +2855,7 @@
 
   startingBalanceForm.addEventListener("submit", function (event) {
     event.preventDefault();
-    refreshFromToday();
+    refreshFromToday(true);
   });
 
   startingBalanceInput.addEventListener("change", function () {

@@ -1,17 +1,17 @@
-/* Reserve the complete answer's space while the visible text thinks and types. */
-.projection-answer {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  min-height: 1.4em;
-  margin: 0;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: clamp(.95rem, 1.5vw, 1.15rem);
-  font-weight: 600;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
+:root, :root[data-theme="dark"] {
+  --answer-yes: var(--danger);
+  --answer-no: var(--secondary);
 }
-.projection-answer-sizer { visibility: hidden; grid-area: 1 / 1; }
-.projection-answer-text { position: absolute; inset: 0; white-space: normal; }
+:root[data-theme="light"] {
+  --answer-yes: #b91c1c;
+  --answer-no: var(--primary);
+}
+/* Typed prefix and hidden remainder share normal inline wrapping at headline size. */
+.projection-answer { position: relative; color: var(--text); overflow-wrap: anywhere; }
+.projection-answer[data-answer="yes"] { color: var(--answer-yes); }
+.projection-answer[data-answer="no"] { color: var(--answer-no); }
+.projection-answer-sizer { visibility: hidden; }
+.projection-answer-text { white-space: normal; }
+.projection-answer-thinking { display: none; position: absolute; top: 0; left: 0; white-space: nowrap; }
 .projection-answer.is-thinking { color: var(--muted-strong); }
+.projection-answer.is-thinking .projection-answer-thinking { display: inline; }
