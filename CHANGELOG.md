@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-17 — Connected cushion controls
+
+- Removed visible checkmarks from the three chart toggles while preserving native keyboard and screen-reader operation, full control hit areas, and checked/off styling.
+- Centered the desktop toolbar and grouped Cushions with its three compact target fields inside one shared container. On phones, the Cushions control connects visually to the target row, with Average and High/low aligned alongside it.
+- Retained one visibility toggle for all three targets, independent amount editing, validation, and saved values.
+
 ## 2026-10-17 — Aligned chart options
 
 - Placed Average, High/low, and Cushions directly beside one another with identical visible checkbox-toggle styling and aligned 52px controls, including clear off and keyboard-focus states.

@@ -2710,17 +2710,18 @@ button:disabled { opacity: .45; cursor: default; }
 }
 
 /* Chart options: matching toggles, followed by compact editable target fields. */
-.chart-controls { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; gap: 12px 16px; padding-top: 12px; }
-.chart-layer-controls { padding-top: 0; flex: 0 0 auto; align-self: flex-start; }
-.chart-toggles { display: grid; grid-template-columns: repeat(3, max-content); gap: 6px; padding: 0; border: 0; background: none; backdrop-filter: none; box-shadow: none; }
+.chart-controls { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 10px; padding-top: 12px; }
+.chart-layer-controls { padding-top: 7px; flex: 0 0 auto; align-self: flex-start; }
+.chart-toggles { display: grid; grid-template-columns: repeat(2, max-content); gap: 6px; padding: 0; border: 0; background: none; backdrop-filter: none; box-shadow: none; }
 .chart-controls .chart-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 52px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--input-bg); color: var(--muted-strong); }
-.chart-controls .chart-toggle input { position: static; inset: auto; opacity: 1; flex: 0 0 16px; width: 16px; min-width: 0; max-width: 16px; height: 16px; min-height: 0; margin: 0; padding: 0; appearance: auto; accent-color: var(--primary); cursor: pointer; box-shadow: none; }
+.chart-controls .chart-toggle { position: relative; cursor: pointer; }
+.chart-controls .chart-toggle input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; cursor: pointer; }
 .chart-controls .chart-toggle span, .chart-controls .chart-toggle input:checked + span { display: inline; width: auto; min-height: 0; margin: 0; padding: 0; background: none; box-shadow: none; color: inherit; font: inherit; }
 .chart-controls .chart-toggle:has(input:checked) { border-color: var(--primary-line); background: var(--primary-soft); color: var(--text); }
 .chart-controls .chart-toggle:hover { border-color: var(--primary); }
 .chart-controls .chart-toggle:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .chart-controls .chart-toggle input:focus-visible, .chart-controls .chart-toggle input:focus-visible + span { outline: none; }
-.chart-cushion-strip { display: block; flex: 0 1 auto; min-width: 0; max-width: 100%; border: 0; padding: 0; }
+.chart-cushion-strip { display: flex; align-items: flex-start; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; border: 1px solid var(--line); border-radius: var(--radius-md); padding: 6px; background: var(--surface-raised); }
 .thresholds-form { grid-template-columns: repeat(3, minmax(0, 112px)); justify-content: start; gap: 8px; max-width: 100%; }
 .threshold-chip { height: 52px; min-width: 0; grid-template-rows: 12px minmax(0, 1fr); padding: 5px 7px; gap: 2px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--input-bg); box-shadow: none; cursor: text; }
 .threshold-chip > span { color: var(--muted); font-size: .68rem; line-height: 12px; letter-spacing: .03em; }
@@ -2732,10 +2733,20 @@ button:disabled { opacity: .45; cursor: default; }
 .threshold-chip-warning { border-color: var(--warning-line); background: var(--warning-soft); }
 .threshold-chip-positive { border-color: var(--positive-line); background: var(--positive-soft); }
 @media (max-width: 700px) {
-  .chart-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .chart-controls .chart-layer-controls { padding-top: 0; }
-  .chart-layer-controls, .chart-cushion-strip { width: 100%; }
-  .chart-toggles, .thresholds-form { width: min(100%, 352px); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .chart-controls .chart-toggle { padding: 8px 5px; font-size: .72rem; gap: 5px; }
+  .chart-controls { gap: 10px; }
+  .chart-controls .chart-layer-controls { padding-top: 7px; }
+  .chart-controls .chart-toggle { padding: 8px 10px; font-size: .72rem; }
+  .chart-cushion-strip { flex-wrap: wrap; justify-content: center; }
+  .thresholds-form { width: min(100%, 352px); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+}
+@media (max-width: 520px) {
+  .chart-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .chart-controls .chart-layer-controls { display: contents; }
+  .chart-toggles { display: contents; }
+  .chart-controls > .chart-layer-controls .chart-toggle { margin: 7px 6px 0 0; }
+  .chart-cushion-strip { display: contents; }
+  .chart-cushion-strip > .chart-toggle { margin: 0; border: 7px solid var(--surface-raised); outline-offset: 0; box-shadow: 0 0 0 1px var(--line); border-radius: 8px 8px 0 0; min-height: 66px; }
+  .chart-cushion-strip > .chart-toggle:has(input:checked) { border-color: var(--surface-raised); }
+  .thresholds-form { grid-column: 1 / -1; width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 8px 0 8px 8px; background: var(--surface-raised); }
 }
 .chart-controls .chart-toggle:focus-within { outline-color: var(--primary); }
