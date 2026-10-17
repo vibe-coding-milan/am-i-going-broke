@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=mobile-refresh-20261016" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=mobile-refresh-20261016" />
+    <link rel="stylesheet" href="./styles.css?v=forecast-refinement-20261017" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=forecast-refinement-20261017" />
   </head>
   <body>
     <main class="app-shell">
@@ -61,9 +61,6 @@
               aria-live="polite"
               aria-atomic="true"
             ></div>
-            <p class="hero-copy">
-              Add what's coming in, what's going out, and see where your balance is headed.
-            </p>
           </div>
         </section>
         <div class="topbar-utilities" aria-label="App utilities">
@@ -210,7 +207,6 @@
                   />
                 </span>
               </label>
-              <label class="field balance-date-field"><span>Balance as of</span><input id="balance-date" type="date" required aria-describedby="as-of-label" /></label>
               <label class="field projection-window-field">
                 <span>Forecast period</span>
                 <select id="projection-days" aria-label="Forecast period">
@@ -250,19 +246,16 @@
               </button>
             </div>
           </div>
-          <div id="projection-chart"></div>
+          <div class="chart-plot-wrap">
+          <div id="projection-chart" tabindex="0" role="group" aria-label="Forecast chart. Hover or tap to inspect. Use left and right arrow keys to inspect dates; Home and End for the first and last day." aria-describedby="chart-inspection-value"></div>
           <div class="chart-inspector is-hidden" aria-label="Inspect forecast">
             <div class="chart-inspection-heading"><output id="chart-inspection-value" aria-live="polite"></output><span id="chart-inspection-note"></span></div>
-            <div class="chart-inspection-controls"><button type="button" id="chart-previous" class="button ghost" aria-label="Inspect previous day">Prev</button><input id="chart-date-slider" type="range" min="0" max="29" value="0" aria-label="Inspect forecast date" /><button type="button" id="chart-next" class="button ghost" aria-label="Inspect next day">Next</button></div>
+          </div>
           </div>
           <details class="chart-options" open><summary>Chart options &amp; cushion targets</summary>
           <div class="chart-controls">
             <div class="chart-layer-controls">
               <div class="chart-toggles" aria-label="Chart layers">
-                <label class="chart-toggle">
-                  <input id="toggle-cushion-lines" type="checkbox" checked />
-                  <span>Cushion</span>
-                </label>
                 <label class="chart-toggle">
                   <input id="toggle-average-balance" type="checkbox" checked />
                   <span>Average</span>
@@ -275,7 +268,12 @@
             </div>
             <div class="chart-cushion-strip" aria-label="Cushion target">
               <div class="cushion-label">
-                <span>Cushion targets</span>
+                <label class="chart-toggle">
+                  <input id="toggle-cushion-lines" type="checkbox" checked />
+                  <span>Cushion</span>
+                </label>
+
+                <span class="visually-hidden">Cushion targets</span>
                 <span class="help-tooltip">
                   <button
                     type="button"
@@ -368,7 +366,8 @@
             <tbody id="projection-table-body"></tbody>
           </table>
         </div>
-        <button type="button" id="show-more-transactions" class="button ghost mobile-more is-hidden">Show more transactions</button>
+        <button type="button" id="show-more-transactions" class="button ghost mobile-more is-hidden">Show more</button>
+        <p id="transaction-count" class="transaction-count"></p>
       </section>
 
       <footer class="app-footer">
@@ -384,9 +383,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=mobile-refresh-20261016"></script>
-    <script src="./content/projectionAnswerCopy.js?v=mobile-refresh-20261016"></script>
-    <script src="./components/projectionAnswer.js?v=mobile-refresh-20261016"></script>
-    <script src="./app.js?v=mobile-refresh-20261016"></script>
+    <script src="./projectionHealth.js?v=forecast-refinement-20261017"></script>
+    <script src="./content/projectionAnswerCopy.js?v=forecast-refinement-20261017"></script>
+    <script src="./components/projectionAnswer.js?v=forecast-refinement-20261017"></script>
+    <script src="./app.js?v=forecast-refinement-20261017"></script>
   </body>
 </html>

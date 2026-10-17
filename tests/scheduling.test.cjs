@@ -156,3 +156,31 @@ test("storage failure is reported without interrupting the in-memory plan", () =
   assert.equal(hidden, true);
   assert.equal(stored.data.recurringRules[0].endDate, "2026-12-25");
 });
+
+test("today-based forecasts retain the balance confirmation date and original count anchor", () => {
+  const saved = context.normalizeState({ startDate: "2026-01-01", lastRefreshDate: "2026-01-01",
+    startingBalance: 750, recurringRules: [rule({ startDate: "", limitType: "count", instanceLimit: 3 })] });
+  assert.equal(saved.startDate, context.todayInputValue());
+  assert.equal(saved.lastRefreshDate, "2026-01-01");
+  assert.equal(saved.startingBalance, 750);
+  assert.equal(saved.recurringRules[0].startDate, "2026-01-01");
+  assert.equal(context.normalizeState({ startDate: "2099-01-01" }).startDate, context.todayInputValue());
+});
+
+test("header answer follows zero crossing rather than cushion category and only animates once", () => {
+  const element = { className: "", attrs: {}, innerHTML: "", text: {},
+    setAttribute(key, value) { this.attrs[key] = value; },
+    querySelector() { return this.text; } };
+  const headerContext = vm.createContext({});
+  for (const file of ["content/projectionAnswerCopy.js", "components/projectionAnswer.js"])
+    vm.runInContext(fs.readFileSync(require("node:path").join(__dirname, "..", file), "utf8"), headerContext);
+  const header = headerContext.ProjectionAnswer.create(element);
+  header.update({ hasProjectionData: false });
+  assert.equal(element.text.textContent, "Let's see.");
+  header.update({ hasProjectionData: true, status: "At Risk", dropsBelowZero: false });
+  assert.equal(element.text.textContent, "Nope.");
+  assert.match(element.className, /is-typing/);
+  header.update({ hasProjectionData: true, dropsBelowZero: true });
+  assert.equal(element.text.textContent, "Yep.");
+  assert.doesNotMatch(element.className, /is-typing/);
+});

@@ -124,3 +124,13 @@
     transform: scaleX(1) rotate(-1.5deg);
   }
 }
+
+/* One brief typing reveal; the complete answer is available to assistive technology. */
+.projection-answer { min-height: 1.6em; min-width: 5ch; font-family: var(--mono); font-size: clamp(1rem, 2vw, 1.45rem); line-height: 1.3; text-shadow: none; }
+.projection-answer-text { white-space: nowrap; }
+.projection-answer-stroke { height: .35rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .projection-answer.is-typing .projection-answer-text { animation: answer-type 700ms steps(5, end) 180ms both; }
+  .projection-answer.is-typing .projection-answer-stroke { animation: projection-answer-underline 250ms 800ms both; }
+}
+@keyframes answer-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }

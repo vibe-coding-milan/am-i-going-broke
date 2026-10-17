@@ -1,5 +1,7 @@
 # Mobile forecast refresh
 
+> The subsequent [forecast refinement](REFINEMENT_REVIEW.md) supersedes the slider, balance-date selector, summary density, and header treatment described in this initial implementation record.
+
 Status: implemented locally for review; not recorded as deployed. This follows the [mobile audit](MOBILE_UX_AUDIT.md) and the earlier desktop/UX findings.
 
 ## Scope and boundaries

@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased — Mobile forecast refresh
+## 2026-10-17 — Forecast refinement
+
+- Replaced the visible inspection slider and previous/next controls with chart hover/tap inspection, a compact chart readout, and keyboard navigation (arrows, Home/End, Escape).
+- Kept the lowest balance and its date prominent; made net change secondary and moved ending-balance inspection onto the chart.
+- Removed the balance date selector and restored today-based forecasting. Preserved the saved balance and its confirmation date, with a reminder when cash needs updating; retained original payment/count anchors and backup compatibility.
+- Simplified the header to “Nope.” / “Yep.” for the entered forecast's zero crossing, with a one-time typing reveal and reduced-motion support. Kept the existing forecast categories and removed the introductory paragraph.
+- Grouped the cushion switch with its target fields, refined narrow transaction alignment, shortened pagination to “Show more” with a separate count, and corrected section highlighting while scrolling long ledgers.
+- Validation: 16 regression tests in each of two time zones, syntax/link checks, and local desktop/phone inspection. Physical-device checks remain pending.
+- Supersedes the slider, ending-balance summary, balance-date selector, and header treatment documented in the initial mobile refresh below. See [refinement notes](docs/REFINEMENT_REVIEW.md).
+
+## Review history — Initial mobile forecast refresh
 
 - Added a compact mobile header, labeled section navigation, exact lowest/ending balance summaries, and collapsible balance/chart settings. The handwritten sub-answer remains on desktop and is hidden on phones/tablets.
 - Preserved the full-period chart, average/cushion layers, and wide desktop layout. Added chart tapping, a date slider, previous/next-day controls, and date/balance/payment inspection without changing the forecast horizon.

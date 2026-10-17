@@ -217,7 +217,7 @@
   function normalizeState(candidate) {
     var next = candidate || {};
     return {
-      startDate: next.startDate || todayInputValue(),
+      startDate: todayInputValue(),
       lastRefreshDate: next.lastRefreshDate || next.startDate || todayInputValue(),
       startingBalance: clampCashBalance(Number(next.startingBalance || 0)),
       projectionDays: Number(next.projectionDays || 30),
@@ -326,7 +326,7 @@
       ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(exportedAt))
       : "date unavailable";
     return Object.assign({}, copy, { message: restoredState.recurringRules.length + " payment rules; balance " +
-      formatCurrency(restoredState.startingBalance) + " as of " + formatProjectionHealthDate(restoredState.startDate) +
+      formatCurrency(restoredState.startingBalance) + " as of " + formatProjectionHealthDate(restoredState.lastRefreshDate) +
       ". Backup saved: " + savedDate + ". This replaces your current plan. You can download it first." });
   }
 
@@ -739,7 +739,6 @@
   var ledgerLimit = 20;
   var inspectChartDay = function () {};
   var chartInspectionIndex = null;
-  var balanceDateInput = document.querySelector("#balance-date");
   var mobileQuery = window.matchMedia("(max-width: 860px)");
   var themeSwitcher = document.querySelector(".theme-switcher");
   var utilityHome = themeSwitcher.parentNode;
@@ -770,10 +769,13 @@
     cushionLinesToggle.checked = state.showCushionLines !== false;
     averageBalanceToggle.checked = state.showAverageBalance !== false;
     extremaPointsToggle.checked = state.showExtremaPoints !== false;
-    balanceDateInput.value = state.startDate;
     var rangeEnd = dateInputValue(addDays(parseInputDate(state.startDate), Number(state.projectionDays) - 1));
     asOfLabel.textContent = "Forecast: " + formatProjectionHealthDate(state.startDate) + " – " +
-      formatProjectionHealthDate(rangeEnd) + ". Enter your actual cash balance for the selected date.";
+      formatProjectionHealthDate(rangeEnd) + "." +
+      (state.lastRefreshDate !== todayInputValue()
+        ? " Balance last confirmed " + formatProjectionHealthDate(state.lastRefreshDate) + "; update your cash for today."
+        : " Based on your current cash balance.");
+    asOfLabel.classList.toggle("balance-stale", state.lastRefreshDate !== todayInputValue());
     document.querySelector("#forecast-settings-value").textContent =
       formatCurrency(state.startingBalance) + " · " + state.projectionDays + " days";
     rulesPanelContent.classList.toggle("is-hidden", state.rulesCollapsed);
@@ -1152,30 +1154,6 @@
     return Number(state.startingBalance || 0) !== 0 || state.recurringRules.length > 0;
   }
 
-  function projectionAnswerMotionKey(rows, health, hasData) {
-    var metrics = health.metrics || {};
-    var skippedCount = Object.keys(state.skippedInstances || {}).length;
-
-    if (!hasData) {
-      return "fallback";
-    }
-
-    return [
-      health.status,
-      rows.length,
-      skippedCount,
-      state.projectionDays,
-      state.thresholds.red,
-      state.thresholds.yellow,
-      state.thresholds.green,
-      metrics.startBalance,
-      metrics.endBalance,
-      metrics.minBalance,
-      metrics.maxBalance,
-      metrics.netChange,
-    ].join("|");
-  }
-
   function renderSummary(rows) {
     var summary = summarizeProjection(rows);
     var health = summary.projectionHealth;
@@ -1210,7 +1188,6 @@
         projectionAnswer.update({
           status: health.status,
           hasProjectionData: false,
-          motionKey: projectionAnswerMotionKey(rows, health, false),
         });
       }
 
@@ -1239,15 +1216,14 @@
     var endPoint = healthPoints[healthPoints.length - 1];
     projectionSummary.innerHTML += '<div class="forecast-metrics">' +
       '<div><span>Lowest balance</span><strong>' + formatCurrency(lowPoint.balance) + '</strong><small>' + formatProjectionHealthDate(lowPoint.date) + '</small></div>' +
-      '<div><span>Ending balance</span><strong>' + formatCurrency(endPoint.balance) + '</strong><small>' + formatProjectionHealthDate(endPoint.date) + '</small></div>' +
       '<div><span>Net change</span><strong>' + formatCurrency(endPoint.balance - state.startingBalance) + '</strong><small>Over ' + state.projectionDays + ' days</small></div></div>' +
-      '<p class="forecast-assumptions">Based on the payments entered' + (state.recurringRules.length ? "." : "; add income and expenses to complete your plan.") + '</p>';
+      (state.lastRefreshDate !== todayInputValue() ? '<p class="forecast-assumptions balance-stale">Update your cash balance for today. Last confirmed ' + formatProjectionHealthDate(state.lastRefreshDate) + ".</p>" : "");
 
     if (projectionAnswer) {
       projectionAnswer.update({
         status: health.status,
         hasProjectionData: hasData,
-        motionKey: projectionAnswerMotionKey(rows, health, hasData),
+        dropsBelowZero: Boolean(brokePoint),
       });
     }
   }
@@ -1836,15 +1812,9 @@
     inspectChartDay = function (index) {
       chartInspectionIndex = Math.max(0, Math.min(chartRows.length - 1, Number(index)));
       var point = chartRows[chartInspectionIndex];
-      var slider = document.querySelector("#chart-date-slider");
-      slider.max = String(chartRows.length - 1);
-      slider.value = String(chartInspectionIndex);
-      slider.setAttribute("aria-valuetext", formatProjectionHealthDate(point.dateKey) + ", balance " + formatCurrency(point.balance));
       document.querySelector("#chart-inspection-value").textContent = formatProjectionHealthDate(point.dateKey) + " · " + formatCurrency(point.balance);
       var items = rows.filter(function (row) { return row.dateKey === point.dateKey && !row.outsideWindow && !row.skipped; });
       document.querySelector("#chart-inspection-note").textContent = items.length ? items.map(function (row) { return row.name; }).join(", ") : "No scheduled payments";
-      document.querySelector("#chart-previous").disabled = chartInspectionIndex === 0;
-      document.querySelector("#chart-next").disabled = chartInspectionIndex === chartRows.length - 1;
       var marker = projectionChart.querySelector("#chart-inspection-marker");
       marker.querySelector("line").setAttribute("x1", xFor(chartInspectionIndex));
       marker.querySelector("line").setAttribute("x2", xFor(chartInspectionIndex));
@@ -1852,15 +1822,35 @@
       marker.querySelector("circle").setAttribute("cy", yFor(point.balance));
     };
     inspectChartDay(chartInspectionIndex === null ? lowIndex : chartInspectionIndex);
-    projectionChart.onpointerdown = function (event) {
-      if (event.button !== 0) return;
+    function inspectPointer(event) {
+      projectionChart.parentNode.classList.add("is-inspecting");
       var rect = projectionChart.querySelector("svg").getBoundingClientRect();
       var x = (event.clientX - rect.left) / rect.width * width;
       inspectChartDay(Math.round((x - pad.left) / (width - pad.left - pad.right) * (chartRows.length - 1)));
+    }
+    projectionChart.onpointerdown = function (event) { if (event.button === 0) inspectPointer(event); };
+    projectionChart.onpointermove = function (event) { if (event.pointerType === "mouse") inspectPointer(event); };
+    projectionChart.onpointerleave = function (event) {
+      if (event.pointerType === "mouse" && document.activeElement !== projectionChart) projectionChart.parentNode.classList.remove("is-inspecting");
+    };
+    projectionChart.onfocus = function () { projectionChart.parentNode.classList.add("is-inspecting"); };
+    projectionChart.onblur = function () { projectionChart.parentNode.classList.remove("is-inspecting"); };
+    projectionChart.onkeydown = function (event) {
+      var index = chartInspectionIndex;
+      if (event.key === "ArrowLeft") index -= 1;
+      else if (event.key === "ArrowRight") index += 1;
+      else if (event.key === "Home") index = 0;
+      else if (event.key === "End") index = chartRows.length - 1;
+      else if (event.key === "Escape") { projectionChart.parentNode.classList.remove("is-inspecting"); return; }
+      else return;
+      event.preventDefault();
+      projectionChart.parentNode.classList.add("is-inspecting");
+      inspectChartDay(index);
     };
   }
 
   function renderProjection() {
+    state.startDate = todayInputValue();
     var rows = flattenProjectionRows();
     var thresholds = state.thresholds || { red: 1000, yellow: 2000, green: 5000 };
     var hasData = hasProjectionData();
@@ -1876,7 +1866,8 @@
     document.querySelector("#restore-exclusions").classList.toggle("is-hidden", !skippedCount);
     var moreButton = document.querySelector("#show-more-transactions");
     moreButton.classList.toggle("is-hidden", rows.length <= ledgerLimit);
-    moreButton.textContent = "Show more transactions (" + Math.min(ledgerLimit, rows.length) + " of " + rows.length + " shown)";
+    moreButton.textContent = "Show more";
+    document.querySelector("#transaction-count").textContent = Math.min(ledgerLimit, rows.length) + " of " + rows.length + " transactions shown";
     if (chartEmptyState) {
       chartEmptyState.classList.toggle("is-hidden", hasData);
     }
@@ -2733,16 +2724,16 @@
 
   function refreshFromToday() {
     var cash = startingBalanceInput.value.replace(/[$,\s]/g, "");
-    var valid = /^-?(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cash) && isValidInputDate(balanceDateInput.value);
+    var valid = /^-?(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cash);
     var balanceError = document.querySelector("#balance-error");
-    balanceError.textContent = valid ? "" : "Enter a valid balance (up to two decimal places) and balance date.";
+    balanceError.textContent = valid ? "" : "Enter a valid cash balance (up to two decimal places).";
     balanceError.classList.toggle("is-hidden", valid);
     if (!valid) return;
-    state.startDate = balanceDateInput.value;
+    state.startDate = todayInputValue();
     state.lastRefreshDate = state.startDate;
     state.startingBalance = clampCashBalance(Number(cash));
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
-    persistAndRender("Forecast updated using your selected balance date.");
+    persistAndRender("Forecast updated from today.");
   }
 
   function updateRule(ruleId, field, value, type) {
@@ -2863,7 +2854,6 @@
   startingBalanceInput.addEventListener("change", function () {
     refreshFromToday();
   });
-  balanceDateInput.addEventListener("change", refreshFromToday);
 
   projectionDaysInput.addEventListener("change", function () {
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
@@ -3274,9 +3264,6 @@
       if (nextAction) nextAction.focus();
     }
   });
-  document.querySelector("#chart-date-slider").addEventListener("input", function (event) { inspectChartDay(event.target.value); });
-  document.querySelector("#chart-previous").addEventListener("click", function () { inspectChartDay(chartInspectionIndex - 1); });
-  document.querySelector("#chart-next").addEventListener("click", function () { inspectChartDay(chartInspectionIndex + 1); });
 
   function markSection(id) {
     document.querySelectorAll(".mobile-section-nav a").forEach(function (link) {
@@ -3287,12 +3274,19 @@
   document.querySelectorAll(".mobile-section-nav a").forEach(function (link) {
     link.addEventListener("click", function () { markSection(link.hash.slice(1)); });
   });
-  if (window.IntersectionObserver) {
-    var sectionObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { if (entry.isIntersecting) markSection(entry.target.id); });
-    }, { rootMargin: "-64px 0px -55% 0px", threshold: 0 });
-    ["forecast", "payments", "transactions"].forEach(function (id) { sectionObserver.observe(document.getElementById(id)); });
+  function markVisibleSection() {
+    var current = "forecast";
+    ["forecast", "payments", "transactions"].forEach(function (id) {
+      if (document.getElementById(id).getBoundingClientRect().top <= 140) current = id;
+    });
+    markSection(current);
   }
+  var sectionFramePending = false;
+  window.addEventListener("scroll", function () {
+    if (sectionFramePending) return;
+    sectionFramePending = true;
+    window.requestAnimationFrame(function () { sectionFramePending = false; markVisibleSection(); });
+  }, { passive: true });
 
   function configureResponsiveUI() {
     if (mobileQuery.matches) {
