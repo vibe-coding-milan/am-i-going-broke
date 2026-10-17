@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-17 — Aligned chart options
+
+- Placed Average, High/low, and Cushions directly beside one another with identical visible checkbox-toggle styling and aligned 52px controls, including clear off and keyboard-focus states.
+- Followed the toggles with the existing tinted two-line Red/Yellow/Green amount fields, reduced to 112px widths on desktop and aligned with the toggle controls. Removed the help icon/tooltip.
+- Fixed the cushion checkbox hit area extending beyond its visible control. Fields remain editable independently of visibility; invalid ordering retains its existing validation and alignment.
+- Wrapped the controls into two aligned rows on narrow screens. Financial calculations, target persistence, and backup format are unchanged.
+- Review history and verification: [Chart options](docs/CHART_OPTIONS_REVIEW.md).
+
 ## 2026-10-17 — Simpler forecast and footer copy
 
 - Removed the balance-confirmation reminder and forecast/date explanation beneath the starting-cash controls.

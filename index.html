@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=compact-data-menu-20261017" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=compact-data-menu-20261017" />
+    <link rel="stylesheet" href="./styles.css?v=chart-options-20261017" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=chart-options-20261017" />
   </head>
   <body>
     <main class="app-shell">
@@ -235,7 +235,7 @@
           <details class="chart-options" open><summary>Chart options &amp; cushion targets</summary>
           <div class="chart-controls">
             <div class="chart-layer-controls">
-              <div class="chart-toggles" aria-label="Chart layers">
+              <div class="chart-toggles" role="group" aria-label="Chart layers">
                 <label class="chart-toggle">
                   <input id="toggle-average-balance" type="checkbox" checked />
                   <span>Average</span>
@@ -244,30 +244,14 @@
                   <input id="toggle-extrema-points" type="checkbox" checked />
                   <span>High/low</span>
                 </label>
-              </div>
-            </div>
-            <div class="chart-cushion-strip" aria-label="Cushion target">
-              <div class="cushion-label">
                 <label class="chart-toggle">
                   <input id="toggle-cushion-lines" type="checkbox" checked />
-                  <span>Cushion</span>
+                  <span>Cushions</span>
                 </label>
-
-                <span class="visually-hidden">Cushion targets</span>
-                <span class="help-tooltip">
-                  <button
-                    type="button"
-                    class="help-tooltip-trigger"
-                    aria-label="About cushion targets"
-                    aria-describedby="cushion-target-help"
-                  >?</button>
-                  <span id="cushion-target-help" role="tooltip">
-                    Red is danger, yellow is caution, and green is your comfortable balance.
-                    Keep them ordered from lowest to highest.
-                  </span>
-                </span>
               </div>
-              <form id="threshold-form" class="thresholds-form">
+            </div>
+            <div class="chart-cushion-strip">
+              <form id="threshold-form" class="thresholds-form" aria-label="Cushion targets">
                 <label class="threshold-chip threshold-chip-danger">
                   <span>Red</span>
                   <input id="threshold-red" type="text" inputmode="decimal" aria-label="Red cushion target" />
@@ -360,9 +344,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=compact-data-menu-20261017"></script>
-    <script src="./content/projectionAnswerCopy.js?v=compact-data-menu-20261017"></script>
-    <script src="./components/projectionAnswer.js?v=compact-data-menu-20261017"></script>
+    <script src="./projectionHealth.js?v=chart-options-20261017"></script>
+    <script src="./content/projectionAnswerCopy.js?v=chart-options-20261017"></script>
+    <script src="./components/projectionAnswer.js?v=chart-options-20261017"></script>
     <script src="./app.js?v=copy-trim-20261017"></script>
   </body>
 </html>
