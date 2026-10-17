@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-17 — Headline typography, colors, and response variety
+
+- Matched the response to the question's font, weight, and responsive size. Question and answer share normal inline wrapping; the hidden untyped suffix reserves space without reducing the answer's typography.
+- Colored affirmative zero-crossing answers coral/red and negative answers purple (dark theme) or blue (light theme). Thinking dots remain neutral; the text still explicitly answers the question.
+- Replaced “Cushion loading” with “Your balance is building.”
+- Randomize within the current forecast scenario on page loads, valid forecast edits, and explicit Update forecast actions, avoiding the immediately previous phrase when alternatives exist. Cosmetic updates do not replay or reshuffle the answer.
+- Retained the thinking delay, typing speed, reduced-motion support, and complete-answer announcements. Financial calculations, categories, and saved plan format are unchanged.
+
 ## 2026-10-17 — Thinking and typed forecast responses
 
 - Added 16 approved cheeky responses matched to forecast health; a projected zero crossing takes priority over cushion categories.
