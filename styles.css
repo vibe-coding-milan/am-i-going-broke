@@ -2750,3 +2750,19 @@ button:disabled { opacity: .45; cursor: default; }
   .thresholds-form { grid-column: 1 / -1; width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 8px 0 8px 8px; background: var(--surface-raised); }
 }
 .chart-controls .chart-toggle:focus-within { outline-color: var(--primary); }
+
+/* Keep the forecast header focused on the low point and its two inputs. */
+.forecast-dashboard-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 340px); align-items: center; gap: 16px 24px; }
+.forecast-status-block .summary-grid { display: block; }
+.forecast-status-block .forecast-metrics { display: block; margin: 0; }
+.forecast-status-block .forecast-metrics > div { display: grid; gap: 3px; padding: 0; border: 0; }
+.forecast-status-block .forecast-metrics > div:first-child strong { font-size: 1.4rem; color: var(--text); }
+.forecast-risk-note { margin: 8px 0 0; color: var(--danger); font-size: .78rem; line-height: 1.45; max-width: 48ch; }
+.forecast-settings { border: 0; width: 100%; }
+.forecast-settings .chart-run-form { width: 100%; justify-items: stretch; }
+.forecast-settings .forecast-inputs { width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+@media (max-width: 860px) {
+  .forecast-dashboard-header { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .forecast-status-block .forecast-metrics > div:first-child strong { font-size: 1.4rem; }
+  .forecast-settings .forecast-inputs .field > span:first-child { font-size: .78rem; }
+}

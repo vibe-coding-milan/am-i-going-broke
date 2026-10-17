@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-17 — Simpler forecast header
+
+- Focused the header on lowest balance/date, Cash today, and Forecast period. Removed the repeated heading, status badge, net change/duration, and visible Update forecast button.
+- Kept concise dated warnings for below-zero balances or reaching the red cushion. The headline still uses the existing financial classifications.
+- Cash edits and period selection continue to update automatically; Enter can reconfirm unchanged cash for today. Validation, saved plans, and calculations are preserved.
+- Desktop uses one aligned row; mobile shows the low point above two always-visible inputs, replacing the repeated collapsed settings summary.
+- Validation: 22 regressions in each of two time zones (44 passes), including low/date, empty-state, red-cushion and below-zero warning coverage; browser checks for cash validation, Enter, automatic period updates, persistence, light/dark themes, and 320px/393px/1280px layouts.
+
 ## 2026-10-17 — Quiet chart toggles
 
 - Removed the below-chart confirmation banners for Average, High/low, and Cushions visibility changes. The toggles and chart remain the immediate feedback; settings still persist.
