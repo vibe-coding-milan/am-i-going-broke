@@ -1224,6 +1224,8 @@
         status: health.status,
         hasProjectionData: hasData,
         dropsBelowZero: Boolean(brokePoint),
+        forecastKey: JSON.stringify([state.startDate, state.startingBalance, state.projectionDays,
+          state.recurringRules, state.skippedInstances, state.thresholds]),
       });
     }
   }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-17 — Thinking and typed forecast responses
+
+- Added 16 approved cheeky responses matched to forecast health; a projected zero crossing takes priority over cushion categories.
+- Added a one-second thinking ellipsis and typing at 40 milliseconds per character on populated page loads and valid forecast edits. Calculations remain immediate; unfinished responses are cancelled when a newer forecast arrives.
+- Keep the same phrase within a health category for the session. Theme, chart-layer, collapse, and viewport changes do not restart the response.
+- Aligned question and answer on one baseline when space permits, with the answer wrapping below the question on mobile. Reserve the final text's space to avoid movement while typing and remove the underline.
+- Honor reduced-motion preferences, including preference changes during playback; announce only complete responses to assistive technology.
+- Validation: 18 regression tests in each of two time zones, source/link checks, and responsive browser review. See [response notes](docs/FORECAST_RESPONSES.md).
+
 ## 2026-10-17 — Forecast refinement
 
 - Replaced the visible inspection slider and previous/next controls with chart hover/tap inspection, a compact chart readout, and keyboard navigation (arrows, Home/End, Escape).
