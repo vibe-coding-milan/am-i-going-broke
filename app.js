@@ -152,12 +152,6 @@
     status: {
       refreshed: "Numbers rerun from today.",
       projectionWindowUpdated: "Forecast window updated.",
-      cushionLinesShown: "Cushion target added to the chart.",
-      cushionLinesHidden: "Cushion target hidden.",
-      averageShown: "Average balance added to the chart.",
-      averageHidden: "Average balance hidden.",
-      extremaShown: "High and low points added.",
-      extremaHidden: "High and low points hidden.",
       cushionUpdated: "Cushion target updated.",
       sampleLoaded: "Sample scenario loaded.",
       backupDownloaded: "Backup downloaded.",
@@ -2866,23 +2860,17 @@
 
   cushionLinesToggle.addEventListener("change", function () {
     state.showCushionLines = cushionLinesToggle.checked;
-    persistAndRender(
-      state.showCushionLines ? UI_COPY.status.cushionLinesShown : UI_COPY.status.cushionLinesHidden,
-    );
+    persistAndRender();
   });
 
   averageBalanceToggle.addEventListener("change", function () {
     state.showAverageBalance = averageBalanceToggle.checked;
-    persistAndRender(
-      state.showAverageBalance ? UI_COPY.status.averageShown : UI_COPY.status.averageHidden,
-    );
+    persistAndRender();
   });
 
   extremaPointsToggle.addEventListener("change", function () {
     state.showExtremaPoints = extremaPointsToggle.checked;
-    persistAndRender(
-      state.showExtremaPoints ? UI_COPY.status.extremaShown : UI_COPY.status.extremaHidden,
-    );
+    persistAndRender();
   });
 
   function readThresholdInputs() {
