@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=payment-dates-20261016" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=forecast-compact-20260606b" />
+    <link rel="stylesheet" href="./styles.css?v=mobile-refresh-20261016" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=mobile-refresh-20261016" />
   </head>
   <body>
     <main class="app-shell">
@@ -75,10 +75,10 @@
             <div class="data-menu-panel">
               <div class="data-menu-heading">
                 <strong>Your data</strong>
-                <span>Saved on this device</span>
+                <span>Saved in this browser</span>
               </div>
               <div class="data-menu-section">
-                <span class="data-menu-label">This device</span>
+                <span class="data-menu-label">This browser</span>
                 <button type="button" id="export-data" class="data-menu-action">
                   <span class="data-menu-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM14 4v5h5M12 11v6m0 0-3-3m3 3 3-3" /></svg>
@@ -100,6 +100,7 @@
               </div>
               <div class="data-menu-section">
                 <span class="data-menu-label">Google Drive</span>
+                <p class="data-menu-note">Manual backups. Changes are not synced automatically.</p>
                 <button type="button" id="connect-drive" class="data-menu-action">
                   <span class="data-menu-icon drive-connect-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M9.5 14.5l5-5M7.8 17.2l-1 1a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M16.2 6.8l1-1a3.5 3.5 0 0 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" /></svg>
@@ -144,20 +145,21 @@
             </div>
           </details>
           <div class="theme-switcher" aria-label="Theme">
+            <span class="mobile-theme-heading">Appearance <small id="resolved-theme-label"></small></span>
             <button type="button" data-theme-choice="system" aria-pressed="true" aria-label="Use system theme" title="System theme">
-              <span aria-hidden="true">◐</span>
+              <span aria-hidden="true">◐</span><span class="theme-choice-label">Device</span>
             </button>
             <button type="button" data-theme-choice="dark" aria-pressed="false" aria-label="Use dark theme" title="Dark theme">
-              <span aria-hidden="true">☾</span>
+              <span aria-hidden="true">☾</span><span class="theme-choice-label">Dark</span>
             </button>
             <button type="button" data-theme-choice="light" aria-pressed="false" aria-label="Use light theme" title="Light theme">
-              <span aria-hidden="true">☼</span>
+              <span aria-hidden="true">☼</span><span class="theme-choice-label">Light</span>
             </button>
           </div>
         </div>
       </div>
 
-      <dialog id="data-dialog" class="data-dialog">
+      <dialog id="data-dialog" class="data-dialog" aria-labelledby="data-dialog-title" aria-describedby="data-dialog-message">
         <form method="dialog" class="data-dialog-card">
           <div class="data-dialog-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M12 8v5m0 4h.01M4.5 19h15L12 5z" /></svg>
@@ -168,6 +170,7 @@
             <p id="data-dialog-message"></p>
           </div>
           <div class="data-dialog-actions">
+            <button type="button" class="button ghost" id="data-dialog-backup">Download backup first</button>
             <button type="submit" value="cancel" class="button ghost" id="data-dialog-cancel">
               Cancel
             </button>
@@ -178,16 +181,22 @@
         </form>
       </dialog>
 
-      <section class="panel forecast-dashboard" aria-label="Projection dashboard">
+      <nav class="mobile-section-nav" aria-label="Page sections">
+        <a href="#forecast" aria-current="location">Forecast</a><a href="#payments">Payments</a><a href="#transactions">Transactions</a>
+      </nav>
+      <p id="save-error" class="form-error is-hidden" role="alert">This browser could not save your changes. Download a backup from Data before closing this page.</p>
+      <section id="forecast" class="panel forecast-dashboard" aria-label="Projection dashboard">
         <header class="forecast-dashboard-header">
           <div class="forecast-status-block">
             <p class="section-kicker">Your money forecast</p>
             <div id="projection-summary" class="summary-grid"></div>
           </div>
+          <details class="forecast-settings" open>
+          <summary>Balance &amp; forecast period <span id="forecast-settings-value"></span></summary>
           <form id="starting-balance-form" class="chart-run-form">
             <div class="forecast-inputs">
               <label class="field starting-balance-field" for="starting-balance">
-                <span>Cash</span>
+                <span>Starting cash</span>
                 <span class="money-input">
                   <span aria-hidden="true">$</span>
                   <input
@@ -201,9 +210,10 @@
                   />
                 </span>
               </label>
+              <label class="field balance-date-field"><span>Balance as of</span><input id="balance-date" type="date" required aria-describedby="as-of-label" /></label>
               <label class="field projection-window-field">
-                <span>Window</span>
-                <select id="projection-days" aria-label="Projection window">
+                <span>Forecast period</span>
+                <select id="projection-days" aria-label="Forecast period">
                   <option value="30">30 days</option>
                   <option value="60">60 days</option>
                   <option value="90">90 days</option>
@@ -213,32 +223,39 @@
                 </select>
               </label>
               <button type="submit" class="button primary compact-button">
-                Run the numbers
+                Update forecast
               </button>
             </div>
             <p class="muted" id="as-of-label"></p>
+            <p id="balance-error" class="form-error is-hidden" aria-live="polite"></p>
           </form>
+          </details>
         </header>
 
         <section class="chart-panel chart-panel-primary" aria-label="Projected cash balance chart">
           <div id="chart-empty-state" class="chart-empty-state is-hidden">
-            <h2>Add cash to start, or try a sample.</h2>
+            <h2>Start with your balance, or try a sample.</h2>
             <div class="empty-demo-actions" aria-label="Sample scenarios">
               <button type="button" class="button secondary sample-button" data-sample-scenario="healthy">
-                Stable
+                Income &amp; bills
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="tight">
-                Tight
+                Small cushion
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="risk">
-                At risk
+                Cash shortfall
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="random">
-                Surprise me
+                Random sample
               </button>
             </div>
           </div>
           <div id="projection-chart"></div>
+          <div class="chart-inspector is-hidden" aria-label="Inspect forecast">
+            <div class="chart-inspection-heading"><output id="chart-inspection-value" aria-live="polite"></output><span id="chart-inspection-note"></span></div>
+            <div class="chart-inspection-controls"><button type="button" id="chart-previous" class="button ghost" aria-label="Inspect previous day">Prev</button><input id="chart-date-slider" type="range" min="0" max="29" value="0" aria-label="Inspect forecast date" /><button type="button" id="chart-next" class="button ghost" aria-label="Inspect next day">Next</button></div>
+          </div>
+          <details class="chart-options" open><summary>Chart options &amp; cushion targets</summary>
           <div class="chart-controls">
             <div class="chart-layer-controls">
               <div class="chart-toggles" aria-label="Chart layers">
@@ -289,11 +306,12 @@
               </form>
             </div>
           </div>
+          </details>
         </section>
         <input id="import-file" type="file" accept="application/json" class="is-hidden" />
       </section>
 
-      <section class="panel">
+      <section id="payments" class="panel">
         <div class="panel-heading with-action">
           <div>
             <h2>Money moves</h2>
@@ -306,13 +324,14 @@
               Hide items
             </button>
             <button type="button" id="add-money-in-rule" class="button secondary">
-              Add money in
+              Add income
             </button>
             <button type="button" id="add-money-out-rule" class="button secondary">
-              Add money out
+              Add expense
             </button>
           </div>
         </div>
+        <div id="undo-removal" class="undo-banner is-hidden" role="status"><span id="undo-removal-copy"></span><button id="undo-remove" type="button" class="button ghost">Undo remove</button></div>
         <div id="rules-panel-content">
           <div id="empty-state" class="empty-state is-hidden">
             <p>No money moves yet.</p>
@@ -325,14 +344,15 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section id="transactions" class="panel">
         <div class="panel-heading">
-          <h2>Projection details</h2>
+          <h2>Transactions</h2>
           <p>
             The first row is your starting balance. Each upcoming item lands on its scheduled day and
             updates the running balance across your chosen window.
           </p>
         </div>
+        <div class="scenario-bar"><span id="scenario-count">Exclude a single payment below, or all occurrences in Payments.</span><button id="restore-exclusions" type="button" class="button ghost is-hidden">Restore excluded payments</button></div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -348,6 +368,7 @@
             <tbody id="projection-table-body"></tbody>
           </table>
         </div>
+        <button type="button" id="show-more-transactions" class="button ghost mobile-more is-hidden">Show more transactions</button>
       </section>
 
       <footer class="app-footer">
@@ -363,9 +384,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=forecast-compact-20260606b"></script>
-    <script src="./content/projectionAnswerCopy.js?v=forecast-compact-20260606b"></script>
-    <script src="./components/projectionAnswer.js?v=forecast-compact-20260606b"></script>
-    <script src="./app.js?v=payment-dates-20261016"></script>
+    <script src="./projectionHealth.js?v=mobile-refresh-20261016"></script>
+    <script src="./content/projectionAnswerCopy.js?v=mobile-refresh-20261016"></script>
+    <script src="./components/projectionAnswer.js?v=mobile-refresh-20261016"></script>
+    <script src="./app.js?v=mobile-refresh-20261016"></script>
   </body>
 </html>

@@ -281,14 +281,53 @@
   }
 
   function saveState(state) {
-    window.localStorage.setItem(
+    try {
+      window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
         version: STORAGE_VERSION,
         exportedAt: new Date().toISOString(),
         data: state,
       }),
-    );
+      );
+      var message = document.querySelector("#save-error");
+      if (message) message.classList.add("is-hidden");
+      return true;
+    } catch (error) {
+      var message = document.querySelector("#save-error");
+      if (message) message.classList.remove("is-hidden");
+      return false;
+    }
+  }
+
+  function readBackupState(parsed) {
+    var candidate = parsed && (parsed.data || parsed);
+    if (!candidate || typeof candidate !== "object" || !Array.isArray(candidate.recurringRules) ||
+        !Object.prototype.hasOwnProperty.call(candidate, "startingBalance") ||
+        !Number.isFinite(Number(candidate.startingBalance)) ||
+        (candidate.startDate && !isValidInputDate(candidate.startDate)) ||
+        (candidate.projectionDays && [30, 60, 90, 120, 180, 365].indexOf(Number(candidate.projectionDays)) === -1) ||
+        candidate.recurringRules.some(function (rule) {
+          return !rule || !Number.isFinite(Number(rule.amount)) ||
+            (rule.startDate && !isValidInputDate(rule.startDate)) ||
+            (rule.endDate && !isValidInputDate(rule.endDate)) ||
+            (rule.scheduleDate && !isValidInputDate(rule.scheduleDate));
+        })) {
+      throw new Error("This file is not a valid financial plan backup. Your current plan is unchanged.");
+    }
+    if (parsed.version && Number(parsed.version) > STORAGE_VERSION) {
+      throw new Error("This backup was made by a newer app version. Your current plan is unchanged.");
+    }
+    return normalizeState(candidate);
+  }
+
+  function backupRestoreCopy(copy, restoredState, exportedAt) {
+    var savedDate = exportedAt && !Number.isNaN(Date.parse(exportedAt))
+      ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(exportedAt))
+      : "date unavailable";
+    return Object.assign({}, copy, { message: restoredState.recurringRules.length + " payment rules; balance " +
+      formatCurrency(restoredState.startingBalance) + " as of " + formatProjectionHealthDate(restoredState.startDate) +
+      ". Backup saved: " + savedDate + ". This replaces your current plan. You can download it first." });
   }
 
   function backupPayload() {
@@ -420,6 +459,8 @@
     document.documentElement.setAttribute("data-theme-preference", preference);
     syncThemeControls(preference);
     syncThemeAssets(resolvedTheme);
+    var themeLabel = document.querySelector("#resolved-theme-label");
+    if (themeLabel) themeLabel.textContent = (preference === "system" ? "Device · " : "") + resolvedTheme;
 
     if (shouldPersist) {
       persistThemePreference(preference);
@@ -693,6 +734,17 @@
     ? window.matchMedia("(prefers-color-scheme: light)")
     : null;
   var themePreference = getStoredThemePreference();
+  var expandedRuleId = null;
+  var undoRemoval = null;
+  var ledgerLimit = 20;
+  var inspectChartDay = function () {};
+  var chartInspectionIndex = null;
+  var balanceDateInput = document.querySelector("#balance-date");
+  var mobileQuery = window.matchMedia("(max-width: 860px)");
+  var themeSwitcher = document.querySelector(".theme-switcher");
+  var utilityHome = themeSwitcher.parentNode;
+  var forecastSettings = document.querySelector(".forecast-settings");
+  var chartOptions = document.querySelector(".chart-options");
   var pendingFocusRuleId = null;
   var pendingFocusField = null;
   var pendingScrollRuleId = null;
@@ -718,8 +770,12 @@
     cushionLinesToggle.checked = state.showCushionLines !== false;
     averageBalanceToggle.checked = state.showAverageBalance !== false;
     extremaPointsToggle.checked = state.showExtremaPoints !== false;
-    asOfLabel.textContent =
-      "Starts " + formatShortDate(parseInputDate(state.lastRefreshDate));
+    balanceDateInput.value = state.startDate;
+    var rangeEnd = dateInputValue(addDays(parseInputDate(state.startDate), Number(state.projectionDays) - 1));
+    asOfLabel.textContent = "Forecast: " + formatProjectionHealthDate(state.startDate) + " – " +
+      formatProjectionHealthDate(rangeEnd) + ". Enter your actual cash balance for the selected date.";
+    document.querySelector("#forecast-settings-value").textContent =
+      formatCurrency(state.startingBalance) + " · " + state.projectionDays + " days";
     rulesPanelContent.classList.toggle("is-hidden", state.rulesCollapsed);
     toggleRulesButton.textContent = state.rulesCollapsed
       ? UI_COPY.buttons.showItems
@@ -793,7 +849,7 @@
       ">No end</option>" +
       '<option value="count"' +
       (rule.limitType === "count" ? " selected" : "") +
-      ">After # times</option>" +
+      ">After N payments</option>" +
       '<option value="date"' +
       (rule.limitType === "date" ? " selected" : "") +
       ">On date</option>" +
@@ -812,13 +868,31 @@
     );
   }
 
+  function ruleScheduleSummary(rule) {
+    var schedule = rule.scheduleType === "weekly" ? "Weekly · " + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][rule.dayOfWeek]
+      : rule.scheduleType === "biweekly" ? "Every 2 weeks"
+      : rule.scheduleType === "adhoc" ? "One-time · " + formatShortDate(parseInputDate(rule.scheduleDate))
+      : "Monthly · day " + rule.dayOfMonth;
+    if (rule.scheduleType !== "adhoc") {
+      if (rule.startDate) schedule += " · from " + formatShortDate(parseInputDate(rule.startDate));
+      if (rule.limitType === "date" && rule.endDate) schedule += " · until " + formatShortDate(parseInputDate(rule.endDate));
+      if (rule.limitType === "count") schedule += " · " + rule.instanceLimit + " payments";
+    }
+    return schedule + (rule.active ? "" : " · All occurrences excluded");
+  }
+
   function ruleCard(rule) {
     return (
-      '<article class="rule-card" data-rule-id="' +
-      rule.id +
+      '<article class="rule-card' + (expandedRuleId === rule.id ? ' is-mobile-expanded' : '') + '" data-rule-id="' +
+      escapeHtml(rule.id) +
       '" data-direction="' +
       rule.direction +
       '">' +
+      '<button type="button" class="rule-mobile-summary" data-action="edit-rule" aria-expanded="' +
+      (expandedRuleId === rule.id) + '" aria-label="Edit ' + escapeHtml(rule.name) + '">' +
+      '<span><strong>' + escapeHtml(rule.name) + '</strong><small>' + escapeHtml(ruleScheduleSummary(rule)) + '</small></span>' +
+      '<span class="mobile-rule-amount">' + (rule.direction === "credit" ? "+" : "−") + formatCurrency(rule.amount) +
+      '<small>' + (expandedRuleId === rule.id ? "Editing" : "Edit") + '</small></span></button>' +
       '<div class="rule-card-main">' +
       '<label class="field rule-name-field"><span>Name</span><input data-field="name" type="text" value="' +
       escapeHtml(rule.name) +
@@ -870,6 +944,7 @@
           (rule.scheduleType === "biweekly" ? ' Payments repeat every 2 weeks from the Repeats from date.' : "") + '</p>'
         : "") +
       '<p class="form-error rule-error is-hidden" id="rule-error-' + escapeHtml(rule.id) + '" aria-live="polite"></p>' +
+      '<div class="mobile-editor-footer"><span>Valid changes save automatically in this browser.</span><button type="button" class="button secondary" data-action="done-editing">Done</button></div>' +
       "</div></article>"
     );
   }
@@ -1055,11 +1130,11 @@
     });
   }
 
-  function firstProjectionPointBelow(points, limit) {
+  function firstProjectionPointBelow(points, limit, inclusive) {
     var index;
 
     for (index = 0; index < points.length; index += 1) {
-      if (Number(points[index].balance || 0) < limit) {
+      if (inclusive ? Number(points[index].balance || 0) <= limit : Number(points[index].balance || 0) < limit) {
         return points[index];
       }
     }
@@ -1107,7 +1182,7 @@
     var hasData = hasProjectionData();
     var healthPoints = projectionPointsFromRows(rows);
     var brokePoint = firstProjectionPointBelow(healthPoints, 0);
-    var redPoint = firstProjectionPointBelow(healthPoints, state.thresholds.red);
+    var redPoint = firstProjectionPointBelow(healthPoints, state.thresholds.red, true);
     var brokeCopy = brokePoint
       ? "Your balance drops below $0 on " +
         formatProjectionHealthDate(brokePoint.date) +
@@ -1115,12 +1190,12 @@
         formatCurrency(brokePoint.balance) +
         "."
       : redPoint
-        ? "You stay above $0 in this window, but hit the red zone on " +
+        ? "Your balance does not drop below $0 in this window, but hits the red zone on " +
           formatProjectionHealthDate(redPoint.date) +
           " at " +
           formatCurrency(redPoint.balance) +
           "."
-        : "You stay above $0 in this projection window.";
+        : "Your balance does not drop below $0 in this projection window.";
 
     if (!hasData) {
       projectionSummary.innerHTML =
@@ -1160,6 +1235,14 @@
         : "") +
       "</article>";
 
+    var lowPoint = healthPoints.reduce(function (low, point) { return point.balance < low.balance ? point : low; }, healthPoints[0]);
+    var endPoint = healthPoints[healthPoints.length - 1];
+    projectionSummary.innerHTML += '<div class="forecast-metrics">' +
+      '<div><span>Lowest balance</span><strong>' + formatCurrency(lowPoint.balance) + '</strong><small>' + formatProjectionHealthDate(lowPoint.date) + '</small></div>' +
+      '<div><span>Ending balance</span><strong>' + formatCurrency(endPoint.balance) + '</strong><small>' + formatProjectionHealthDate(endPoint.date) + '</small></div>' +
+      '<div><span>Net change</span><strong>' + formatCurrency(endPoint.balance - state.startingBalance) + '</strong><small>Over ' + state.projectionDays + ' days</small></div></div>' +
+      '<p class="forecast-assumptions">Based on the payments entered' + (state.recurringRules.length ? "." : "; add income and expenses to complete your plan.") + '</p>';
+
     if (projectionAnswer) {
       projectionAnswer.update({
         status: health.status,
@@ -1180,10 +1263,10 @@
       ? Math.floor(projectionChart.getBoundingClientRect().width || 1000)
       : 1000;
     var compactChart = containerWidth < 560;
-    var width = Math.max(320, Math.min(1000, containerWidth));
+    var width = Math.max(280, Math.min(1000, containerWidth));
     var height = compactChart ? 250 : 300;
     var pad = compactChart
-      ? { top: 24, right: 12, bottom: 32, left: 62 }
+      ? { top: 24, right: 8, bottom: 32, left: 50 }
       : { top: 26, right: 16, bottom: 34, left: 82 };
     var thresholds = state.thresholds || { red: 1000, yellow: 2000, green: 5000 };
     var balances = chartRows.map(function (row) {
@@ -1670,12 +1753,12 @@
           xFor(highIndex).toFixed(1) +
           '" cy="' +
           yFor(highRow.balance).toFixed(1) +
-          '" r="5" fill="var(--positive)" />' +
+          '" r="5" fill="' + (highRow.balance <= thresholds.red ? "var(--danger)" : "var(--positive)") + '" />' +
           '<circle class="chart-extrema-dot" cx="' +
           xFor(lowIndex).toFixed(1) +
           '" cy="' +
           yFor(lowRow.balance).toFixed(1) +
-          '" r="5" fill="var(--danger)" />' +
+          '" r="5" fill="' + (lowRow.balance <= thresholds.red ? "var(--danger)" : "var(--muted-strong)") + '" />' +
           "";
 
     if (state.showCushionLines !== false) {
@@ -1694,8 +1777,8 @@
 
     if (state.showExtremaPoints !== false && !compactChart) {
       pointLabels.push(
-        pointLabel(highRow, highIndex, "above", "chart-point-label point-high", 5),
-        pointLabel(lowRow, lowIndex, "below", "chart-point-label point-low", 5),
+        pointLabel(highRow, highIndex, "above", "chart-point-label " + (highRow.balance <= thresholds.red ? "point-low" : "point-high"), 5),
+        pointLabel(lowRow, lowIndex, "below", "chart-point-label " + (lowRow.balance <= thresholds.red ? "point-low" : "point-safe"), 5),
       );
     }
 
@@ -1747,7 +1830,34 @@
       segmentLines() +
       extremaOverlay +
       renderAnnotationLabels(axisLabels.concat(pointLabels)) +
+      '<g id="chart-inspection-marker" aria-hidden="true"><line x1="0" x2="0" y1="' + pad.top + '" y2="' + (height - pad.bottom) + '" stroke="var(--muted)" stroke-dasharray="3 4" /><circle cx="0" cy="0" r="4" fill="var(--text)" stroke="var(--bg)" stroke-width="2" /></g>' +
       "</svg>";
+
+    inspectChartDay = function (index) {
+      chartInspectionIndex = Math.max(0, Math.min(chartRows.length - 1, Number(index)));
+      var point = chartRows[chartInspectionIndex];
+      var slider = document.querySelector("#chart-date-slider");
+      slider.max = String(chartRows.length - 1);
+      slider.value = String(chartInspectionIndex);
+      slider.setAttribute("aria-valuetext", formatProjectionHealthDate(point.dateKey) + ", balance " + formatCurrency(point.balance));
+      document.querySelector("#chart-inspection-value").textContent = formatProjectionHealthDate(point.dateKey) + " · " + formatCurrency(point.balance);
+      var items = rows.filter(function (row) { return row.dateKey === point.dateKey && !row.outsideWindow && !row.skipped; });
+      document.querySelector("#chart-inspection-note").textContent = items.length ? items.map(function (row) { return row.name; }).join(", ") : "No scheduled payments";
+      document.querySelector("#chart-previous").disabled = chartInspectionIndex === 0;
+      document.querySelector("#chart-next").disabled = chartInspectionIndex === chartRows.length - 1;
+      var marker = projectionChart.querySelector("#chart-inspection-marker");
+      marker.querySelector("line").setAttribute("x1", xFor(chartInspectionIndex));
+      marker.querySelector("line").setAttribute("x2", xFor(chartInspectionIndex));
+      marker.querySelector("circle").setAttribute("cx", xFor(chartInspectionIndex));
+      marker.querySelector("circle").setAttribute("cy", yFor(point.balance));
+    };
+    inspectChartDay(chartInspectionIndex === null ? lowIndex : chartInspectionIndex);
+    projectionChart.onpointerdown = function (event) {
+      if (event.button !== 0) return;
+      var rect = projectionChart.querySelector("svg").getBoundingClientRect();
+      var x = (event.clientX - rect.left) / rect.width * width;
+      inspectChartDay(Math.round((x - pad.left) / (width - pad.left - pad.right) * (chartRows.length - 1)));
+    };
   }
 
   function renderProjection() {
@@ -1758,6 +1868,15 @@
     var i;
 
     latestProjectionRows = rows;
+    document.querySelector(".chart-inspector").classList.toggle("is-hidden", !hasData);
+    var skippedCount = Object.keys(state.skippedInstances).length;
+    document.querySelector("#scenario-count").textContent = skippedCount
+      ? skippedCount + " individual payments excluded. Payment switches exclude all occurrences."
+      : "Exclude one occurrence below, or all occurrences in Payments.";
+    document.querySelector("#restore-exclusions").classList.toggle("is-hidden", !skippedCount);
+    var moreButton = document.querySelector("#show-more-transactions");
+    moreButton.classList.toggle("is-hidden", rows.length <= ledgerLimit);
+    moreButton.textContent = "Show more transactions (" + Math.min(ledgerLimit, rows.length) + " of " + rows.length + " shown)";
     if (chartEmptyState) {
       chartEmptyState.classList.toggle("is-hidden", hasData);
     }
@@ -1806,8 +1925,8 @@
             '" data-date-key="' +
             escapeHtml(row.dateKey) +
             '" aria-label="' +
-            (row.skipped ? "Include this item in the scenario" : "Exclude this item from the scenario") +
-            '" title="' +
+            escapeHtml((row.skipped ? "Include " : "Exclude ") + row.name + " on " + row.dateLabel) +
+            '" aria-pressed="' + !row.skipped + '" title="' +
             (row.skipped ? "Include" : "Exclude") +
             '">' +
             (row.skipped ? "+" : "✓") +
@@ -1816,16 +1935,18 @@
 
         return (
           '<tr class="' +
+          (index >= ledgerLimit ? "mobile-overflow-row " : "") +
           (isCurrent ? "current-row " : "") +
           (isBelowZeroCrossing ? "critical-row " : "") +
           (row.skipped ? "skipped-row " : "") +
           (isDayStart ? "day-start " : "day-continuation ") +
           '">' +
           '<td class="date-cell" data-label="Date">' +
-          dateCellContent +
+          '<span class="desktop-date">' + dateCellContent + '</span><span class="mobile-date">' + row.dateLabel + '</span>' +
           "</td>" +
-          '<td data-label="Name">' +
-          escapeHtml(row.name) +
+          '<td data-label="Name"><span class="transaction-name">' +
+          escapeHtml(row.name) + '</span><span class="mobile-signed-amount">' +
+          (isCurrent ? formatCurrency(row.balance) : (row.credit !== null ? "+" + formatCurrency(row.credit) : "−" + formatCurrency(row.debit))) + '</span>' +
           (row.outsideWindow
             ? ' <span class="window-pill">' + UI_COPY.labels.outsideWindow + "</span>"
             : "") +
@@ -1882,7 +2003,7 @@
     if (pendingScrollRuleId) {
       targetCard = rulesList.querySelector('[data-rule-id="' + pendingScrollRuleId + '"]');
       if (targetCard) {
-        targetCard.scrollIntoView({ block: "center", behavior: "smooth" });
+        targetCard.scrollIntoView({ block: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
       }
       pendingScrollRuleId = null;
       return;
@@ -1940,6 +2061,7 @@
     dataDialogMessage.textContent = copy.message;
     dataDialogConfirm.textContent = copy.action;
     dataDialogCancel.classList.toggle("is-hidden", settings.alertOnly === true);
+    document.querySelector("#data-dialog-backup").classList.toggle("is-hidden", settings.alertOnly === true);
     dataDialogConfirm.classList.toggle("danger-action", settings.danger === true);
     dataDialog.classList.toggle("is-danger", settings.danger === true);
     dataDialog.returnValue = "";
@@ -2324,8 +2446,8 @@
         return response.json();
       })
       .then(function (parsed) {
-        var restoredState = normalizeState(parsed.data || parsed);
-        return requestDataConfirmation(UI_COPY.confirms.restoreDrive).then(function (confirmed) {
+        var restoredState = readBackupState(parsed);
+        return requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreDrive, restoredState, parsed.exportedAt)).then(function (confirmed) {
           if (!confirmed) {
             return;
           }
@@ -2341,6 +2463,10 @@
   }
 
   function persistAndRender(statusMessage) {
+    if (undoRemoval && undoRemoval.state !== state) {
+      undoRemoval = null;
+      document.querySelector("#undo-removal").classList.add("is-hidden");
+    }
     var previousScrollY = window.scrollY;
 
     saveState(state);
@@ -2456,7 +2582,7 @@
     var today = parseInputDate(todayInputValue());
     var scenarios = {
       healthy: {
-        label: "Stable runway",
+        label: "Income and bills",
         state: createSampleState({
           startingBalance: 6800,
           projectionDays: 90,
@@ -2501,7 +2627,7 @@
         }),
       },
       tight: {
-        label: "Tight but workable",
+        label: "Small cushion",
         state: createSampleState({
           startingBalance: 2550,
           projectionDays: 60,
@@ -2546,7 +2672,7 @@
         }),
       },
       risk: {
-        label: "At-risk stretch",
+        label: "Cash shortfall",
         state: createSampleState({
           startingBalance: 950,
           projectionDays: 60,
@@ -2606,11 +2732,17 @@
   }
 
   function refreshFromToday() {
-    state.startDate = todayInputValue();
+    var cash = startingBalanceInput.value.replace(/[$,\s]/g, "");
+    var valid = /^-?(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cash) && isValidInputDate(balanceDateInput.value);
+    var balanceError = document.querySelector("#balance-error");
+    balanceError.textContent = valid ? "" : "Enter a valid balance (up to two decimal places) and balance date.";
+    balanceError.classList.toggle("is-hidden", valid);
+    if (!valid) return;
+    state.startDate = balanceDateInput.value;
     state.lastRefreshDate = state.startDate;
-    state.startingBalance = clampCashBalance(parseNumericValue(startingBalanceInput.value, 0));
+    state.startingBalance = clampCashBalance(Number(cash));
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
-    persistAndRender(UI_COPY.status.refreshed);
+    persistAndRender("Forecast updated using your selected balance date.");
   }
 
   function updateRule(ruleId, field, value, type) {
@@ -2659,9 +2791,26 @@
       rule[field] = value;
     }
 
-    pendingFocusRuleId = ruleId;
-    pendingFocusField = field === "scheduleType" ? "scheduleType" : field;
-    persistAndRender();
+    if (field === "scheduleType" || field === "limitType") {
+      pendingFocusRuleId = ruleId;
+      pendingFocusField = field;
+      persistAndRender();
+    } else {
+      saveState(state);
+      var card = Array.from(rulesList.querySelectorAll("[data-rule-id]")).find(function (element) {
+        return element.getAttribute("data-rule-id") === ruleId;
+      });
+      if (card) {
+        var summary = card.querySelector(".rule-mobile-summary");
+        summary.setAttribute("aria-label", "Edit " + rule.name);
+        summary.querySelector("strong").textContent = rule.name;
+        summary.querySelector("small").textContent = ruleScheduleSummary(rule);
+        summary.querySelector(".mobile-rule-amount").firstChild.nodeValue =
+          (rule.direction === "credit" ? "+" : "−") + formatCurrency(rule.amount);
+        if (field === "amount") card.querySelector('[data-field="amount"]').value = formatNumberForInput(rule.amount);
+      }
+      renderProjection();
+    }
   }
 
   function ruleInputError(rule, field, value) {
@@ -2714,6 +2863,7 @@
   startingBalanceInput.addEventListener("change", function () {
     refreshFromToday();
   });
+  balanceDateInput.addEventListener("change", refreshFromToday);
 
   projectionDaysInput.addEventListener("change", function () {
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
@@ -2845,8 +2995,8 @@
     reader.onload = function () {
       try {
         var parsed = JSON.parse(reader.result);
-        var restoredState = normalizeState(parsed.data || parsed);
-        requestDataConfirmation(UI_COPY.confirms.restoreFile).then(function (confirmed) {
+        var restoredState = readBackupState(parsed);
+        requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreFile, restoredState, parsed.exportedAt)).then(function (confirmed) {
           if (confirmed) {
             state = restoredState;
             persistAndRender();
@@ -2920,6 +3070,7 @@
 
     state.rulesCollapsed = false;
     state.recurringRules.push(newRule);
+    expandedRuleId = newRule.id;
     pendingFocusRuleId = newRule.id;
     pendingFocusField = "name";
     pendingScrollRuleId = newRule.id;
@@ -3022,14 +3173,23 @@
   });
 
   rulesList.addEventListener("click", function (event) {
-    var button = event.target.closest("[data-action='delete-rule']");
-    var card;
-
-    if (!button) {
+    var button = event.target.closest("[data-action]");
+    if (!button) return;
+    var card = event.target.closest("[data-rule-id]");
+    if (!card) return;
+    var id = card.getAttribute("data-rule-id");
+    if (button.dataset.action === "edit-rule" || button.dataset.action === "done-editing") {
+      var invalid = card.querySelector('[aria-invalid="true"]');
+      if (invalid) { invalid.focus(); return; }
+      expandedRuleId = expandedRuleId === id ? null : id;
+      renderRules();
+      var summary = Array.from(rulesList.querySelectorAll("[data-action='edit-rule']")).find(function (el) { return el.closest("[data-rule-id]").dataset.ruleId === id; });
+      if (summary) summary.focus();
       return;
     }
-
-    card = event.target.closest("[data-rule-id]");
+    if (button.dataset.action !== "delete-rule") return;
+    var removedIndex = state.recurringRules.findIndex(function (rule) { return rule.id === id; });
+    undoRemoval = { state: state, rule: state.recurringRules[removedIndex], index: removedIndex, skipped: Object.assign({}, state.skippedInstances) };
     state.recurringRules = state.recurringRules.filter(function (rule) {
       return rule.id !== card.getAttribute("data-rule-id");
     });
@@ -3038,7 +3198,11 @@
         delete state.skippedInstances[key];
       }
     });
+    if (expandedRuleId === id) expandedRuleId = null;
     persistAndRender(UI_COPY.status.removedItem);
+    document.querySelector("#undo-removal").classList.remove("is-hidden");
+    document.querySelector("#undo-removal-copy").textContent = undoRemoval.rule.name + " removed.";
+    document.querySelector("#undo-remove").focus();
   });
 
   projectionTableBody.addEventListener("click", function (event) {
@@ -3058,6 +3222,10 @@
       state.skippedInstances[key] = true;
       persistAndRender(UI_COPY.status.excludedItem);
     }
+    var restoredButton = Array.from(projectionTableBody.querySelectorAll("[data-action='toggle-instance']")).find(function (el) {
+      return instanceKey(el.dataset.ruleId, el.dataset.dateKey) === key;
+    });
+    if (restoredButton) restoredButton.focus();
   });
 
   rulesList.addEventListener("toggle", function (event) {
@@ -3076,6 +3244,79 @@
     saveState(state);
   });
 
+  document.querySelector("#data-dialog-backup").addEventListener("click", function () { exportDataButton.click(); });
+  document.querySelector("#undo-remove").addEventListener("click", function () {
+    if (!undoRemoval || undoRemoval.state !== state) return;
+    state.recurringRules.splice(undoRemoval.index, 0, undoRemoval.rule);
+    Object.keys(undoRemoval.skipped).forEach(function (key) {
+      if (key.indexOf(undoRemoval.rule.id + "::") === 0) state.skippedInstances[key] = undoRemoval.skipped[key];
+    });
+    expandedRuleId = undoRemoval.rule.id;
+    pendingFocusRuleId = undoRemoval.rule.id;
+    pendingFocusField = "name";
+    undoRemoval = null;
+    document.querySelector("#undo-removal").classList.add("is-hidden");
+    persistAndRender("Payment restored.");
+  });
+  document.querySelector("#restore-exclusions").addEventListener("click", function () {
+    state.skippedInstances = {};
+    persistAndRender("All individual payments restored.");
+    document.querySelector("#scenario-count").setAttribute("tabindex", "-1");
+    document.querySelector("#scenario-count").focus();
+  });
+  document.querySelector("#show-more-transactions").addEventListener("click", function () {
+    var firstNewIndex = ledgerLimit;
+    ledgerLimit += 20;
+    renderProjection();
+    var firstNewRow = projectionTableBody.rows[firstNewIndex];
+    if (firstNewRow) {
+      var nextAction = firstNewRow.querySelector("button");
+      if (nextAction) nextAction.focus();
+    }
+  });
+  document.querySelector("#chart-date-slider").addEventListener("input", function (event) { inspectChartDay(event.target.value); });
+  document.querySelector("#chart-previous").addEventListener("click", function () { inspectChartDay(chartInspectionIndex - 1); });
+  document.querySelector("#chart-next").addEventListener("click", function () { inspectChartDay(chartInspectionIndex + 1); });
+
+  function markSection(id) {
+    document.querySelectorAll(".mobile-section-nav a").forEach(function (link) {
+      if (link.getAttribute("href") === "#" + id) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  }
+  document.querySelectorAll(".mobile-section-nav a").forEach(function (link) {
+    link.addEventListener("click", function () { markSection(link.hash.slice(1)); });
+  });
+  if (window.IntersectionObserver) {
+    var sectionObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { if (entry.isIntersecting) markSection(entry.target.id); });
+    }, { rootMargin: "-64px 0px -55% 0px", threshold: 0 });
+    ["forecast", "payments", "transactions"].forEach(function (id) { sectionObserver.observe(document.getElementById(id)); });
+  }
+
+  function configureResponsiveUI() {
+    if (mobileQuery.matches) {
+      dataMenu.querySelector(".data-menu-panel").appendChild(themeSwitcher);
+      forecastSettings.open = !hasProjectionData();
+      chartOptions.open = false;
+    } else {
+      utilityHome.appendChild(themeSwitcher);
+      forecastSettings.open = true;
+      chartOptions.open = true;
+    }
+  }
+  if (mobileQuery.addEventListener) mobileQuery.addEventListener("change", configureResponsiveUI);
+  else mobileQuery.addListener(configureResponsiveUI);
+  function refreshDeviceTheme() {
+    if (themePreference !== "system") return;
+    var changed = document.documentElement.getAttribute("data-theme") !== resolveThemePreference("system");
+    applyThemePreference("system", { persist: false, render: changed });
+  }
+  ["pageshow", "focus"].forEach(function (name) { window.addEventListener(name, refreshDeviceTheme); });
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) refreshDeviceTheme();
+  });
+  configureResponsiveUI();
   syncDriveStatus();
   persistAndRender();
 })();
