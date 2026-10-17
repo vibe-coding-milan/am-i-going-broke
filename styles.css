@@ -2675,8 +2675,6 @@ button:disabled { opacity: .45; cursor: default; }
 .chart-toggles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .transaction-count { display: none; }
 @media (max-width: 860px) {
-  .hero .projection-answer { display: block; font-size: .83rem; margin-top: 3px; min-height: 1.6em; }
-  .hero .projection-answer-stroke { height: .2rem; }
   .forecast-metrics { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 12px; align-items: center; }
   .forecast-metrics > div:first-child { grid-column: auto; border: 0; padding: 0; }
   .forecast-metrics > div:first-child strong { font-size: 1.3rem; }
@@ -2695,4 +2693,16 @@ button:disabled { opacity: .45; cursor: default; }
   .mobile-signed-amount { font-size: .82rem; }
   .mobile-more:not(.is-hidden) { width: auto; min-width: 120px; margin: 16px auto 0; white-space: normal; }
   .transaction-count { display: block; text-align: center; color: var(--muted); font-size: .73rem; margin: 8px 0 0; }
+}
+
+/* Keep the question and answer on one baseline when space permits. */
+.hero { flex: 1; min-width: 0; max-width: none; }
+.hero-text { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; min-width: 0; }
+.hero h1 { flex: 0 0 auto; }
+.hero .projection-answer { display: grid; flex: 1 1 18ch; min-width: min(100%, 18ch); }
+@media (max-width: 860px) {
+  .hero { align-items: flex-start; }
+  .hero-text { display: flex; gap: 5px 12px; }
+  .hero h1 { flex: 0 1 auto; max-width: 100%; }
+  .hero .projection-answer { flex-basis: 100%; min-width: 0; font-size: .85rem; }
 }

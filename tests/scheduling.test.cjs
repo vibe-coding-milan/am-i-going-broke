@@ -167,20 +167,84 @@ test("today-based forecasts retain the balance confirmation date and original co
   assert.equal(context.normalizeState({ startDate: "2099-01-01" }).startDate, context.todayInputValue());
 });
 
-test("header answer follows zero crossing rather than cushion category and only animates once", () => {
-  const element = { className: "", attrs: {}, innerHTML: "", text: {},
+// Simulated time checks the real response component without waiting or touching browser data.
+function responseHarness(reduced = false) {
+  let now = 0, nextId = 0;
+  const timers = new Map();
+  const children = {};
+  const element = { className: "", attrs: {}, innerHTML: "",
     setAttribute(key, value) { this.attrs[key] = value; },
-    querySelector() { return this.text; } };
-  const headerContext = vm.createContext({});
+    querySelector(selector) { return children[selector] ||= { textContent: "" }; } };
+  const motion = { matches: reduced, addEventListener(type, callback) { this.change = callback; } };
+  const headerContext = vm.createContext({
+    Math: Object.assign(Object.create(Math), { random: () => 0 }),
+    matchMedia: () => motion,
+    setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, at: now + delay }); return id; },
+    clearTimeout(id) { timers.delete(id); },
+  });
   for (const file of ["content/projectionAnswerCopy.js", "components/projectionAnswer.js"])
     vm.runInContext(fs.readFileSync(require("node:path").join(__dirname, "..", file), "utf8"), headerContext);
-  const header = headerContext.ProjectionAnswer.create(element);
-  header.update({ hasProjectionData: false });
-  assert.equal(element.text.textContent, "Let's see.");
-  header.update({ hasProjectionData: true, status: "At Risk", dropsBelowZero: false });
-  assert.equal(element.text.textContent, "Nope.");
-  assert.match(element.className, /is-typing/);
-  header.update({ hasProjectionData: true, dropsBelowZero: true });
-  assert.equal(element.text.textContent, "Yep.");
-  assert.doesNotMatch(element.className, /is-typing/);
+  return { element, motion, timers,
+    header: headerContext.ProjectionAnswer.create(element),
+    visual: () => children[".projection-answer-text"].textContent,
+    announcement: () => children[".projection-answer-announcement"].textContent,
+    advance(milliseconds) {
+      const target = now + milliseconds;
+      while (true) {
+        const next = [...timers].sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next || next[1].at > target) break;
+        now = next[1].at; timers.delete(next[0]); next[1].callback();
+      }
+      now = target;
+    },
+  };
+}
+
+test("response thinks for a second, types at a readable pace, and announces only the complete answer", () => {
+  const h = responseHarness();
+  h.header.update({ hasProjectionData: false });
+  assert.equal(h.visual(), "Let's see the numbers.");
+  assert.equal(h.timers.size, 0);
+  h.header.update({ hasProjectionData: true, status: "At Risk", dropsBelowZero: false, forecastKey: "first" });
+  assert.equal(h.visual(), ".");
+  h.advance(666);
+  assert.equal(h.visual(), "...");
+  assert.equal(h.announcement(), "");
+  h.advance(374);
+  assert.equal(h.visual(), "N");
+  assert.equal(h.element.attrs["aria-busy"], "true");
+  h.advance(10000);
+  assert.equal(h.visual(), "Not yet. Too close, babe.");
+  assert.match(h.announcement(), /^Not yet.*selected forecast period/);
+  assert.equal(h.element.attrs["aria-busy"], "false");
+});
+
+test("new edits replace unfinished responses; unchanged renders do not replay or reshuffle", () => {
+  const h = responseHarness();
+  h.header.update({ hasProjectionData: true, status: "Healthy", forecastKey: "one" });
+  h.advance(1160);
+  assert.equal(h.visual(), "Nope");
+  h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "two" });
+  assert.equal(h.visual(), ".");
+  h.advance(10000);
+  assert.equal(h.visual(), "Yep. Have you considered a life of crime?");
+  h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "two" });
+  assert.equal(h.timers.size, 0);
+  h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "three" });
+  assert.equal(h.visual(), ".");
+  h.advance(10000);
+  assert.equal(h.visual(), "Yep. Have you considered a life of crime?");
+});
+
+test("reduced motion skips both effects and can finish a response already in progress", () => {
+  const h = responseHarness(true);
+  h.header.update({ hasProjectionData: true, status: "Tight", forecastKey: "one" });
+  assert.match(h.visual(), /^Not yet\./);
+  assert.equal(h.timers.size, 0);
+  h.motion.matches = false;
+  h.header.update({ hasProjectionData: true, status: "Healthy", forecastKey: "two" });
+  assert.equal(h.visual(), ".");
+  h.motion.matches = true; h.motion.change();
+  assert.equal(h.visual(), "Nope. Actually, you can take me out to dinner.");
+  assert.equal(h.timers.size, 0);
 });
