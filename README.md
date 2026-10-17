@@ -108,6 +108,29 @@ Public pages: [Privacy Policy](https://amigoingbroke.me/privacy.html) and
 
 User data is stored in the browser, so updating the HTML, CSS, or JS on the server should not erase existing local data. For extra safety, users can export a JSON backup before major updates.
 
+## Deploying to DreamHost
+
+The [Deploy to DreamHost workflow](https://github.com/vibe-coding-milan/am-i-going-broke/actions/workflows/deploy-dreamhost.yml)
+is started manually. Saving locally or pushing to GitHub does not deploy the website.
+
+1. Save and publish the changes to GitHub's `main` branch.
+2. Open the workflow link above and click **Run workflow**, with branch **main**.
+3. Choose **preview** to test authentication and list proposed uploads without changing the site.
+4. After reviewing the preview, run it again with **deploy** to update the live website.
+
+The workflow runs syntax and scheduling checks first. It uses the `DREAMHOST_SSH_KEY`
+repository secret to connect to `iad1-shared-b8-06.dreamhost.com` as `mmijatov` and upload
+public app files to `/home/mmijatov/amigoingbroke.me`.
+The server's public host key is pinned in [scripts/dreamhost_known_hosts](./scripts/dreamhost_known_hosts).
+Private keys must stay outside the repository.
+
+Deployments preserve server-only files, including any `.htaccess` file. Existing files that
+are replaced are backed up outside the public website in
+`/home/mmijatov/.amigoingbroke-deploy-backups/<run-id>-<attempt>/`.
+These are backups of replaced files, not a complete website snapshot; files removed from Git
+are not automatically removed from DreamHost. For rollback, revert the unwanted GitHub change
+and deploy again. Newly introduced files that should be removed require a separate cleanup.
+
 ## Optional Google Drive backup
 
 Google Drive is an optional manual backup destination. It does not replace browser storage or

@@ -1,0 +1,60 @@
+name: Deploy to DreamHost
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preview changes, or deploy them to amigoingbroke.me
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dreamhost-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the selected commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Check JavaScript and scheduling
+        run: |
+          node --check app.js
+          TZ=America/New_York node --test tests/scheduling.test.cjs
+          TZ=Pacific/Auckland node --test tests/scheduling.test.cjs
+
+      - name: Prepare deployment key
+        env:
+          DEPLOY_KEY: ${{ secrets.DREAMHOST_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$DEPLOY_KEY" ]]; then
+            echo 'Add the DREAMHOST_SSH_KEY repository secret before running this workflow.' >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$RUNNER_TEMP/dreamhost_key"
+          ssh-keygen -y -P '' -f "$RUNNER_TEMP/dreamhost_key" > /dev/null
+
+      - name: Preview or deploy public website files
+        env:
+          DEPLOY_MODE: ${{ inputs.mode }}
+          DREAMHOST_KEY_FILE: ${{ runner.temp }}/dreamhost_key
+        run: bash scripts/deploy-dreamhost.sh "$DEPLOY_MODE"
+
+      - name: Remove temporary key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/dreamhost_key"
