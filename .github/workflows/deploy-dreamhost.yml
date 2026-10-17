@@ -22,7 +22,7 @@ concurrency:
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out the selected commit
@@ -30,11 +30,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check JavaScript and scheduling
-        run: |
-          node --check app.js
-          TZ=America/New_York node --test tests/scheduling.test.cjs
-          TZ=Pacific/Auckland node --test tests/scheduling.test.cjs
+      - name: Use Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Check project
+        run: node scripts/check-project.cjs
 
       - name: Prepare deployment key
         env:

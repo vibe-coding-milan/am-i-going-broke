@@ -1,187 +1,116 @@
-# amigoingbroke.me
+# Am I Going Broke?
 
-Live app: [amigoingbroke.me](https://amigoingbroke.me/).
+A cash-flow forecasting app by Milan Mijatovic. Project future balances, see when money gets tight, and model recurring income, bills, and gaps between contracts.
 
-A lightweight V1 web app for projecting cash balance from:
+**[Use the app](https://amigoingbroke.me/)** · [Report a problem](https://github.com/vibe-coding-milan/am-i-going-broke/issues) · [Changelog](./CHANGELOG.md)
 
-- a starting cash balance
-- recurring weekly or monthly rules
-- one-time money in and money out
-- optional overrides for variable items
+## What it does
 
-## Why this matches the spreadsheet workflow
+- Forecast daily balances for up to six months from a starting balance.
+- Schedule weekly, monthly, every-two-week, and one-time income and expenses.
+- Bound recurring payments with optional start dates, inclusive end dates, or occurrence limits.
+- Explore scenarios by excluding individual payments and inspect the chart and ledger.
+- Monitor configurable financial cushion targets.
+- Save plans in this browser, download and restore JSON backups, and optionally make manual Google Drive backups.
 
-The attached spreadsheet's `Milan Cash Flow` sheet is already using a strong mental model:
+This is a personal planning tool. Its output depends on the dates and amounts you enter; it does not connect to banks, verify transactions, or provide financial, legal, or tax advice.
 
-- `Day`
-- `Expense`
-- `Money in`
-- `Money out`
-- `Balance`
+## Getting started
 
-The app also treats your `Current Cash Management Balance` as the starting point
-for the whole run, just like the first row in the spreadsheet.
+Open [amigoingbroke.me](https://amigoingbroke.me/), set your current balance, and add your income and expenses using the dates money actually arrives or leaves your account. Review the forecast and adjust your assumptions as circumstances change.
 
-This prototype keeps that same core idea, but makes the daily projection generated instead of manually rebuilt each month.
+For contract or seasonal work, the final workday and final payday can differ. A contract ending December 18, 2026 might pay for the last time on December 25. Give that payment rule an end date of December 25, then create a separate rule starting January 15, 2027 to represent an unpaid gap.
 
-## Current V1 behavior
+- Payment bounds are inclusive; the schedule still determines actual payment dates.
+- Every-two-week rules follow the **Repeats from** date, even when Starts delays eligibility.
+- **After # times** counts scheduled occurrences from Starts, including excluded occurrences. Refreshing the forecast does not restart the count.
+- Existing recurring rules without a start date keep their schedule. One-time entries use their exact date.
 
-- Generate a forward cash projection up to six months.
-- Support recurring monthly items such as rent, mortgage, or cards due on a day of the month.
-- Support recurring weekly items such as paychecks.
-- End recurring items after a set number of times or on a specific date.
-- Mark rules as fixed or variable.
-- Color-code balances based on configurable thresholds.
-- Save everything in browser local storage.
-- Download and restore local data as JSON.
-- Optionally save and restore a manual backup in Google Drive.
-- Reset saved browser data safely.
-- Use versioned local storage with migration from older app keys.
+## Your data and privacy
+
+Plans are saved in browser local storage. Clearing that storage, changing browsers, or moving to another origin can make a plan unavailable. Download a backup before resetting the app or changing devices.
+
+Google Drive is optional and manual, not continuous synchronization. When requested, the app sends the backup directly to Google Drive using the `drive.file` scope. Short-lived access tokens remain in memory, not local storage. The app does not upload financial plans to this GitHub repository or the DreamHost website server.
+
+The app loads Google Fonts. Google authorization and Drive requests occur when using the optional Drive connection. See the [Privacy Policy](https://amigoingbroke.me/privacy.html) and [Terms of Service](https://amigoingbroke.me/terms.html) for details.
+
+**Never post real financial plans, backup files, passwords, or access tokens in GitHub issues.** Use fictional examples in reports and screenshots.
+
+## Run locally
+
+The app uses plain HTML, CSS, and JavaScript. There is no package installation or build step.
+
+```sh
+git clone https://github.com/vibe-coding-milan/am-i-going-broke.git
+cd am-i-going-broke
+```
+
+Open `index.html` in your browser for a quick look. For a consistent local web origin, serve the folder using a static server. For example, if Python 3 is installed:
+
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+Then open [http://localhost:8000/](http://localhost:8000/). Local browser storage is separate from the production site's storage. Google Drive authorization also requires the local origin to be configured in Google Cloud; it is not required to use the rest of the app.
+
+## Checks
+
+Use Node.js 24 and Bash, then run:
+
+```sh
+node scripts/check-project.cjs
+```
+
+This checks JavaScript and shell syntax, repository-relative documentation and HTML links, and 11 scheduling regressions in each of two time zones. It does not exercise Google sign-in, actual Drive uploads, or all browser interactions. Manually check the affected UI at desktop and phone widths when changing it.
+
+[Project checks](https://github.com/vibe-coding-milan/am-i-going-broke/actions/workflows/checks.yml) run on pushes, pull requests, and manual requests. They do not deploy or use the DreamHost secret.
 
 ## Project structure
 
-- [index.html](./index.html)
-- [privacy.html](./privacy.html)
-- [terms.html](./terms.html)
-- [styles.css](./styles.css)
-- [app.js](./app.js)
+| Path | Purpose |
+| --- | --- |
+| [index.html](./index.html), [styles.css](./styles.css), [app.js](./app.js) | Main application UI, styling, storage, scheduling, and backup integration |
+| [projectionHealth.js](./projectionHealth.js) | Projection health calculations |
+| [components/](./components/), [content/](./content/), [styles/](./styles/) | Projection answer presentation, copy, and styling |
+| [assets/](./assets/) | Brand and consent-screen assets |
+| [privacy.html](./privacy.html), [terms.html](./terms.html) | Hosted policies |
+| [tests/](./tests/), [scripts/](./scripts/) | Scheduling regressions, project checks, and deployment tools |
+| [.github/](./.github/) | Checks, manual deployment, dependency updates, and issue templates |
 
-## How to use it
+## Publishing and DreamHost deployment
 
-Use the live app at [amigoingbroke.me](https://amigoingbroke.me/).
+The production address is **https://amigoingbroke.me/**. Saving locally, committing, and publishing to GitHub are distinct steps. The current Codex workflow publishes through the connected GitHub account; direct terminal `git push` requires a separately configured GitHub login.
 
-For local development, clone this repository and open [index.html](./index.html) in a browser.
+1. Make changes, run the checks, and update the changelog for meaningful changes.
+2. Commit and publish the intended files to GitHub's `main` branch. Confirm the automatic checks pass.
+3. Open [Deploy to DreamHost](https://github.com/vibe-coding-milan/am-i-going-broke/actions/workflows/deploy-dreamhost.yml) and click **Run workflow**, using branch **main**.
+4. Select **preview** to test authentication and list proposed uploads without modifying the site.
+5. Review the preview, then run the workflow with **deploy** to publish.
 
-Suggested first setup:
+Deployments run the same project checks first. They use the `DREAMHOST_SSH_KEY` repository secret to connect to `iad1-shared-b8-06.dreamhost.com` as `mmijatov` and publish to `/home/mmijatov/amigoingbroke.me`. The public server key is pinned in [scripts/dreamhost_known_hosts](./scripts/dreamhost_known_hosts). Private keys stay outside the repository.
 
-1. Set your current cash balance.
-2. Add your recurring money in and money out items.
-3. Review the projection chart, analysis, table, and running balances.
+Only tracked public app files are uploaded. Documentation, tests, workflows, and Git history are excluded. Server-only files such as `.htaccess` are preserved. These are in-place uploads, not an atomic release switch; deployment is serialized to prevent overlapping uploads.
 
-## Contract and seasonal payments
+Replaced files are backed up outside the public website under `/home/mmijatov/.amigoingbroke-deploy-backups/<run-id>-<attempt>/`. These are backups of replaced files, not complete website snapshots. Deleted repository files are not automatically deleted from DreamHost. To roll back, revert the unwanted GitHub change and deploy again; newly introduced unwanted files need a separate cleanup.
 
-Recurring income and expenses support an optional **Starts** date and an inclusive
-**Ends → On date** limit. Enter the dates money reaches or leaves your account,
-rather than the dates you perform the work. The weekly, monthly, or every-two-week
-schedule determines which payments occur within those bounds.
+After deploying, check the workflow result and the live app. Deployment checks HTTP responses for the homepage and both policy pages. A successful upload is not a substitute for checking changed browser behavior.
 
-For example, a contract ending December 18, 2026 could make its final Friday
-payment on December 25. Set that rule's last payment date to December 25. Add a
-separate rule for the next contract, starting January 15, 2027, to leave January 1
-and January 8 without paychecks from either contract.
+Keep backups of user plans separately. Website deployments do not back up browser storage or users' Google Drive files. See [maintenance notes](./docs/MAINTENANCE.md) for deployment credentials and history recovery.
 
-- Existing rules without a start date continue from the forecast start.
-- Every-two-week payments follow the **Repeats from** date; Starts can delay eligibility without changing that cadence.
-- **After # times** counts scheduled occurrences from Starts, including excluded occurrences. Refreshing the forecast does not restart that count.
-- One-time entries continue to use their exact date.
-- Start/end dates are included in downloaded and optional Drive backups.
+## Optional Google Drive configuration
 
-The focused implementation scope is tracked in [IMPROVEMENT_PLAN.md](./IMPROVEMENT_PLAN.md),
-and completed changes and verification are recorded in [CHANGELOG.md](./CHANGELOG.md).
-
-Run scheduling regression checks with:
-
-```sh
-TZ=America/New_York node --test tests/scheduling.test.cjs
-TZ=Pacific/Auckland node --test tests/scheduling.test.cjs
-```
-
-## Hosting
-
-The production URL is [https://amigoingbroke.me/](https://amigoingbroke.me/).
-
-This app can be hosted as a simple static site. Publish these files and supporting directories, preserving their relative paths:
-
-- [index.html](./index.html)
-- [privacy.html](./privacy.html)
-- [terms.html](./terms.html)
-- [styles.css](./styles.css)
-- [app.js](./app.js)
-- [projectionHealth.js](./projectionHealth.js)
-- [assets/](./assets/)
-- [components/](./components/)
-- [content/](./content/)
-- [styles/](./styles/)
-
-Public pages: [Privacy Policy](https://amigoingbroke.me/privacy.html) and
-[Terms of Service](https://amigoingbroke.me/terms.html).
-
-User data is stored in the browser, so updating the HTML, CSS, or JS on the server should not erase existing local data. For extra safety, users can export a JSON backup before major updates.
-
-## Deploying to DreamHost
-
-The [Deploy to DreamHost workflow](https://github.com/vibe-coding-milan/am-i-going-broke/actions/workflows/deploy-dreamhost.yml)
-is started manually. Saving locally or pushing to GitHub does not deploy the website.
-
-1. Save and publish the changes to GitHub's `main` branch.
-2. Open the workflow link above and click **Run workflow**, with branch **main**.
-3. Choose **preview** to test authentication and list proposed uploads without changing the site.
-4. After reviewing the preview, run it again with **deploy** to update the live website.
-
-The workflow runs syntax and scheduling checks first. It uses the `DREAMHOST_SSH_KEY`
-repository secret to connect to `iad1-shared-b8-06.dreamhost.com` as `mmijatov` and upload
-public app files to `/home/mmijatov/amigoingbroke.me`.
-The server's public host key is pinned in [scripts/dreamhost_known_hosts](./scripts/dreamhost_known_hosts).
-Private keys must stay outside the repository.
-
-Deployments preserve server-only files, including any `.htaccess` file. Existing files that
-are replaced are backed up outside the public website in
-`/home/mmijatov/.amigoingbroke-deploy-backups/<run-id>-<attempt>/`.
-These are backups of replaced files, not a complete website snapshot; files removed from Git
-are not automatically removed from DreamHost. For rollback, revert the unwanted GitHub change
-and deploy again. Newly introduced files that should be removed require a separate cleanup.
-
-## Optional Google Drive backup
-
-Google Drive is an optional manual backup destination. It does not replace browser storage or
-provide realtime sync. The app uploads the existing JSON export payload directly to the user's
-Drive using the narrow `drive.file` scope.
-
-After connecting, the app remembers the Drive connection in this browser. Google access tokens
-remain short-lived and are not stored in local storage; the app requests a fresh token when a
-later backup or restore needs one.
-
-To enable it, create a Google OAuth 2.0 Web client, add `https://amigoingbroke.me` as an authorized
-JavaScript origin, enable the Google Drive API in the same Google Cloud project, and set the public client ID in
-`index.html`:
+Production is configured with a public Google OAuth web client ID in `index.html`. To run your own authorized configuration, enable the Google Drive API in the corresponding Google Cloud project and register the correct JavaScript origin. Production uses `https://amigoingbroke.me`.
 
 ```html
 <meta name="google-drive-client-id" content="YOUR_PUBLIC_OAUTH_CLIENT_ID" />
 ```
 
-OAuth client IDs are public frontend configuration. Do not add a Google client secret to this app.
+A client ID is public frontend configuration. Never put a Google client secret in this app. If connection succeeds but backup fails, check that the Drive API is enabled in the project owning the client ID.
 
-If Google account connection succeeds but saving a backup fails, confirm that **Google Drive API**
-appears under **APIs & Services → Enabled APIs & services** for the project that owns the OAuth
-client ID.
+## Ownership and project status
 
-## Recommended next steps
+Copyright © 2026 Milan Mijatovic. All rights reserved. This is a proprietary, solo-maintained project whose source is public for inspection. It is not offered under an open-source license. See [LICENSE.md](./LICENSE.md) for the rights notice, GitHub platform exceptions, and third-party materials.
 
-### V1.1
+Unsolicited code contributions are not currently accepted. Bug reports and suggestions are welcome; see [CONTRIBUTING.md](./CONTRIBUTING.md). Report security concerns privately as described in [SECURITY.md](./SECURITY.md).
 
-- Add support for twice-monthly schedules.
-- Add a separate recurring rule library and monthly scenario layer.
-- Add export/import to JSON so the setup can move across devices.
-
-### V1.2
-
-- Add Google Sheets import/export.
-- Add "needs attention" warnings when balance crosses thresholds.
-- Add notes and categories on entries.
-- Add multiple account views.
-
-### V2
-
-- Add authentication and cloud sync.
-- Add mobile-first entry flows for fast updates.
-- Add calendar integration and reminders for variable items that need review.
-
-## Best input to provide next
-
-To make the next iteration useful quickly, the most helpful input is:
-
-1. Your real recurring rule list.
-2. Which schedule types you need beyond weekly and monthly day-of-month.
-3. Which items are fixed vs variable.
-4. Whether you want Google Sheets to remain the source of truth or become optional.
-5. Whether you want a local-only app first or a hosted web app.
+The focused scheduling work is recorded in [IMPROVEMENT_PLAN.md](./IMPROVEMENT_PLAN.md). Future ideas are not promises or a release schedule.
