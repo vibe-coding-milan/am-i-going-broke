@@ -1157,6 +1157,7 @@
         projectionAnswer.update({
           status: health.status,
           hasProjectionData: false,
+          refresh: refreshAnswer,
         });
       }
 

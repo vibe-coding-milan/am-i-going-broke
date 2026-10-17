@@ -5,6 +5,12 @@
     this.lastKey = null;
     this.category = null;
     this.answer = "";
+    try { this.answer = root.sessionStorage.getItem("projection-answer:last") || ""; } catch (error) { /* Storage is optional. */ }
+    this.responseHistory = {};
+    try {
+      var history = JSON.parse(root.sessionStorage.getItem("projection-answer:history") || "{}");
+      if (history && typeof history === "object" && !Array.isArray(history)) this.responseHistory = history;
+    } catch (error) { /* Keep rotating in memory if storage is unavailable. */ }
     this.displayAnswer = "";
     this.timers = [];
     this.generation = 0;
@@ -48,11 +54,22 @@
     if (key === this.lastKey && !options.refresh) return;
     this.lastKey = key;
     this.cancel();
-    var pool = this.copy.responses[category] || this.copy.responses.Stable;
-    // Avoid repeating the previous phrase when this scenario has alternatives.
-    var choices = pool.filter(function (text) { return text !== this.answer; }, this);
-    if (!choices.length) choices = pool;
-    this.answer = !hasData ? this.copy.fallback : choices[Math.floor(Math.random() * choices.length)];
+    var pool = this.copy.responses[category] || (!hasData ? [this.copy.fallback] : this.copy.responses.Stable);
+    // Draw without replacement within each scenario, including across tab reloads.
+    var seen = this.responseHistory[category];
+    if (!Array.isArray(seen)) seen = [];
+    seen = seen.filter(function (text) { return pool.indexOf(text) !== -1; });
+    var choices = pool.filter(function (text) { return seen.indexOf(text) === -1; });
+    if (!choices.length) { seen = []; choices = pool.slice(); }
+    var fresh = choices.filter(function (text) { return text !== this.answer; }, this);
+    if (fresh.length) choices = fresh;
+    this.answer = choices[Math.floor(Math.random() * choices.length)];
+    seen.push(this.answer);
+    this.responseHistory[category] = seen;
+    try {
+      root.sessionStorage.setItem("projection-answer:last", this.answer);
+      root.sessionStorage.setItem("projection-answer:history", JSON.stringify(this.responseHistory));
+    } catch (error) { /* Storage is optional; in-memory rotation still works. */ }
     this.category = category;
     this.element.setAttribute("data-answer", !hasData ? "empty" : options.dropsBelowZero ? "yes" : "no");
     this.visual.textContent = "";

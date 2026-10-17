@@ -1,34 +1,115 @@
 (function (root) {
-  // Zero crossings take priority over cushion categories. Humor never changes the forecast.
+  // Existing forecast statuses only; below-zero forecasts take priority.
   root.projectionAnswerCopy = {
-    fallback: "Let's see the numbers.",
-    responses: {
-      Healthy: [
-        "Nope. Actually, you can take me out to dinner.",
-        "No. Why are you even on this site?",
-        "Nope. The creator would like to friend you on Venmo.",
-      ],
-      Building: [
-        "Nope. Look at you, having a financial arc.",
-        "Nope. Your balance is building.",
-      ],
-      Stable: ["Not today. The bills have been contained."],
-      Tight: [
-        "Not yet. Might be time to sell those feet pics.",
-        "Not yet. Have you tried selling on eBay?",
-        "Not yet. Maybe a second job. Or a third?",
-      ],
-      "At Risk": [
-        "Not yet. Too close, babe.",
-        "Not yet. The math needs attention.",
-      ],
-      broke: [
-        "Yep. Have you considered a life of crime?",
-        "Yep. I'm not saying rob a bank, but...",
-        "Yep. How attached are you to that extra kidney?",
-        "Yep. The bills would like a word.",
-        "Yep. Have you considered being a sugar baby?",
-      ],
-    },
-  };
+  "fallback": "Let's see the numbers.",
+  "responses": {
+    "empty": [
+      "Let's see the numbers.",
+      "Girl, I don't even know you.",
+      "No numbers, no tea. Add your cash and money moves.",
+      "The crystal ball needs a balance.",
+      "Bestie, I need receipts.",
+      "The vibes are available. The numbers are not.",
+      "You brought a question to a numbers fight."
+    ],
+    "broke": [
+      "Yep. Have you considered a life of crime?",
+      "Yep. How attached are you to that extra kidney?",
+      "Yep. The bills would like a word.",
+      "Yep. Have you considered being a sugar baby?",
+      "Narrator: They were, in fact, going broke.",
+      "Nah, you're cooked.",
+      "The money has left the premises.",
+      "Overdraft: the unwanted sequel.",
+      "Your bills ate. Unfortunately, it was your money."
+    ],
+    "At Risk": [
+      "Not yet. Too close, babe.",
+      "Not yet. The math needs attention.",
+      "Bitch, WHAT money?",
+      "Girl, these numbers are SENDING me. 💀",
+      "I'm a calculator and even I'm stressed.",
+      "Your cushion is a rumor.",
+      "The math said: girl, stand up.",
+      "Your balance is holding on out of spite.",
+      "The math said absolutely the fuck not.",
+      "Girl, I have unfortunate tea.",
+      "Your finances need to pick a struggle.",
+      "The forecast is giving cease and desist.",
+      "Your bank account so broke, the overdraft fee bounced.",
+      "I'm gonna hold your hand when I say this... you're fucked.",
+      "Your money so broke, it owes itself money.",
+      "Your wallet so empty, even the moths moved out.",
+      "Your bank account is an insult to the concept of numbers.",
+      "Your finances look like they got dressed in the dark.",
+      "Your bank account needs a sugar daddy and a miracle.",
+      "The spreadsheet has concerns."
+    ],
+    "Tight": [
+      "Not yet. Might be time to sell those feet pics.",
+      "Not yet. Have you tried selling on eBay?",
+      "Not yet. Maybe a second job. Or a third?",
+      "You're not broke, but you're flirting.",
+      "The cushion? Baby, that's a napkin.",
+      "Your finances have 1 HP remaining.",
+      "You have breathing room. Through a straw.",
+      "One little treat from a plot twist.",
+      "The budget said you can look.",
+      "You're not cooked. You're preheating.",
+      "You good? You sure?",
+      "The buffer is buffering.",
+      "Not broke, just in a financially toxic situationship.",
+      "You got champagne taste and a tap water forecast.",
+      "Your savings got the structural integrity of wet toilet paper.",
+      "I've seen more financial stability in a folding chair with three legs.",
+      "Your savings are so fragile, a parking ticket could end them."
+    ],
+    "Stable": [
+      "Not today. The bills have been contained.",
+      "The money is minding its business.",
+      "Nothing happened. 10/10.",
+      "Financially mid. Respectfully.",
+      "Financially, this could’ve been an email.",
+      "Boring. Responsible. Kinda hot.",
+      "The bills are loud, but the balance is louder.",
+      "Your finances so stable, they got tenure.",
+      "You're good. Don't make it weird.",
+      "Your bank account so boring, it wears khakis to bed.",
+      "Your bank account so stable, it gives other accounts relationship advice."
+    ],
+    "Building": [
+      "The bag is BAGGING.",
+      "Big number go up.",
+      "Your balance understood the assignment.",
+      "Oh, we getting MONEY money.",
+      "The bag is getting disrespectfully heavy.",
+      "Look at you making money. Disgusting.",
+      "Your money so ambitious, it got a side hustle.",
+      "Your money got better credit than you.",
+      "Your savings are doing better than half your exes."
+    ],
+    "Healthy": [
+      "Nope. Actually, you can take me out to dinner.",
+      "No. Why are you even on this site?",
+      "Bitch, you're the economy.",
+      "The bag got its own bag.",
+      "Okay, liquidity.",
+      "Your cushion has lumbar support.",
+      "Bitch, you ARE the bag.",
+      "The spreadsheet is throwing ass.",
+      "Not you being your own sugar daddy.",
+      "You're out here making compound interest look sexy.",
+      "Financially unbothered. Must be nice.",
+      "I checked the math. Unfortunately, you're that bitch.",
+      "Your bank account so rich, the ATM asks YOU for a loan.",
+      "Your money so long, it needs a connecting flight.",
+      "Your money walks into a room and everybody stands up.",
+      "Your money so rich, it sends other money to private school.",
+      "Your portfolio so thick, it needs its own seat on the subway.",
+      "Your bank account got more security than the president.",
+      "Your money so successful, it stopped returning your calls.",
+      "Your portfolio so rich, it has a family office and a therapist."
+    ]
+  }
+};
 })(typeof window !== "undefined" ? window : this);

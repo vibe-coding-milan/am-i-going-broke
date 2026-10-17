@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-17 — Expanded forecast answers
+
+- Activated 93 reconciled responses across the five existing forecast statuses and existing no-data/below-zero handling. Removed overlapping jokes and lines requiring new trend or expense categories.
+- Rotate through every matching response before repeating, remembering each pool across reloads in the same tab when session storage is available. Forecast edits refresh the answer; cosmetic renders do not.
+- Preserved below-zero priority, reduced motion, interrupted-animation handling, and completed-answer announcements. Forecast calculations and saved plans are unchanged.
+- Validation: source/link checks and 26 regressions in each of two time zones. Source publication and live deployment are verified separately during release.
+
 ## 2026-10-17 — Simpler forecast header
 
 - Focused the header on lowest balance/date, Cash today, and Forecast period. Removed the repeated heading, status badge, net change/duration, and visible Update forecast button.

@@ -168,7 +168,7 @@ test("today-based forecasts retain the balance confirmation date and original co
 });
 
 // Simulated time checks the real response component without waiting or touching browser data.
-function responseHarness(reduced = false) {
+function responseHarness(reduced = false, sessionStorage) {
   let now = 0, nextId = 0;
   const timers = new Map();
   const children = {};
@@ -177,6 +177,7 @@ function responseHarness(reduced = false) {
     querySelector(selector) { return children[selector] ||= { textContent: "" }; } };
   const motion = { matches: reduced, addEventListener(type, callback) { this.change = callback; } };
   const headerContext = vm.createContext({
+    sessionStorage,
     Math: Object.assign(Object.create(Math), { random: () => 0 }),
     matchMedia: () => motion,
     setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, at: now + delay }); return id; },
@@ -236,11 +237,11 @@ test("new edits refresh scenario responses; unchanged renders do not replay or r
   h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "three" });
   assert.equal(h.visual(), ".");
   h.advance(10000);
-  assert.equal(h.visual(), "Yep. I'm not saying rob a bank, but...");
+  assert.equal(h.visual(), "Yep. How attached are you to that extra kidney?");
   assert.equal(h.element.attrs["data-answer"], "yes");
   h.header.update({ hasProjectionData: true, status: "Healthy", dropsBelowZero: true, forecastKey: "three", refresh: true });
   h.advance(10000);
-  assert.equal(h.visual(), "Yep. Have you considered a life of crime?");
+  assert.equal(h.visual(), "Yep. The bills would like a word.");
 });
 
 test("reduced motion skips both effects and can finish a response already in progress", () => {
@@ -363,4 +364,74 @@ test("compact forecast summary preserves low dates and specific risk warnings wi
   assert.match(summaryElement.innerHTML, /Lowest balance.*—/);
   assert.doesNotMatch(summaryElement.innerHTML, /forecast-risk-note/);
   assert.equal(answer.hasProjectionData, false);
+});
+
+test("answers follow existing forecast statuses without inferred trend or expense categories", () => {
+  const h = responseHarness(true);
+  assert.deepEqual(Object.keys(h.header.copy.responses).sort(),
+    ["empty", "broke", "Healthy", "Building", "Stable", "Tight", "At Risk"].sort());
+  const inventory = Object.values(h.header.copy.responses).flat();
+  assert.equal(inventory.length, 93);
+  assert.equal(new Set(inventory).size, 93);
+  for (const status of ["Healthy", "Building", "Stable", "Tight", "At Risk"]) {
+    for (const metrics of [
+      { startBalance: 5000, minBalance: 4000, endBalance: 4500, netChange: -500 },
+      { startBalance: 5000, minBalance: 4000, endBalance: 5500, netChange: 500 },
+    ]) {
+      h.header.update({ hasProjectionData: true, status, metrics, hasMajorExpense: true, refresh: true });
+      assert.equal(h.header.category, status);
+      assert.ok(h.header.copy.responses[status].includes(h.header.answer));
+    }
+    h.header.update({ hasProjectionData: true, status, dropsBelowZero: true });
+    assert.equal(h.header.category, "broke");
+    assert.equal(h.element.attrs["data-answer"], "yes");
+  }
+});
+
+test("no-data answers rotate on explicit refresh and stay still on cosmetic renders", () => {
+  const h = responseHarness(true);
+  h.header.update({ hasProjectionData: false });
+  const first = h.header.answer;
+  h.header.update({ hasProjectionData: false });
+  assert.equal(h.header.answer, first);
+  h.header.update({ hasProjectionData: false, refresh: true });
+  assert.equal(h.header.answer, "Girl, I don't even know you.");
+  assert.equal(h.element.attrs["data-answer"], "empty");
+  assert.equal(h.timers.size, 0);
+});
+
+
+test("each scenario exhausts its pool before repeating across edits and reloads", () => {
+  const stored = new Map();
+  const storage = { getItem: key => stored.get(key) || null, setItem: (key, value) => stored.set(key, value) };
+  let h = responseHarness(true, storage);
+  const size = h.header.copy.responses.Healthy.length;
+  const answers = [];
+  for (let i = 0; i < size; i++) {
+    if (i % 2) h = responseHarness(true, storage);
+    h.header.update({ hasProjectionData: true, status: "Healthy", forecastKey: String(i) });
+    answers.push(h.header.answer);
+    // Visiting another scenario does not reset Healthy's rotation.
+    h.header.update({ hasProjectionData: true, status: "Tight", forecastKey: String(i) });
+  }
+  assert.equal(new Set(answers).size, size);
+  h = responseHarness(true, storage);
+  h.header.update({ hasProjectionData: true, status: "Healthy" });
+  assert.ok(answers.includes(h.header.answer));
+});
+
+test("rotation survives unavailable or malformed session storage", () => {
+  for (const storage of [
+    { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } },
+    { getItem: () => '{invalid', setItem() {} },
+    { getItem: () => '{"Stable":42}', setItem() {} },
+  ]) {
+    const h = responseHarness(true, storage);
+    const answers = [];
+    for (let i = 0; i < h.header.copy.responses.Stable.length; i++) {
+      h.header.update({ hasProjectionData: true, status: "Stable", forecastKey: String(i) });
+      answers.push(h.header.answer);
+    }
+    assert.equal(new Set(answers).size, answers.length);
+  }
 });
