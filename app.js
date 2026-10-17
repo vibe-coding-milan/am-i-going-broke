@@ -687,7 +687,6 @@
   var startingBalanceInput = document.querySelector("#starting-balance");
   var projectionDaysInput = document.querySelector("#projection-days");
   var startingBalanceForm = document.querySelector("#starting-balance-form");
-  var asOfLabel = document.querySelector("#as-of-label");
   var thresholdForm = document.querySelector("#threshold-form");
   var thresholdRedInput = document.querySelector("#threshold-red");
   var thresholdYellowInput = document.querySelector("#threshold-yellow");
@@ -767,13 +766,6 @@
     cushionLinesToggle.checked = state.showCushionLines !== false;
     averageBalanceToggle.checked = state.showAverageBalance !== false;
     extremaPointsToggle.checked = state.showExtremaPoints !== false;
-    var rangeEnd = dateInputValue(addDays(parseInputDate(state.startDate), Number(state.projectionDays) - 1));
-    asOfLabel.textContent = "Forecast: " + formatProjectionHealthDate(state.startDate) + " – " +
-      formatProjectionHealthDate(rangeEnd) + "." +
-      (state.lastRefreshDate !== todayInputValue()
-        ? " Balance last confirmed " + formatProjectionHealthDate(state.lastRefreshDate) + "; update your cash for today."
-        : " Based on your current cash balance.");
-    asOfLabel.classList.toggle("balance-stale", state.lastRefreshDate !== todayInputValue());
     document.querySelector("#forecast-settings-value").textContent =
       formatCurrency(state.startingBalance) + " · " + state.projectionDays + " days";
     rulesPanelContent.classList.toggle("is-hidden", state.rulesCollapsed);
@@ -1216,8 +1208,7 @@
     var endPoint = healthPoints[healthPoints.length - 1];
     projectionSummary.innerHTML += '<div class="forecast-metrics">' +
       '<div><span>Lowest balance</span><strong>' + formatCurrency(lowPoint.balance) + '</strong><small>' + formatProjectionHealthDate(lowPoint.date) + '</small></div>' +
-      '<div><span>Net change</span><strong>' + formatCurrency(endPoint.balance - state.startingBalance) + '</strong><small>Over ' + state.projectionDays + ' days</small></div></div>' +
-      (state.lastRefreshDate !== todayInputValue() ? '<p class="forecast-assumptions balance-stale">Update your cash balance for today. Last confirmed ' + formatProjectionHealthDate(state.lastRefreshDate) + ".</p>" : "");
+      '<div><span>Net change</span><strong>' + formatCurrency(endPoint.balance - state.startingBalance) + '</strong><small>Over ' + state.projectionDays + ' days</small></div></div>';
 
     if (projectionAnswer) {
       projectionAnswer.update({

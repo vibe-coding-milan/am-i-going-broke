@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-17 — Simpler forecast and footer copy
+
+- Removed the balance-confirmation reminder and forecast/date explanation beneath the starting-cash controls.
+- Shortened the footer credit to “Vibe coded by Milan Mijatovic.” Contact, privacy, and terms links remain available.
+- Forecast calculations, date metadata, backup compatibility, and saved plans are unchanged.
+
 ## 2026-10-17 — Compact Data menu
 
 - Reduced the menu to four clearly labeled backup/restore actions and a separated Start over action; removed repeated helper text and the separate Drive connection/status row.
