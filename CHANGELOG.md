@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-10-17 — Forecast refinement
+
+- Replaced the visible inspection slider and previous/next controls with chart hover/tap inspection, a compact chart readout, and keyboard navigation (arrows, Home/End, Escape).
+- Kept the lowest balance and its date prominent; made net change secondary and moved ending-balance inspection onto the chart.
+- Removed the balance date selector and restored today-based forecasting. Preserved the saved balance and its confirmation date, with a reminder when cash needs updating; retained original payment/count anchors and backup compatibility.
+- Simplified the header to “Nope.” / “Yep.” for the entered forecast's zero crossing, with a one-time typing reveal and reduced-motion support. Kept the existing forecast categories and removed the introductory paragraph.
+- Grouped the cushion switch with its target fields, refined narrow transaction alignment, shortened pagination to “Show more” with a separate count, and corrected section highlighting while scrolling long ledgers.
+- Validation: 16 regression tests in each of two time zones, syntax/link checks, and local desktop/phone inspection. Physical-device checks remain pending.
+- Supersedes the slider, ending-balance summary, balance-date selector, and header treatment documented in the initial mobile refresh below. See [refinement notes](docs/REFINEMENT_REVIEW.md).
+
+## Review history — Initial mobile forecast refresh
+
+- Added a compact mobile header, labeled section navigation, exact lowest/ending balance summaries, and collapsible balance/chart settings. The handwritten sub-answer remains on desktop and is hidden on phones/tablets.
+- Preserved the full-period chart, average/cushion layers, and wide desktop layout. Added chart tapping, a date slider, previous/next-day controls, and date/balance/payment inspection without changing the forecast horizon.
+- Added compact mobile payment summaries with one editor at a time, automatic saving, payment bounds, and a Done control. Desktop keeps inline editing.
+- Added dense mobile transaction rows, dates on each entry, progressive disclosure after 20 rows, descriptive occurrence controls, an exclusion count, and restore-all. Desktop retains its table and all rows.
+- Added Undo for payment removal, retained invalid input drafts until corrected, and avoided rebuilding unchanged editors on ordinary field blur.
+- Added an explicit balance-as-of date; changing cash no longer silently restarts the forecast from today. Negative starting cash remains supported.
+- Moved labeled Device/Dark/Light choices into the mobile Data menu, added resume-time preference rechecks, larger touch targets, and viewport-contained menus.
+- Added visible local-save failures, backup shape/version validation, restore previews with rule count/balance/date, and a download-current-backup action in confirmation dialogs.
+- Made threshold equality consistent with red-zone coloring and prevented safe low points or dangerous high points from receiving misleading marker colors.
+- Added policy section navigation, return/cross-links, and factual privacy copy for externally loaded fonts and readable JSON backups.
+- Kept the existing version-3 state envelope, storage key, payment engine, and start/end-date behavior. No dependency or framework was added.
+- Validation: 14 regressions in each of two time zones, project syntax/link checks, and local browser checks at phone, landscape, and desktop widths. Real Firefox Android / Chrome Android / Safari iOS checks remain pending.
+- Implementation and review notes: [Mobile refresh](docs/MOBILE_REFRESH.md). This entry records local/review-branch work, not a production deployment.
+
+
+## 2026-10-16 — Mobile UX audit (documentation only)
+
+- Recorded a focused mobile audit in `docs/MOBILE_UX_AUDIT.md`, including header alignment, forecast hierarchy, 30/90-day chart readability, payment-editor density, transaction scanning, touch targets, and limited-height utility menus.
+- Captured fresh desktop/phone/landscape evidence using fictional sample data in an isolated local browser origin.
+- Defined a proposed mobile improvement sequence and explicit desktop, chart/data, accessibility, and Firefox Android / Chrome Android / Safari iOS acceptance guardrails.
+- Theme choices worked in the audit session, and the user reported that the Pixel issue no longer reproduced. Kept the original report as unconfirmed; no theme behavior changed.
+- No application code, production deployment, or real financial plan changed in this audit. Physical-device/browser validation remains pending.
+
 ## Unreleased — Repository housekeeping
 
 - Retired four unused full/text logo variants and the completed implementation plan from the current GitHub tree. Local copies remain ignored for optional manual deletion; `docs/CLEANUP.md` records the inventory and rationale. Active icons and OAuth consent assets are retained. Existing Git history is preserved.

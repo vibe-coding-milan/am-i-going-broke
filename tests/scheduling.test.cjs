@@ -117,3 +117,70 @@ test("ledger balances, scenario exclusions and chart day keys agree", () => {
   assert.equal(points.at(-1).balance, 1100);
   assert.equal(points.find(p => p.date === "2026-12-25").balance, 1100);
 });
+
+include("  function readBackupState(", "  function backupPayload(");
+test("restore rejects unrelated or newer JSON without normalizing it to an empty plan", () => {
+  for (const payload of [{}, [], { hello: "world" }, { data: { startingBalance: "bad", recurringRules: [] } }, { startingBalance: 0, recurringRules: [], projectionDays: 1000000000 }, { startingBalance: 0, recurringRules: [], startDate: "2026-02-30" }])
+    assert.throws(() => context.readBackupState(payload), /not a valid/);
+  const restored = context.readBackupState({ version: 3, data: {
+    startDate: "2026-12-18", startingBalance: 1000, recurringRules: [rule()],
+  }});
+  assert.equal(restored.recurringRules[0].startDate, "2026-12-04");
+  assert.equal(restored.recurringRules[0].endDate, "2026-12-25");
+  assert.throws(() => context.readBackupState({ version: 99, data: {
+    startingBalance: 1000, recurringRules: [],
+  }}), /newer app version/);
+});
+
+test("red threshold equality matches chart and table danger boundaries", () => {
+  const health = require("../projectionHealth.js");
+  const result = health.evaluateProjectionHealth(
+    [{ date: "2026-12-18", balance: 1000 }, { date: "2026-12-19", balance: 2000 }],
+    { redLimit: 1000, yellowLimit: 2500, greenLimit: 5000 });
+  assert.equal(result.status, "At Risk");
+});
+
+include("  function saveState(state)", "  function readBackupState(");
+test("storage failure is reported without interrupting the in-memory plan", () => {
+  let hidden = true;
+  const message = { classList: { add() { hidden = true; }, remove() { hidden = false; } } };
+  context.document = { querySelector() { return message; } };
+  context.window = { localStorage: { setItem() { throw new Error("quota"); } } };
+  const plan = { startingBalance: 1000, recurringRules: [rule()] };
+  assert.equal(context.saveState(plan), false);
+  assert.equal(hidden, false);
+  assert.equal(plan.recurringRules.length, 1);
+  let stored;
+  context.window.localStorage.setItem = (key, value) => { stored = JSON.parse(value); };
+  assert.equal(context.saveState(plan), true);
+  assert.equal(hidden, true);
+  assert.equal(stored.data.recurringRules[0].endDate, "2026-12-25");
+});
+
+test("today-based forecasts retain the balance confirmation date and original count anchor", () => {
+  const saved = context.normalizeState({ startDate: "2026-01-01", lastRefreshDate: "2026-01-01",
+    startingBalance: 750, recurringRules: [rule({ startDate: "", limitType: "count", instanceLimit: 3 })] });
+  assert.equal(saved.startDate, context.todayInputValue());
+  assert.equal(saved.lastRefreshDate, "2026-01-01");
+  assert.equal(saved.startingBalance, 750);
+  assert.equal(saved.recurringRules[0].startDate, "2026-01-01");
+  assert.equal(context.normalizeState({ startDate: "2099-01-01" }).startDate, context.todayInputValue());
+});
+
+test("header answer follows zero crossing rather than cushion category and only animates once", () => {
+  const element = { className: "", attrs: {}, innerHTML: "", text: {},
+    setAttribute(key, value) { this.attrs[key] = value; },
+    querySelector() { return this.text; } };
+  const headerContext = vm.createContext({});
+  for (const file of ["content/projectionAnswerCopy.js", "components/projectionAnswer.js"])
+    vm.runInContext(fs.readFileSync(require("node:path").join(__dirname, "..", file), "utf8"), headerContext);
+  const header = headerContext.ProjectionAnswer.create(element);
+  header.update({ hasProjectionData: false });
+  assert.equal(element.text.textContent, "Let's see.");
+  header.update({ hasProjectionData: true, status: "At Risk", dropsBelowZero: false });
+  assert.equal(element.text.textContent, "Nope.");
+  assert.match(element.className, /is-typing/);
+  header.update({ hasProjectionData: true, dropsBelowZero: true });
+  assert.equal(element.text.textContent, "Yep.");
+  assert.doesNotMatch(element.className, /is-typing/);
+});

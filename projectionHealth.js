@@ -86,7 +86,7 @@
     var yellowLimit = Number(options.yellowLimit);
     var greenLimit = Number(options.greenLimit);
 
-    if (metrics.minBalance < redLimit || metrics.endBalance < redLimit) {
+    if (metrics.minBalance <= redLimit || metrics.endBalance <= redLimit) {
       return "At Risk";
     }
     if (metrics.minBalance < yellowLimit || metrics.endBalance < greenLimit) {
