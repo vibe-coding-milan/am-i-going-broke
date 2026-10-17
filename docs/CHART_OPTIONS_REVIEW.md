@@ -42,3 +42,7 @@ On narrow screens, the toggles and amount fields form two aligned three-column r
 - Typed red-target edit persisted after reload while cushions stayed off; restored the sample's original settings afterwards.
 - Invalid ordering still reports the existing error without moving the toggles out of alignment.
 - Source syntax, 47 local links, and 21 regressions in each of two time zones passed. Browser checks covered 320px, 393px, and 1280px widths, with no horizontal overflow; light and dark themes retained the target colors. Physical-device and assistive-technology certification are outside this pass.
+
+## Follow-up: connected cushion controls
+
+User feedback supersedes the visible-checkbox treatment above: the native checkboxes are now visually hidden within their controls, preserving keyboard and screen-reader semantics without displaying checkmarks. The desktop toolbar is centered. A shared container groups Cushions with all three target fields; on phones the Cushions control connects to the target row beneath the three aligned toggles. The target fields retain their compact tinted two-line appearance and operate together under one visibility toggle.

@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=chart-options-20261017" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=chart-options-20261017" />
+    <link rel="stylesheet" href="./styles.css?v=grouped-chart-options-20261017" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=grouped-chart-options-20261017" />
   </head>
   <body>
     <main class="app-shell">
@@ -244,13 +244,14 @@
                   <input id="toggle-extrema-points" type="checkbox" checked />
                   <span>High/low</span>
                 </label>
+              </div>
+            </div>
+            <div class="chart-cushion-strip" role="group" aria-label="Cushion lines and targets">
                 <label class="chart-toggle">
                   <input id="toggle-cushion-lines" type="checkbox" checked />
                   <span>Cushions</span>
                 </label>
-              </div>
-            </div>
-            <div class="chart-cushion-strip">
+
               <form id="threshold-form" class="thresholds-form" aria-label="Cushion targets">
                 <label class="threshold-chip threshold-chip-danger">
                   <span>Red</span>
@@ -344,9 +345,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=chart-options-20261017"></script>
-    <script src="./content/projectionAnswerCopy.js?v=chart-options-20261017"></script>
-    <script src="./components/projectionAnswer.js?v=chart-options-20261017"></script>
+    <script src="./projectionHealth.js?v=grouped-chart-options-20261017"></script>
+    <script src="./content/projectionAnswerCopy.js?v=grouped-chart-options-20261017"></script>
+    <script src="./components/projectionAnswer.js?v=grouped-chart-options-20261017"></script>
     <script src="./app.js?v=copy-trim-20261017"></script>
   </body>
 </html>
