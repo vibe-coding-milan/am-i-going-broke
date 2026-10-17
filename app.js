@@ -733,7 +733,6 @@
   var mobileQuery = window.matchMedia("(max-width: 860px)");
   var themeSwitcher = document.querySelector(".theme-switcher");
   var utilityHome = themeSwitcher.parentNode;
-  var forecastSettings = document.querySelector(".forecast-settings");
   var chartOptions = document.querySelector(".chart-options");
   var pendingFocusRuleId = null;
   var pendingFocusField = null;
@@ -760,8 +759,6 @@
     cushionLinesToggle.checked = state.showCushionLines !== false;
     averageBalanceToggle.checked = state.showAverageBalance !== false;
     extremaPointsToggle.checked = state.showExtremaPoints !== false;
-    document.querySelector("#forecast-settings-value").textContent =
-      formatCurrency(state.startingBalance) + " · " + state.projectionDays + " days";
     rulesPanelContent.classList.toggle("is-hidden", state.rulesCollapsed);
     toggleRulesButton.textContent = state.rulesCollapsed
       ? UI_COPY.buttons.showItems
@@ -1148,27 +1145,13 @@
     var brokePoint = firstProjectionPointBelow(healthPoints, 0);
     var redPoint = firstProjectionPointBelow(healthPoints, state.thresholds.red, true);
     var brokeCopy = brokePoint
-      ? "Your balance drops below $0 on " +
-        formatProjectionHealthDate(brokePoint.date) +
-        ", reaching " +
-        formatCurrency(brokePoint.balance) +
-        "."
+      ? "Below $0 on " + formatProjectionHealthDate(brokePoint.date) + "."
       : redPoint
-        ? "Your balance does not drop below $0 in this window, but hits the red zone on " +
-          formatProjectionHealthDate(redPoint.date) +
-          " at " +
-          formatCurrency(redPoint.balance) +
-          "."
-        : "Your balance does not drop below $0 in this projection window.";
+        ? "Reaches your red cushion on " + formatProjectionHealthDate(redPoint.date) + "."
+        : "";
 
     if (!hasData) {
-      projectionSummary.innerHTML =
-        '<article class="summary-card health-card setup-health-card">' +
-        '<div class="summary-value">' +
-        '<span class="health-status status-neutral">' +
-        UI_COPY.setup.status +
-        "</span></div>" +
-        "</article>";
+      projectionSummary.innerHTML = '<div class="forecast-metrics"><div><span>Lowest balance</span><strong>—</strong></div></div>';
 
       if (projectionAnswer) {
         projectionAnswer.update({
@@ -1180,29 +1163,10 @@
       return;
     }
 
-    projectionSummary.innerHTML =
-      '<article class="summary-card health-card">' +
-      '<div class="summary-card-top">' +
-      '<div><div class="summary-label">' +
-      UI_COPY.labels.forecast +
-      "</div>" +
-      '<div class="summary-value">' +
-      '<span class="health-status status-' +
-      health.severity +
-      '">' +
-      health.status +
-      "</span></div></div>" +
-      "</div>" +
-      (brokePoint || redPoint
-        ? '<div class="health-copy"><p class="health-broke-note">' + brokeCopy + "</p></div>"
-        : "") +
-      "</article>";
-
     var lowPoint = healthPoints.reduce(function (low, point) { return point.balance < low.balance ? point : low; }, healthPoints[0]);
-    var endPoint = healthPoints[healthPoints.length - 1];
-    projectionSummary.innerHTML += '<div class="forecast-metrics">' +
-      '<div><span>Lowest balance</span><strong>' + formatCurrency(lowPoint.balance) + '</strong><small>' + formatProjectionHealthDate(lowPoint.date) + '</small></div>' +
-      '<div><span>Net change</span><strong>' + formatCurrency(endPoint.balance - state.startingBalance) + '</strong><small>Over ' + state.projectionDays + ' days</small></div></div>';
+    projectionSummary.innerHTML = '<div class="forecast-metrics">' +
+      '<div><span>Lowest balance</span><strong>' + formatCurrency(lowPoint.balance) + '</strong><small>' + formatProjectionHealthDate(lowPoint.date) + '</small></div></div>' +
+      (brokeCopy ? '<p class="forecast-risk-note">' + brokeCopy + '</p>' : "");
 
     if (projectionAnswer) {
       projectionAnswer.update({
@@ -3286,11 +3250,9 @@
   function configureResponsiveUI() {
     if (mobileQuery.matches) {
       dataMenu.querySelector(".data-menu-panel").appendChild(themeSwitcher);
-      forecastSettings.open = !hasProjectionData();
       chartOptions.open = false;
     } else {
       utilityHome.appendChild(themeSwitcher);
-      forecastSettings.open = true;
       chartOptions.open = true;
     }
   }

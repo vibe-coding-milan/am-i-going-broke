@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=grouped-chart-options-20261017" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=grouped-chart-options-20261017" />
+    <link rel="stylesheet" href="./styles.css?v=compact-forecast-header-20261017" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=compact-forecast-header-20261017" />
   </head>
   <body>
     <main class="app-shell">
@@ -167,15 +167,13 @@
       <section id="forecast" class="panel forecast-dashboard" aria-label="Projection dashboard">
         <header class="forecast-dashboard-header">
           <div class="forecast-status-block">
-            <p class="section-kicker">Your money forecast</p>
             <div id="projection-summary" class="summary-grid"></div>
           </div>
-          <details class="forecast-settings" open>
-          <summary>Balance &amp; forecast period <span id="forecast-settings-value"></span></summary>
+          <div class="forecast-settings">
           <form id="starting-balance-form" class="chart-run-form">
             <div class="forecast-inputs">
               <label class="field starting-balance-field" for="starting-balance">
-                <span>Starting cash</span>
+                <span>Cash today</span>
                 <span class="money-input">
                   <span aria-hidden="true">$</span>
                   <input
@@ -184,6 +182,7 @@
                     inputmode="decimal"
                     autocomplete="off"
                     maxlength="15"
+                    aria-describedby="balance-error"
                     required
                   />
                 </span>
@@ -199,13 +198,10 @@
                   <option value="365">1 year</option>
                 </select>
               </label>
-              <button type="submit" class="button primary compact-button">
-                Update forecast
-              </button>
             </div>
             <p id="balance-error" class="form-error is-hidden" aria-live="polite"></p>
           </form>
-          </details>
+          </div>
         </header>
 
         <section class="chart-panel chart-panel-primary" aria-label="Projected cash balance chart">
@@ -345,9 +341,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=grouped-chart-options-20261017"></script>
-    <script src="./content/projectionAnswerCopy.js?v=grouped-chart-options-20261017"></script>
-    <script src="./components/projectionAnswer.js?v=grouped-chart-options-20261017"></script>
-    <script src="./app.js?v=quiet-chart-toggles-20261017"></script>
+    <script src="./projectionHealth.js?v=compact-forecast-header-20261017"></script>
+    <script src="./content/projectionAnswerCopy.js?v=compact-forecast-header-20261017"></script>
+    <script src="./components/projectionAnswer.js?v=compact-forecast-header-20261017"></script>
+    <script src="./app.js?v=compact-forecast-header-20261017"></script>
   </body>
 </html>

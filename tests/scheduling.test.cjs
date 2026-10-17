@@ -324,3 +324,43 @@ test("busy Drive operations prevent duplicates and release controls on completio
   await assert.rejects(ui.runDriveAction(() => Promise.reject(new Error("network")), controls[1], "Loading…"));
   assert.ok(controls.every(control => !control.disabled));
 });
+
+test("compact forecast summary preserves low dates and specific risk warnings without duplicate metrics", () => {
+  const summaryElement = { innerHTML: "" };
+  let hasData = true;
+  let points = [{ date: "2026-10-17", balance: 6800 }, { date: "2026-11-14", balance: 3865 }];
+  let answer;
+  const summaryContext = vm.createContext({
+    answerRefreshRequested: false,
+    projectionSummary: summaryElement,
+    state: { thresholds: { red: 1000 } },
+    summarizeProjection: () => ({ projectionHealth: { status: "Tight" } }),
+    hasProjectionData: () => hasData,
+    projectionPointsFromRows: () => points,
+    formatCurrency: value => "$" + value,
+    formatProjectionHealthDate: value => value,
+    projectionAnswer: { update: value => { answer = value; } },
+  });
+  const start = source.indexOf("  function firstProjectionPointBelow(");
+  const end = source.indexOf("  function summarizeProjection(", start);
+  vm.runInContext(source.slice(start, end), summaryContext);
+  const renderStart = source.indexOf("  function renderSummary(");
+  const renderEnd = source.indexOf("  function renderProjectionChart(", renderStart);
+  vm.runInContext(source.slice(renderStart, renderEnd), summaryContext);
+  summaryContext.renderSummary([]);
+  assert.match(summaryElement.innerHTML, /Lowest balance.*\$3865.*2026-11-14/);
+  assert.doesNotMatch(summaryElement.innerHTML, /Net change|Over \d+ days|health-status|forecast-risk-note/);
+  points = [{ date: "2026-10-17", balance: 800 }, { date: "2026-11-01", balance: -200 }];
+  summaryContext.renderSummary([]);
+  assert.match(summaryElement.innerHTML, /Below \$0 on 2026-11-01/);
+  assert.equal(answer.dropsBelowZero, true);
+  points = [{ date: "2026-10-17", balance: 1000 }];
+  summaryContext.renderSummary([]);
+  assert.match(summaryElement.innerHTML, /Reaches your red cushion on 2026-10-17/);
+  assert.equal(answer.dropsBelowZero, false);
+  hasData = false;
+  summaryContext.renderSummary([]);
+  assert.match(summaryElement.innerHTML, /Lowest balance.*—/);
+  assert.doesNotMatch(summaryElement.innerHTML, /forecast-risk-note/);
+  assert.equal(answer.hasProjectionData, false);
+});
