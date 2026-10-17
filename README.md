@@ -1,47 +1,164 @@
-# Am I Going Broke?
+# amigoingbroke.me
 
-A cash-flow forecasting app by Milan Mijatovic. See how upcoming income and expenses may affect your balance, explore different scenarios, and plan for gaps between paychecks or contracts.
+Live app: [amigoingbroke.me](https://amigoingbroke.me/).
 
-**[Use the app](https://amigoingbroke.me/)** · [Report a problem](https://github.com/vibe-coding-milan/am-i-going-broke/issues) · [Changelog](./CHANGELOG.md)
+A lightweight V1 web app for projecting cash balance from:
 
-## What it does
+- a starting cash balance
+- recurring weekly or monthly rules
+- one-time money in and money out
+- optional overrides for variable items
 
-- Projects future balances from your starting cash balance.
-- Supports recurring and one-time income and expenses.
-- Lets you set payment start dates, end dates, and occurrence limits.
-- Shows your forecast in a chart and detailed ledger.
-- Helps you explore scenarios by excluding individual payments.
-- Highlights configurable financial cushion targets.
-- Supports downloadable backups and optional manual Google Drive backups.
+## Why this matches the spreadsheet workflow
 
-## Getting started
+The attached spreadsheet's `Milan Cash Flow` sheet is already using a strong mental model:
 
-Open [amigoingbroke.me](https://amigoingbroke.me/), enter your current balance, and add your expected income and expenses. Use the dates money actually reaches or leaves your account. Review the forecast and adjust your assumptions as circumstances change.
+- `Day`
+- `Expense`
+- `Money in`
+- `Money out`
+- `Balance`
 
-For seasonal or contract work, create separate income rules for each paid period to represent unpaid gaps. Payment start and end dates are inclusive; the recurring schedule determines the actual payment dates within those bounds.
+The app also treats your `Current Cash Management Balance` as the starting point
+for the whole run, just like the first row in the spreadsheet.
 
-## Your data
+This prototype keeps that same core idea, but makes the daily projection generated instead of manually rebuilt each month.
 
-Plans are saved in your browser. Clearing browser storage or switching browsers or devices can make a saved plan unavailable, so download a backup before making those changes.
+## Current V1 behavior
 
-Google Drive backup is optional and runs when you request it; it is not continuous synchronization. Your financial plans are not uploaded to this GitHub repository or the app's website server.
+- Generate a forward cash projection up to six months.
+- Support recurring monthly items such as rent, mortgage, or cards due on a day of the month.
+- Support recurring weekly items such as paychecks.
+- End recurring items after a set number of times or on a specific date.
+- Mark rules as fixed or variable.
+- Color-code balances based on configurable thresholds.
+- Save everything in browser local storage.
+- Download and restore local data as JSON.
+- Optionally save and restore a manual backup in Google Drive.
+- Reset saved browser data safely.
+- Use versioned local storage with migration from older app keys.
 
-See the [Privacy Policy](https://amigoingbroke.me/privacy.html) and [Terms of Service](https://amigoingbroke.me/terms.html) for details.
+## Project structure
 
-## Limitations
+- [index.html](./index.html)
+- [privacy.html](./privacy.html)
+- [terms.html](./terms.html)
+- [styles.css](./styles.css)
+- [app.js](./app.js)
 
-This is a personal planning tool. Forecasts depend on the amounts and dates you enter. The app does not connect to banks or verify transactions, and it does not provide financial, legal, or tax advice.
+## How to use it
 
-## Feedback
+Use the live app at [amigoingbroke.me](https://amigoingbroke.me/).
 
-Bug reports and suggestions are welcome through [GitHub Issues](https://github.com/vibe-coding-milan/am-i-going-broke/issues). Use fictional examples and remove personal information from screenshots. Never post real financial plans, backup files, passwords, or access tokens.
+For local development, clone this repository and open [index.html](./index.html) in a browser.
 
-This is a solo-maintained project; unsolicited code contributions are not currently accepted. See [feedback guidelines](./CONTRIBUTING.md). Report security concerns privately using [SECURITY.md](./SECURITY.md).
+Suggested first setup:
 
-## About this repository
+1. Set your current cash balance.
+2. Add your recurring money in and money out items.
+3. Review the projection chart, analysis, table, and running balances.
 
-The app uses HTML, CSS, and JavaScript. Source is available for inspection, with automated checks covering source syntax, documentation links, and scheduling regressions. Changes to this repository do not automatically publish a new website version.
+## Contract and seasonal payments
 
-## Ownership
+Recurring income and expenses support an optional **Starts** date and an inclusive
+**Ends → On date** limit. Enter the dates money reaches or leaves your account,
+rather than the dates you perform the work. The weekly, monthly, or every-two-week
+schedule determines which payments occur within those bounds.
 
-Copyright © 2026 Milan Mijatovic. All rights reserved. This project is not offered under an open-source license. See [LICENSE.md](./LICENSE.md) for the rights notice, GitHub platform exceptions, and third-party terms.
+For example, a contract ending December 18, 2026 could make its final Friday
+payment on December 25. Set that rule's last payment date to December 25. Add a
+separate rule for the next contract, starting January 15, 2027, to leave January 1
+and January 8 without paychecks from either contract.
+
+- Existing rules without a start date continue from the forecast start.
+- Every-two-week payments follow the **Repeats from** date; Starts can delay eligibility without changing that cadence.
+- **After # times** counts scheduled occurrences from Starts, including excluded occurrences. Refreshing the forecast does not restart that count.
+- One-time entries continue to use their exact date.
+- Start/end dates are included in downloaded and optional Drive backups.
+
+The focused implementation scope is tracked in [IMPROVEMENT_PLAN.md](./IMPROVEMENT_PLAN.md),
+and completed changes and verification are recorded in [CHANGELOG.md](./CHANGELOG.md).
+
+Run scheduling regression checks with:
+
+```sh
+TZ=America/New_York node --test tests/scheduling.test.cjs
+TZ=Pacific/Auckland node --test tests/scheduling.test.cjs
+```
+
+## Hosting
+
+The production URL is [https://amigoingbroke.me/](https://amigoingbroke.me/).
+
+This app can be hosted as a simple static site. Publish these files and supporting directories, preserving their relative paths:
+
+- [index.html](./index.html)
+- [privacy.html](./privacy.html)
+- [terms.html](./terms.html)
+- [styles.css](./styles.css)
+- [app.js](./app.js)
+- [projectionHealth.js](./projectionHealth.js)
+- [assets/](./assets/)
+- [components/](./components/)
+- [content/](./content/)
+- [styles/](./styles/)
+
+Public pages: [Privacy Policy](https://amigoingbroke.me/privacy.html) and
+[Terms of Service](https://amigoingbroke.me/terms.html).
+
+User data is stored in the browser, so updating the HTML, CSS, or JS on the server should not erase existing local data. For extra safety, users can export a JSON backup before major updates.
+
+## Optional Google Drive backup
+
+Google Drive is an optional manual backup destination. It does not replace browser storage or
+provide realtime sync. The app uploads the existing JSON export payload directly to the user's
+Drive using the narrow `drive.file` scope.
+
+After connecting, the app remembers the Drive connection in this browser. Google access tokens
+remain short-lived and are not stored in local storage; the app requests a fresh token when a
+later backup or restore needs one.
+
+To enable it, create a Google OAuth 2.0 Web client, add `https://amigoingbroke.me` as an authorized
+JavaScript origin, enable the Google Drive API in the same Google Cloud project, and set the public client ID in
+`index.html`:
+
+```html
+<meta name="google-drive-client-id" content="YOUR_PUBLIC_OAUTH_CLIENT_ID" />
+```
+
+OAuth client IDs are public frontend configuration. Do not add a Google client secret to this app.
+
+If Google account connection succeeds but saving a backup fails, confirm that **Google Drive API**
+appears under **APIs & Services → Enabled APIs & services** for the project that owns the OAuth
+client ID.
+
+## Recommended next steps
+
+### V1.1
+
+- Add support for twice-monthly schedules.
+- Add a separate recurring rule library and monthly scenario layer.
+- Add export/import to JSON so the setup can move across devices.
+
+### V1.2
+
+- Add Google Sheets import/export.
+- Add "needs attention" warnings when balance crosses thresholds.
+- Add notes and categories on entries.
+- Add multiple account views.
+
+### V2
+
+- Add authentication and cloud sync.
+- Add mobile-first entry flows for fast updates.
+- Add calendar integration and reminders for variable items that need review.
+
+## Best input to provide next
+
+To make the next iteration useful quickly, the most helpful input is:
+
+1. Your real recurring rule list.
+2. Which schedule types you need beyond weekly and monthly day-of-month.
+3. Which items are fixed vs variable.
+4. Whether you want Google Sheets to remain the source of truth or become optional.
+5. Whether you want a local-only app first or a hosted web app.
