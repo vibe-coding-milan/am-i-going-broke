@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-17 — Quiet chart toggles
+
+- Removed the below-chart confirmation banners for Average, High/low, and Cushions visibility changes. The toggles and chart remain the immediate feedback; settings still persist.
+- Other notifications, including validation and backup feedback, are unchanged.
+
 ## 2026-10-17 — Connected cushion controls
 
 - Removed visible checkmarks from the three chart toggles while preserving native keyboard and screen-reader operation, full control hit areas, and checked/off styling.
