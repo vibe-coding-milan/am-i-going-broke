@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Privacy Policy for Am I Going Broke? and its optional Google Drive backup feature."
+    />
+    <title>Privacy Policy | Am I Going Broke?</title>
+    <script>
+      (function () {
+        var key = "cash-flow-projector-theme-preference";
+        var stored = null;
+        var resolved = "dark";
+
+        try {
+          stored = window.localStorage.getItem(key);
+        } catch (error) {
+          stored = null;
+        }
+
+        if (stored === "light" || stored === "dark") {
+          resolved = stored;
+        } else if (window.matchMedia) {
+          resolved = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+
+        document.documentElement.setAttribute("data-theme", resolved);
+      })();
+    </script>
+    <link rel="icon" href="./assets/logo-icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=legal-pages-app-ui-20260611" />
+  </head>
+  <body>
+    <main class="policy-shell">
+      <header class="policy-header">
+        <a class="policy-brand" href="./index.html">
+          <img src="./assets/logo-icon.svg" alt="" width="36" height="36" />
+          <span>Am I Going Broke?</span>
+        </a>
+        <h1>Privacy Policy</h1>
+        <p class="policy-updated">Effective and last updated: June 11, 2026</p>
+      </header>
+
+      <article class="panel policy-page">
+        <section>
+          <h2>Overview</h2>
+          <p>
+            Am I Going Broke? is a personal cash-flow and budgeting projection tool made by an
+            independent developer. Your financial plan is stored locally in your browser by
+            default. The app does not currently operate a backend server, database, or backend API
+            that receives or stores your financial plan.
+          </p>
+          <p>
+            Am I Going Broke? is not a bank, lender, investment adviser, tax adviser, or financial
+            adviser.
+          </p>
+        </section>
+
+        <section>
+          <h2>Information you provide</h2>
+          <p>The app may handle the following information when you use it:</p>
+          <ul>
+            <li>
+              Financial planning data you enter, such as balances, income, expenses, recurring
+              bills, goals, dates, notes, and projection settings.
+            </li>
+            <li>
+              Browser preferences and backup metadata, such as theme choice, Google Drive
+              connection status, backup file ID, and last backup time.
+            </li>
+            <li>
+              A short-lived Google access token when you choose to connect Google Drive. Access
+              tokens are kept in memory and are not stored in browser storage by the app.
+            </li>
+          </ul>
+          <p>
+            Please do not enter highly sensitive credentials or identifiers such as bank passwords,
+            full account numbers, credit card numbers, Social Security numbers, or tax IDs.
+          </p>
+        </section>
+
+        <section>
+          <h2>How information is used</h2>
+          <p>
+            Your information is used only to create and display your cash-flow projection, remember
+            your local preferences, and perform backup or restore actions that you request.
+          </p>
+          <p>
+            The app does not sell personal information or use your financial data for advertising,
+            profiling, or marketing. It does not currently use advertising trackers or analytics.
+          </p>
+        </section>
+
+        <section>
+          <h2>Not financial advice</h2>
+          <p>
+            Projections are estimates based on the information and settings you provide. They are
+            for personal planning purposes only and may be incomplete or inaccurate. Do not treat
+            them as financial, investment, legal, accounting, or tax advice.
+          </p>
+        </section>
+
+        <section>
+          <h2>Google Drive access</h2>
+          <p>
+            Connecting Google Drive is optional. When you connect it, the app requests the
+            <code>https://www.googleapis.com/auth/drive.file</code> scope. This limits access to
+            backup files the app creates or files you explicitly make available to it. The app
+            cannot browse or access your other Google Drive files.
+          </p>
+          <p>
+            Backup data is transferred directly between your browser and Google Drive. It is used
+            only to save or restore your backup when you request it. The app does not share Google
+            user data except as necessary to provide that user-requested backup or restore
+            functionality, comply with applicable law, or protect security.
+          </p>
+          <p>
+            The app's use and transfer of information received from Google APIs adheres to the
+            <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">
+              Google API Services User Data Policy
+            </a>,
+            including the Limited Use requirements.
+          </p>
+        </section>
+
+        <section>
+          <h2>Local storage and retention</h2>
+          <p>
+            Your plan remains locally in your browser unless you choose Google Drive backup.
+            Clearing or deleting browser storage may permanently delete your local app data. If you
+            create a Google Drive backup, it remains in your own Google Drive until you delete it.
+          </p>
+          <p>
+            No method of storage or transfer is completely secure, so absolute security cannot be
+            guaranteed. Protect access to your browser, device, and Google Account.
+          </p>
+        </section>
+
+        <section>
+          <h2>Hosting logs</h2>
+          <p>
+            The hosting provider may automatically collect standard technical logs, such as IP
+            address, browser or user agent, requested pages, timestamps, and error or status codes.
+            These logs may be used for security, troubleshooting, and basic site operation. They do
+            not include the financial plan stored locally in your browser.
+          </p>
+        </section>
+
+        <section>
+          <h2>Future analytics</h2>
+          <p>
+            The app does not currently use analytics. If privacy-respecting analytics are added
+            later, this policy will be updated before or when that change is made.
+          </p>
+        </section>
+
+        <section>
+          <h2>Your choices</h2>
+          <ul>
+            <li>Use the app without connecting to Google Drive.</li>
+            <li>Use “Start over” in the Data menu or clear browser storage to delete local data.</li>
+            <li>Delete app-created backup files from your Google Drive.</li>
+            <li>
+              Revoke the app's Google access in your
+              <a href="https://myaccount.google.com/connections" rel="noopener">Google Account</a>.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Changes to this policy</h2>
+          <p>
+            This policy may be updated as the app changes. Material updates will be reflected on
+            this page with a new effective date.
+          </p>
+        </section>
+
+        <section>
+          <h2>Contact</h2>
+          <p>
+            For privacy questions or requests, email
+            <a href="mailto:milan@mijatovic.com">milan@mijatovic.com</a>.
+          </p>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 328 72" role="img" aria-labelledby="title">
+  <title id="title">Am I Going Broke?</title>
+  <defs>
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1 0 0 0 0 .18 0 0 0 0 .7 0 0 0 .72 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g>
+    <rect width="72" height="72" rx="18" fill="#070812"/>
+    <rect x="4.5" y="4.5" width="63" height="63" rx="15.5" fill="#111320" stroke="#FF2FB3" stroke-opacity=".48" stroke-width="1.6"/>
+    <circle cx="36" cy="36" r="27" fill="#0C0F19" stroke="#FBF7FF" stroke-width="3.4"/>
+    <path d="M21 19 L29 14" fill="none" stroke="#FF2FB3" stroke-width="3.4" stroke-linecap="round" filter="url(#neonGlow)"/>
+    <path d="M47 15 L50 9 L53 16" fill="none" stroke="#FFD166" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="28" cy="28" r="4" fill="#FBF7FF"/>
+    <circle cx="44" cy="28" r="4" fill="#FBF7FF"/>
+    <path d="M30 38 Q36 33 42 38" fill="none" stroke="#FBF7FF" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M10 45 L18 37 L25 48 L34 44" fill="none" stroke="#FBF7FF" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M34 44 L41 51 L48 43" fill="none" stroke="#FF2FB3" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round" filter="url(#neonGlow)"/>
+    <path d="M48 43 L55 50 L63 38" fill="none" stroke="#27F59A" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M57 38 H63 V44" fill="none" stroke="#27F59A" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text
+    x="88"
+    y="43"
+    fill="#FBF7FF"
+    font-family="Inter, Arial, sans-serif"
+    font-size="28"
+    font-weight="800"
+    letter-spacing="0"
+  >Am I Going Broke?</text>
+  <path d="M88 51 H258" fill="none" stroke="#FF2FB3" stroke-width="2" stroke-linecap="round" stroke-opacity=".75" filter="url(#neonGlow)"/>
+</svg>
