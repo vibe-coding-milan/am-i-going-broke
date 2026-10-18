@@ -1,6 +1,7 @@
 ---
 name: Bug report
-about: Report a reproducible problem using fictional data
+about: Report unexpected behavior using fictional data
+labels: bug
 ---
 
 <!-- Security concern? Email milan@mijatovic.com privately instead. -->
@@ -14,6 +15,9 @@ about: Report a reproducible problem using fictional data
 1.
 2.
 3.
+
+**How will we know the problem is fixed?**
+<!-- Describe an observable result. After deployment, add owner/tester checks before closing. -->
 
 **Browser and device**
 

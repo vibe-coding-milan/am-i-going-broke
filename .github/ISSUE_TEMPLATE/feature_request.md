@@ -1,12 +1,18 @@
 ---
-name: Feature suggestion
-about: Describe a problem and the improvement you would like
+name: New feature suggestion
+about: Propose a new capability with a clear outcome
+labels: feature
 ---
+
+**What new task should someone be able to accomplish?**
 
 **What problem would this solve?**
 
-**What outcome would you like?**
+**Success criteria**
+<!-- Describe observable outcomes and important edge cases. -->
+- Describe an observable success criterion.
 
 **Optional fictional example**
 
-<!-- Suggestions are welcome but do not create a delivery commitment. -->
+<!-- For changes to an existing capability, use the usability/improvement template. -->
+<!-- Suggestions are proposals, not delivery commitments. See CONTRIBUTING.md and docs/ISSUE_WORKFLOW.md. -->
