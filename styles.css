@@ -2766,3 +2766,28 @@ button:disabled { opacity: .45; cursor: default; }
   .forecast-status-block .forecast-metrics > div:first-child strong { font-size: 1.4rem; }
   .forecast-settings .forecast-inputs .field > span:first-child { font-size: .78rem; }
 }
+
+/* October 2026 usability release: explicit states, stable editing, manual order. */
+.app-shell { overflow-anchor: none; }
+.sample-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid var(--primary-line); border-radius: var(--radius-md); background: var(--primary-soft); font-size: .85rem; }
+.sample-banner .button { font-size: .8rem; }
+.rule-card.is-excluded { border-left-color: var(--muted); background: var(--surface-soft); }
+.rule-card.is-excluded .rule-mobile-summary strong, .rule-card.is-excluded .mobile-rule-amount { color: var(--muted); }
+.schedule-preview { grid-column: 1 / -1; font-size: .8rem; line-height: 1.5; margin: 0; color: var(--text); }
+.rule-order-controls { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; }
+.rule-order-controls .button { min-height: 44px; padding: 8px 12px; font-size: .76rem; }
+.rule-drag-handle { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.rule-card.is-dragging { outline: 2px solid var(--primary); }
+.rule-card.is-dragging .rule-drag-handle { cursor: grabbing; }
+.rule-card.drop-before { border-top: 4px solid var(--primary); }
+.rule-card.drop-after { border-bottom: 4px solid var(--primary); }
+.row-toggle { width: auto; min-width: 84px; padding: 8px 10px; font-size: .75rem; border-radius: 8px; }
+.parent-exclusion { display: inline-block; max-width: 110px; font-size: .75rem; line-height: 1.5; color: var(--muted); }
+.skipped-row .mobile-signed-amount { text-decoration: line-through; }
+@media (max-width: 860px) {
+  .sample-banner { order: -1; margin-bottom: 0; }
+  .table-wrap .row-toggle { width: auto; min-width: 84px; }
+  .table-wrap td[data-label="Name"] .window-pill { grid-column: 1 / -1; justify-self: start; margin-left: 0; white-space: nowrap; }
+  .current-row .mobile-signed-amount { display: none; }
+  .rule-mobile-summary .mobile-rule-amount { flex-shrink: 1; overflow-wrap: anywhere; }
+}

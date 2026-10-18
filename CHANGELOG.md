@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-10-18 — Payment usability and local backup reliability
+
+- Clearly label fictional example projections, retain an example banner after reload, and provide a confirmed path to start a personal plan.
+- Use one first payment date for new biweekly items, explain weekly/monthly timing, and preview upcoming dates. Preserve existing optional eligibility limits and count anchors.
+- Leave optional dates blank. Incomplete required schedules are visibly pending and contribute nothing until completed; existing intentional dates remain intact.
+- Expire removal Undo after later edits/additions, exclusions, reordering, or forecast refresh; add Dismiss and retain immediate recovery.
+- Add same-section manual movement through Move up/down controls and a dedicated pointer/hold drag handle. Save arrangement without changing same-day calculation order.
+- Keep excluded items and their scheduled transactions visible with matching labels and muted treatments. Preserve individual skipped occurrences when re-enabling an item.
+- Use explicit Included/Excluded transaction controls, consistent Payments naming, clearer bulk-inclusion wording, and an opening balance separate from incoming payments.
+- Preserve editing focus and visual position through rerenders. Keep local download feedback visible, delay Blob URL cleanup, handle detectable failures, and use matching UTC timestamps (including milliseconds) in filenames and payloads; restore previews show the timezone.
+- Validation: 33 regressions in each of two time zones (66 passes), syntax/documentation checks, 320px/412px/1440px browser review, reorder persistence and desktop dragging, Undo lifecycle, and a JSON download/restore round trip.
+- Release prepared for production publication. Physical Pixel 7/Android Chrome, assistive-technology, and blocker-specific validation remain tracked in GitHub issues #25 and #34; no blocker or network cause is claimed.
+- Details and screenshots: [Usability release](docs/USABILITY_RELEASE.md).
+
 ## 2026-10-17 — Expanded forecast answers
 
 - Activated 93 reconciled responses across the five existing forecast statuses and existing no-data/below-zero handling. Removed overlapping jokes and lines requiring new trend or expense categories.

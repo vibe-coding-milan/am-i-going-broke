@@ -12,10 +12,7 @@
   }
 
   function exportFilename(date) {
-    var hours = String(date.getHours()).padStart(2, "0");
-    var minutes = String(date.getMinutes()).padStart(2, "0");
-    var seconds = String(date.getSeconds()).padStart(2, "0");
-    return "am-i-going-broke-" + dateInputValue(date) + "-" + hours + "-" + minutes + "-" + seconds + ".json";
+    return "am-i-going-broke-" + date.toISOString().replace(/[:.]/g, "-") + ".json";
   }
 
   function startOfDay(date) {
@@ -84,6 +81,7 @@
     lastRefreshDate: todayInputValue(),
     startingBalance: 0,
     projectionDays: 30,
+    sampleScenario: "",
     rulesCollapsed: false,
     ruleGroups: {
       moneyInOpen: true,
@@ -137,14 +135,14 @@
       moneyOutRuleName: "Bill or money out",
     },
     buttons: {
-      showItems: "Show upcoming items",
-      hideItems: "Hide upcoming items",
+      showItems: "Show payments",
+      hideItems: "Hide payments",
     },
     labels: {
       startingBalance: "Starting balance",
       forecast: "Your money forecast",
-      upcomingMoneyIn: "Upcoming money in",
-      upcomingMoneyOut: "Upcoming money out",
+      upcomingMoneyIn: "Money in",
+      upcomingMoneyOut: "Money out",
       outsideWindow: "Outside current window",
       excluded: "Excluded",
       setupForecast: "Setup",
@@ -154,7 +152,7 @@
       projectionWindowUpdated: "Forecast window updated.",
       cushionUpdated: "Cushion target updated.",
       sampleLoaded: "Sample scenario loaded.",
-      backupDownloaded: "Backup downloaded.",
+      backupDownloaded: "Download requested. Check your browser’s Downloads for the JSON backup.",
       importSuccess: "Backup restored from file.",
       driveConnected: "Google Drive connected.",
       driveSaved: "Backup saved to Drive.",
@@ -215,6 +213,7 @@
       lastRefreshDate: next.lastRefreshDate || next.startDate || todayInputValue(),
       startingBalance: clampCashBalance(Number(next.startingBalance || 0)),
       projectionDays: Number(next.projectionDays || 30),
+      sampleScenario: typeof next.sampleScenario === "string" ? next.sampleScenario : "",
       rulesCollapsed: Boolean(next.rulesCollapsed),
       ruleGroups: {
         moneyInOpen:
@@ -251,7 +250,7 @@
       showAverageBalance: next.showAverageBalance !== false,
       showExtremaPoints: next.showExtremaPoints !== false,
       recurringRules: Array.isArray(next.recurringRules)
-        ? next.recurringRules.map(function (rule) {
+        ? next.recurringRules.map(function (rule, index) {
             return {
               id: rule.id || makeId("rule"),
               name: rule.name || UI_COPY.defaults.ruleName,
@@ -262,8 +261,10 @@
               scheduleType: rule.scheduleType || "monthly",
               dayOfMonth: Number(rule.dayOfMonth || 1),
               dayOfWeek: Number(rule.dayOfWeek || 0),
-              scheduleDate: rule.scheduleDate || todayInputValue(),
-              startDate: rule.startDate || (rule.limitType === "count" ? next.startDate || todayInputValue() : ""),
+              calculationOrder: Number.isFinite(rule.calculationOrder) ? rule.calculationOrder : index,
+              pendingSchedule: Boolean(rule.pendingSchedule),
+              scheduleDate: Object.prototype.hasOwnProperty.call(rule, "scheduleDate") ? (rule.scheduleDate || "") : todayInputValue(),
+              startDate: rule.startDate || (rule.limitType === "count" && typeof rule.pendingSchedule === "undefined" ? next.startDate || todayInputValue() : ""),
               limitType:
                 rule.limitType === "count" || rule.limitType === "date" ? rule.limitType : "none",
               instanceLimit: Math.max(1, Number(rule.instanceLimit || 1)),
@@ -317,18 +318,18 @@
 
   function backupRestoreCopy(copy, restoredState, exportedAt) {
     var savedDate = exportedAt && !Number.isNaN(Date.parse(exportedAt))
-      ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(exportedAt))
+      ? new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(exportedAt))
       : "date unavailable";
     return Object.assign({}, copy, { message: restoredState.recurringRules.length + " payment rules; balance " +
       formatCurrency(restoredState.startingBalance) + " as of " + formatProjectionHealthDate(restoredState.lastRefreshDate) +
       ". Backup saved: " + savedDate + ". This replaces your current plan. You can download it first." });
   }
 
-  function backupPayload() {
+  function backupPayload(exportedAt) {
     return JSON.stringify(
       {
         version: STORAGE_VERSION,
-        exportedAt: new Date().toISOString(),
+        exportedAt: (exportedAt || new Date()).toISOString(),
         data: state,
       },
       null,
@@ -501,8 +502,8 @@
     };
   }
 
-  function isRuleBaseDueOnDate(rule, date) {
-    if (!rule.active) {
+  function isRuleBaseDueOnDate(rule, date, includeExcluded) {
+    if ((!rule.active && !includeExcluded) || ruleScheduleIssue(rule)) {
       return false;
     }
 
@@ -529,12 +530,13 @@
   }
 
   function occurrenceNumberThroughDate(rule, date, projectionStartDate) {
-    var cursor = rule.startDate ? parseInputDate(rule.startDate) : startOfDay(projectionStartDate);
+    var countFrom = rule.startDate || (rule.scheduleType === "biweekly" ? rule.scheduleDate : "");
+    var cursor = countFrom ? parseInputDate(countFrom) : startOfDay(projectionStartDate);
     var target = startOfDay(date);
     var count = 0;
 
     while (cursor.getTime() <= target.getTime()) {
-      if (isRuleBaseDueOnDate(rule, cursor)) {
+      if (isRuleBaseDueOnDate(rule, cursor, true)) {
         count += 1;
       }
       cursor = addDays(cursor, 1);
@@ -562,15 +564,39 @@
     return true;
   }
 
-  function isRuleDueOnDate(rule, date, projectionStartDate) {
+  function isRuleDueOnDate(rule, date, projectionStartDate, includeExcluded) {
     if (rule.scheduleType !== "adhoc" && rule.startDate &&
         dateInputValue(date) < rule.startDate) {
       return false;
     }
-    return isRuleBaseDueOnDate(rule, date) && isRuleWithinLimit(rule, date, projectionStartDate);
+    return isRuleBaseDueOnDate(rule, date, includeExcluded) && isRuleWithinLimit(rule, date, projectionStartDate);
   }
 
-  function generateProjection(state) {
+  function ruleScheduleIssue(rule) {
+    if ((rule.scheduleType === "biweekly" || rule.scheduleType === "adhoc") && !isValidInputDate(rule.scheduleDate)) return "Choose a payment date";
+    if (rule.scheduleType !== "adhoc" && rule.limitType === "date" && !isValidInputDate(rule.endDate)) return "Choose an end date";
+    if (rule.scheduleType !== "adhoc" && rule.limitType === "count" && !rule.startDate && rule.scheduleType !== "biweekly") return "Choose when to count payments from";
+    if (rule.scheduleType !== "adhoc" && rule.limitType === "date" && rule.startDate && rule.endDate < rule.startDate) return "Check the date limits";
+    return "";
+  }
+
+  // Reordering presentation must not change same-day transaction calculation order.
+  function moveRuleWithinDirection(rules, id, beforeId) {
+    var source = rules.find(function (rule) { return rule.id === id; });
+    var target = rules.find(function (rule) { return rule.id === beforeId; });
+    if (!source || (target && target.direction !== source.direction) || id === beforeId) return false;
+    if (beforeId && !target) return false;
+    var peers = rules.filter(function (rule) { return rule.direction === source.direction && rule.id !== id; });
+    var index = target ? peers.indexOf(target) : peers.length;
+    peers.splice(index, 0, source);
+    var cursor = 0;
+    rules.forEach(function (rule, position) {
+      if (rule.direction === source.direction) rules[position] = peers[cursor++];
+    });
+    return true;
+  }
+
+  function generateProjection(state, includeExcluded) {
     var startDate = startOfDay(parseInputDate(state.startDate));
     var totalDays = Number(state.projectionDays || 30);
     var runningBalance = Number(state.startingBalance || 0);
@@ -581,13 +607,15 @@
       var date = addDays(startDate, index);
       var items = state.recurringRules
         .filter(function (rule) {
-          return isRuleDueOnDate(rule, date, startDate);
+          return isRuleDueOnDate(rule, date, startDate, includeExcluded);
         })
+        .sort(function (left, right) { return (left.calculationOrder || 0) - (right.calculationOrder || 0); })
         .map(function (rule) {
           var dateKey = dateInputValue(date);
           return {
             id: rule.id + ":" + date.toISOString(),
             ruleId: rule.id,
+            wholeExcluded: !rule.active,
             dateKey: dateKey,
             name: rule.name,
             direction: rule.direction,
@@ -603,6 +631,7 @@
       });
 
       items.forEach(function (item) {
+        if (item.wholeExcluded) return;
         if (item.direction === "credit") {
           runningBalance += item.amount;
         } else if (item.direction === "debit") {
@@ -797,7 +826,7 @@
     if (rule.scheduleType === "biweekly") {
       return (
         '<input data-field="scheduleDate" type="date" value="' +
-        escapeHtml(rule.scheduleDate || todayInputValue()) +
+        escapeHtml(rule.scheduleDate || "") +
         '" />'
       );
     }
@@ -807,7 +836,7 @@
         '<input data-field="scheduleDate" type="date" min="' +
         todayInputValue() +
         '" value="' +
-        escapeHtml(rule.scheduleDate || todayInputValue()) +
+        escapeHtml(rule.scheduleDate || "") +
         '" />'
       );
     }
@@ -844,7 +873,7 @@
         : "") +
       (rule.limitType === "date"
         ? '<input data-field="endDate" type="date" aria-label="Last payment date" value="' +
-          escapeHtml(rule.endDate || rule.startDate || todayInputValue()) +
+          escapeHtml(rule.endDate || "") +
           '" />'
         : "") +
       "</div>"
@@ -861,12 +890,13 @@
       if (rule.limitType === "date" && rule.endDate) schedule += " · until " + formatShortDate(parseInputDate(rule.endDate));
       if (rule.limitType === "count") schedule += " · " + rule.instanceLimit + " payments";
     }
-    return schedule + (rule.active ? "" : " · All occurrences excluded");
+    if (rule.scheduleType === "biweekly" && rule.scheduleDate) schedule = schedule.replace("Every 2 weeks", "Every 2 weeks · " + formatDate(parseInputDate(rule.scheduleDate)));
+    return schedule + (ruleScheduleIssue(rule) ? " · Needs a date" : "") + (rule.active ? "" : " · Excluded");
   }
 
   function ruleCard(rule) {
     return (
-      '<article class="rule-card' + (expandedRuleId === rule.id ? ' is-mobile-expanded' : '') + '" data-rule-id="' +
+      '<article class="rule-card' + (!rule.active ? ' is-excluded' : '') + (expandedRuleId === rule.id ? ' is-mobile-expanded' : '') + '" data-rule-id="' +
       escapeHtml(rule.id) +
       '" data-direction="' +
       rule.direction +
@@ -883,9 +913,9 @@
       '<label class="field rule-amount-field"><span>Amount</span><input data-field="amount" type="text" inputmode="decimal" maxlength="12" value="' +
       formatNumberForInput(rule.amount) +
       '" /></label>' +
-      '<div class="rule-actions"><label class="plan-toggle"><input data-field="active" type="checkbox"' +
+      '<div class="rule-actions"><label class="plan-toggle"><input data-field="active" type="checkbox" aria-label="Include ' + escapeHtml(rule.name) + ' in forecast"' +
       (rule.active ? " checked" : "") +
-      " /><span>Included</span></label>" +
+      " /><span>" + (rule.active ? "Included" : "Excluded") + "</span></label>" +
       '<button type="button" class="button ghost" data-action="delete-rule">Remove</button></div>' +
       "</div>" +
       '<div class="rule-card-details">' +
@@ -905,17 +935,17 @@
       "</select></label>" +
       '<label class="field rule-date-field"><span>' +
       (rule.scheduleType === "weekly"
-        ? "Day"
+        ? "Day of week"
         : rule.scheduleType === "biweekly"
-          ? "Repeats from"
+          ? (rule.direction === "credit" ? "First payday" : "First payment date")
           : rule.scheduleType === "adhoc"
             ? "Exact date"
             : "Day of month") +
       "</span>" +
       scheduleControl(rule) +
       "</label>" +
-      (rule.scheduleType !== "adhoc"
-        ? '<label class="field rule-start-field"><span>' + (rule.limitType === "count" ? "Starts" : "Starts (optional)") + '</span><input data-field="startDate" type="date" aria-label="First eligible payment date" value="' +
+      (rule.scheduleType !== "adhoc" && (rule.scheduleType !== "biweekly" || (rule.startDate && rule.startDate !== rule.scheduleDate))
+        ? '<label class="field rule-start-field"><span>' + (rule.limitType === "count" && rule.scheduleType !== "biweekly" ? "Count from" : "Include from (optional)") + '</span><input data-field="startDate" type="date" aria-label="Include payments from" value="' +
           escapeHtml(rule.startDate || "") + '" /></label>'
         : "") +
       '<div class="field rule-limit"><span>Ends</span>' +
@@ -923,13 +953,36 @@
       "</div>" +
       (rule.scheduleType !== "adhoc"
         ? '<p class="rule-date-note">Use payment dates, not work dates. ' +
-          (rule.limitType === "count" ? 'Count scheduled payments from Starts, including any excluded occurrences.' : 'Starts and ends include the selected dates; leave Starts blank to begin with the forecast.') +
-          (rule.scheduleType === "biweekly" ? ' Payments repeat every 2 weeks from the Repeats from date.' : "") + '</p>'
+          (rule.scheduleType === "biweekly" ? 'Every 14 days from the first payment date, on the same weekday. ' : rule.scheduleType === "weekly" ? 'Paid on the selected weekday. ' : 'Paid on the selected day each month; shorter months use their last day. ') +
+          (rule.limitType === "count" ? 'Count scheduled payments from ' + (rule.startDate || rule.scheduleType !== 'biweekly' ? 'the Count from date' : 'the first payment date') + ', including skipped payments.' : 'Optional date limits include the selected dates. Blank means no additional limit.') + '</p>'
         : "") +
+      '<p class="schedule-preview">' + escapeHtml(schedulePreview(rule)) + '</p>' +
+      ruleOrderControls(rule) +
       '<p class="form-error rule-error is-hidden" id="rule-error-' + escapeHtml(rule.id) + '" aria-live="polite"></p>' +
       '<div class="mobile-editor-footer"><span>Valid changes save automatically in this browser.</span><button type="button" class="button secondary" data-action="done-editing">Done</button></div>' +
       "</div></article>"
     );
+  }
+
+  function schedulePreview(rule) {
+    var issue = ruleScheduleIssue(rule);
+    if (issue) return issue + ". This item is not included until its schedule is complete.";
+    var next = [];
+    var start = parseInputDate(todayInputValue());
+    for (var i = 0; i < 1100 && next.length < 3; i += 1) {
+      var date = addDays(start, i);
+      if (isRuleDueOnDate(rule, date, start, true)) next.push(formatDate(date));
+    }
+    return (rule.active ? "Next payments: " : "Excluded from the forecast. Scheduled: ") + (next.length ? next.join(" · ") : "none in the next three years") + ".";
+  }
+
+  function ruleOrderControls(rule) {
+    var peers = state.recurringRules.filter(function (item) { return item.direction === rule.direction; });
+    var index = peers.indexOf(rule);
+    return '<div class="rule-order-controls" aria-label="Reorder ' + escapeHtml(rule.name) + '">' +
+      '<button type="button" class="button ghost rule-drag-handle" data-action="drag-rule" aria-label="Drag to move ' + escapeHtml(rule.name) + ' within ' + (rule.direction === "credit" ? "Money in" : "Money out") + '">Hold to move</button>' +
+      '<button type="button" class="button ghost" data-action="move-up"' + (index === 0 ? ' disabled' : '') + '>Move up</button>' +
+      '<button type="button" class="button ghost" data-action="move-down"' + (index === peers.length - 1 ? ' disabled' : '') + '>Move down</button></div>';
   }
 
   function renderRuleGroup(groupKey, title, rules, openByDefault) {
@@ -983,7 +1036,7 @@
   }
 
   function flattenProjectionRows() {
-    var projection = generateProjection(state);
+    var projection = generateProjection(state, true);
     var windowEndDate = addDays(
       parseInputDate(state.startDate),
       Number(state.projectionDays || 30) - 1,
@@ -993,7 +1046,7 @@
         type: "current",
         dateLabel: formatDate(parseInputDate(state.startDate)),
         name: UI_COPY.labels.startingBalance,
-        credit: state.startingBalance,
+        credit: null,
         debit: null,
         balance: state.startingBalance,
       },
@@ -1003,7 +1056,7 @@
     projection.forEach(function (day) {
       day.items.forEach(function (item) {
         var dateKey = item.dateKey || dateInputValue(day.date);
-        var skipped = Boolean(state.skippedInstances[instanceKey(item.ruleId, dateKey)]);
+        var skipped = item.wholeExcluded || Boolean(state.skippedInstances[instanceKey(item.ruleId, dateKey)]);
         var previousBalance = runningBalance;
 
         if (!skipped && item.direction === "credit") {
@@ -1018,6 +1071,7 @@
           dateKey: dateKey,
           ruleId: item.ruleId,
           skipped: skipped,
+          wholeExcluded: item.wholeExcluded,
           name: item.name,
           credit: item.direction === "credit" ? item.amount : null,
           debit: item.direction === "debit" ? item.amount : null,
@@ -1036,7 +1090,7 @@
     var outsideItems = state.recurringRules
       .filter(function (rule) {
         return (
-          rule.active &&
+          !ruleScheduleIssue(rule) &&
           rule.scheduleType === "adhoc" &&
           parseInputDate(rule.scheduleDate).getTime() > startOfDay(windowEndDate).getTime()
         );
@@ -1051,7 +1105,7 @@
       var scheduledDate = parseInputDate(rule.scheduleDate);
       var amount = Number(rule.amount || 0);
       var previousBalance = runningBalance;
-      var skipped = Boolean(state.skippedInstances[instanceKey(rule.id, rule.scheduleDate)]);
+      var skipped = !rule.active || Boolean(state.skippedInstances[instanceKey(rule.id, rule.scheduleDate)]);
 
       if (!skipped && rule.direction === "credit") {
         runningBalance += amount;
@@ -1065,6 +1119,7 @@
         dateKey: rule.scheduleDate,
         ruleId: rule.id,
         skipped: skipped,
+        wholeExcluded: !rule.active,
         name: rule.name,
         credit: rule.direction === "credit" ? amount : null,
         debit: rule.direction === "debit" ? amount : null,
@@ -1814,12 +1869,12 @@
     document.querySelector(".chart-inspector").classList.toggle("is-hidden", !hasData);
     var skippedCount = Object.keys(state.skippedInstances).length;
     document.querySelector("#scenario-count").textContent = skippedCount
-      ? skippedCount + " individual payments excluded. Payment switches exclude all occurrences."
-      : "Exclude one occurrence below, or all occurrences in Payments.";
+      ? skippedCount + (skippedCount === 1 ? " payment skipped." : " payments skipped.") + " Whole-item exclusions are controlled in Payments."
+      : "Change one payment below, or exclude all occurrences in Payments.";
     document.querySelector("#restore-exclusions").classList.toggle("is-hidden", !skippedCount);
     var moreButton = document.querySelector("#show-more-transactions");
     moreButton.classList.toggle("is-hidden", rows.length <= ledgerLimit);
-    moreButton.textContent = "Show more";
+    moreButton.textContent = "Show " + Math.min(20, Math.max(0, rows.length - ledgerLimit)) + " more transactions";
     document.querySelector("#transaction-count").textContent = Math.min(ledgerLimit, rows.length) + " of " + rows.length + " transactions shown";
     if (chartEmptyState) {
       chartEmptyState.classList.toggle("is-hidden", hasData);
@@ -1835,6 +1890,9 @@
     } else if (projectionChart) {
       projectionChart.innerHTML = "";
     }
+    var sampleBanner = document.querySelector("#sample-banner");
+    sampleBanner.classList.toggle("is-hidden", !state.sampleScenario);
+    document.querySelector("#sample-label").textContent = state.sampleScenario ? "Example projection · fictional data: " + state.sampleScenario : "";
     renderSummary(rows);
 
     for (i = 0; i < rows.length; i += 1) {
@@ -1863,18 +1921,13 @@
         }
 
         if (!isCurrent) {
-          actionCell =
-            '<button type="button" class="button row-toggle" data-action="toggle-instance" data-rule-id="' +
-            escapeHtml(row.ruleId) +
-            '" data-date-key="' +
-            escapeHtml(row.dateKey) +
-            '" aria-label="' +
-            escapeHtml((row.skipped ? "Include " : "Exclude ") + row.name + " on " + row.dateLabel) +
-            '" aria-pressed="' + !row.skipped + '" title="' +
-            (row.skipped ? "Include" : "Exclude") +
-            '">' +
-            (row.skipped ? "+" : "✓") +
-            "</button>";
+          actionCell = row.wholeExcluded
+            ? '<span class="parent-exclusion">Excluded in Payments</span>'
+            : '<button type="button" class="button row-toggle" data-action="toggle-instance" data-rule-id="' +
+              escapeHtml(row.ruleId) + '" data-date-key="' + escapeHtml(row.dateKey) +
+              '" aria-label="Include ' + escapeHtml(row.name + " on " + row.dateLabel) +
+              '" aria-pressed="' + !row.skipped + '" title="' + (row.skipped ? "Include this payment" : "Exclude this payment") + '">' +
+              (row.skipped ? "Excluded" : "Included") + '</button>';
         }
 
         return (
@@ -1890,7 +1943,7 @@
           "</td>" +
           '<td data-label="Name"><span class="transaction-name">' +
           escapeHtml(row.name) + '</span><span class="mobile-signed-amount">' +
-          (isCurrent ? formatCurrency(row.balance) : (row.credit !== null ? "+" + formatCurrency(row.credit) : "−" + formatCurrency(row.debit))) + '</span>' +
+          (isCurrent ? "" : (row.credit !== null ? "+" + formatCurrency(row.credit) : "−" + formatCurrency(row.debit))) + '</span>' +
           (row.outsideWindow
             ? ' <span class="window-pill">' + UI_COPY.labels.outsideWindow + "</span>"
             : "") +
@@ -1931,7 +1984,7 @@
     );
 
     if (target) {
-      target.focus();
+      target.focus({ preventScroll: true });
       if (typeof target.select === "function" && pendingFocusField === "name") {
         target.select();
       }
@@ -2403,20 +2456,54 @@
       });
   }
 
-  function persistAndRender(statusMessage) {
-    if (undoRemoval && undoRemoval.state !== state) {
-      undoRemoval = null;
-      document.querySelector("#undo-removal").classList.add("is-hidden");
-    }
-    var previousScrollY = window.scrollY;
+  function clearRemovalUndo() {
+    undoRemoval = null;
+    document.querySelector("#undo-removal").classList.add("is-hidden");
+  }
 
+  function captureView() {
+    var active = document.activeElement;
+    var card = active && active.closest(".rule-card");
+    return {
+      y: window.scrollY,
+      top: active ? active.getBoundingClientRect().top : 0,
+      ruleId: card ? card.dataset.ruleId : active && active.dataset.ruleId,
+      field: active && active.dataset.field,
+      action: active && active.dataset.action,
+      dateKey: active && active.dataset.dateKey,
+      id: active && active.id,
+      active: active,
+    };
+  }
+
+  function restoreView(view) {
+    var target = null;
+    if (view.ruleId) {
+      target = Array.from(document.querySelectorAll("[data-rule-id]")).find(function (element) {
+        if (view.dateKey) return element.dataset.ruleId === view.ruleId && element.dataset.dateKey === view.dateKey;
+        if (!element.classList.contains("rule-card") || element.dataset.ruleId !== view.ruleId) return false;
+        return true;
+      });
+      if (target && !view.dateKey) target = view.field ? target.querySelector('[data-field="' + view.field + '"]') : target.querySelector('[data-action="' + view.action + '"]');
+    } else if (view.id) target = document.getElementById(view.id);
+    else if (view.active && view.active.isConnected) target = view.active;
+    if (target && target.getClientRects().length) {
+      target.focus({ preventScroll: true });
+      window.scrollBy(0, target.getBoundingClientRect().top - view.top);
+    } else window.scrollTo(0, view.y);
+  }
+
+  function persistAndRender(statusMessage) {
+    var view = captureView();
+    if (undoRemoval && undoRemoval.state !== state) clearRemovalUndo();
     saveState(state);
     syncStartingFields();
     renderRules();
     renderProjection();
-    focusPendingRule();
-    scrollPendingRule(previousScrollY);
     showStatus(statusMessage);
+    focusPendingRule();
+    if (pendingScrollRuleId) scrollPendingRule(view.y);
+    else restoreView(view);
   }
 
   function createSampleRule(rule) {
@@ -2669,10 +2756,13 @@
   function applySampleScenario(key) {
     var sample = buildSampleScenario(key);
     state = sample.state;
+    state.sampleScenario = sample.label;
+    state.recurringRules.forEach(function (rule, index) { rule.calculationOrder = index; });
     persistAndRender(UI_COPY.status.sampleLoaded + " " + sample.label + ".");
   }
 
   function refreshFromToday(refreshAnswer) {
+    clearRemovalUndo();
     var cash = startingBalanceInput.value.replace(/[$,\s]/g, "");
     var valid = /^-?(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cash);
     var balanceError = document.querySelector("#balance-error");
@@ -2695,6 +2785,7 @@
       return;
     }
 
+    clearRemovalUndo();
     if (type === "checkbox") {
       rule[field] = value;
     } else if (
@@ -2711,29 +2802,21 @@
         rule[field] = Number(value || 0);
       }
     } else if (field === "scheduleDate") {
-      rule.scheduleDate = value || todayInputValue();
+      rule.scheduleDate = value;
     } else if (field === "startDate") {
       rule.startDate = value;
     } else if (field === "endDate") {
-      rule.endDate = value || todayInputValue();
+      rule.endDate = value;
     } else if (field === "limitType") {
       rule.limitType = value === "count" || value === "date" ? value : "none";
-      if (rule.limitType === "date" && (!rule.endDate || (rule.startDate && rule.endDate < rule.startDate))) {
-        rule.endDate = rule.startDate || todayInputValue();
-      }
-      if (rule.limitType === "count" && !rule.instanceLimit) {
-        rule.instanceLimit = 1;
-      }
-      if (rule.limitType === "count" && !rule.startDate) {
-        rule.startDate = state.startDate;
-      }
     } else if (field === "variable") {
       rule.variable = value === "true";
     } else {
       rule[field] = value;
     }
 
-    if (field === "scheduleType" || field === "limitType") {
+    rule.pendingSchedule = Boolean(ruleScheduleIssue(rule));
+    if (field === "scheduleType" || field === "limitType" || (field === "startDate" && rule.scheduleType === "biweekly" && !value)) {
       pendingFocusRuleId = ruleId;
       pendingFocusField = field;
       persistAndRender();
@@ -2743,6 +2826,9 @@
         return element.getAttribute("data-rule-id") === ruleId;
       });
       if (card) {
+        card.classList.toggle("is-excluded", !rule.active);
+        card.querySelector(".plan-toggle span").textContent = rule.active ? "Included" : "Excluded";
+        card.querySelector(".schedule-preview").textContent = schedulePreview(rule);
         var summary = card.querySelector(".rule-mobile-summary");
         summary.setAttribute("aria-label", "Edit " + rule.name);
         summary.querySelector("strong").textContent = rule.name;
@@ -2768,9 +2854,7 @@
         return "Enter a whole number from 1 to " + maximum + ".";
       }
     }
-    if (field === "startDate" && !value && rule.limitType === "count") {
-      return "Choose a start date so the payment count stays fixed when the forecast is refreshed.";
-    }
+    if ((field === "startDate" || field === "endDate" || field === "scheduleDate") && !value) return "";
     if (field === "scheduleDate" || field === "endDate" || (field === "startDate" && value)) {
       if (!isValidInputDate(value)) {
         return "Choose a valid payment date.";
@@ -2807,6 +2891,7 @@
   });
 
   projectionDaysInput.addEventListener("change", function () {
+    clearRemovalUndo();
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
     persistAndRender(UI_COPY.status.projectionWindowUpdated);
   });
@@ -2900,18 +2985,35 @@
     });
   });
 
-  exportDataButton.addEventListener("click", function () {
-    var payload = backupPayload();
-    var blob = new Blob([payload], { type: "application/json" });
-    var url = window.URL.createObjectURL(blob);
-    var link = document.createElement("a");
-    link.href = url;
-    link.download = exportFilename(new Date());
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    showDataStatus(UI_COPY.status.backupDownloaded);
+  function downloadLocalBackup() {
+    var url;
+    var link;
+    try {
+      var exportedAt = new Date();
+      var filename = exportFilename(exportedAt);
+      var blob = new Blob([backupPayload(exportedAt)], { type: "application/json" });
+      url = window.URL.createObjectURL(blob);
+      link = document.createElement("a");
+      link.href = url;
+      link.addEventListener("click", function (event) { event.stopPropagation(); });
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      showDataStatus(UI_COPY.status.backupDownloaded + " File: " + filename + " (UTC timestamp).", true);
+    } catch (error) {
+      showDataIssue("The download could not be started. Your plan is unchanged. Try again and check your browser’s download settings.");
+    } finally {
+      if (link) link.remove();
+      // Keep the Blob alive while the browser takes ownership of the download.
+      if (url) window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 60000);
+    }
+  }
+
+  exportDataButton.addEventListener("click", downloadLocalBackup);
+  document.querySelector("#start-own-plan").addEventListener("click", function () { resetDataButton.click(); });
+  document.querySelector("#dismiss-undo").addEventListener("click", function () {
+    clearRemovalUndo();
+    addMoneyInRuleButton.focus({ preventScroll: true });
   });
 
   importDataButton.addEventListener("click", function () {
@@ -2992,6 +3094,7 @@
   });
 
   function addRecurringRule(direction) {
+    clearRemovalUndo();
     var newRule = {
       id: makeId("rule"),
       name:
@@ -3002,11 +3105,12 @@
       amount: 0,
       variable: direction === "debit",
       active: true,
+      calculationOrder: state.recurringRules.reduce(function (max, rule) { return Math.max(max, rule.calculationOrder || 0); }, -1) + 1,
       scheduleType: "monthly",
       dayOfMonth: 1,
       dayOfWeek: 3,
-      scheduleDate: todayInputValue(),
-      startDate: todayInputValue(),
+      scheduleDate: "",
+      startDate: "",
       limitType: "none",
       instanceLimit: 1,
       endDate: "",
@@ -3105,6 +3209,7 @@
       return;
     }
 
+    clearRemovalUndo();
     if (field === "amount") {
       rule.amount = parseNumericValue(event.target.value, 0);
     } else {
@@ -3131,10 +3236,26 @@
     if (button.dataset.action === "edit-rule" || button.dataset.action === "done-editing") {
       var invalid = card.querySelector('[aria-invalid="true"]');
       if (invalid) { invalid.focus(); return; }
+      var view = captureView();
       expandedRuleId = expandedRuleId === id ? null : id;
       renderRules();
       var summary = Array.from(rulesList.querySelectorAll("[data-action='edit-rule']")).find(function (el) { return el.closest("[data-rule-id]").dataset.ruleId === id; });
-      if (summary) summary.focus();
+      if (summary) summary.focus({ preventScroll: true });
+      if (view.action === "done-editing") window.scrollBy(0, summary.getBoundingClientRect().top - Math.min(view.top, 160));
+      else restoreView(view);
+      return;
+    }
+    if (button.dataset.action === "move-up" || button.dataset.action === "move-down") {
+      var peers = state.recurringRules.filter(function (item) { return item.direction === card.dataset.direction; });
+      var index = peers.findIndex(function (item) { return item.id === id; });
+      var before = button.dataset.action === "move-up" ? peers[index - 1] : peers[index + 2];
+      if (button.dataset.action === "move-up" && index === 0) return;
+      moveRuleWithinDirection(state.recurringRules, id, before ? before.id : null);
+      clearRemovalUndo();
+      persistAndRender("Payment moved within " + (card.dataset.direction === "credit" ? "Money in." : "Money out."));
+      var movedCard = Array.from(rulesList.querySelectorAll(".rule-card")).find(function (item) { return item.dataset.ruleId === id; });
+      var nextControl = movedCard.querySelector('[data-action="' + button.dataset.action + '"]');
+      (nextControl.disabled ? movedCard.querySelector(".rule-drag-handle") : nextControl).focus({ preventScroll: true });
       return;
     }
     if (button.dataset.action !== "delete-rule") return;
@@ -3155,6 +3276,56 @@
     document.querySelector("#undo-remove").focus();
   });
 
+  var ruleDrag = null;
+  function endRuleDrag(commit) {
+    if (!ruleDrag) return;
+    window.clearTimeout(ruleDrag.timer);
+    var drag = ruleDrag;
+    ruleDrag = null;
+    document.querySelectorAll(".is-dragging, .drop-before, .drop-after").forEach(function (element) { element.classList.remove("is-dragging", "drop-before", "drop-after"); });
+    if (commit && drag.ready && drag.targetId) {
+      var peers = state.recurringRules.filter(function (rule) { return rule.direction === drag.direction; });
+      var position = peers.findIndex(function (rule) { return rule.id === drag.targetId; });
+      var before = drag.after ? peers[position + 1] : peers[position];
+      moveRuleWithinDirection(state.recurringRules, drag.id, before ? before.id : null);
+      clearRemovalUndo();
+      persistAndRender("Payment moved. Use Move up or Move down for precise positioning.");
+      var card = Array.from(rulesList.querySelectorAll(".rule-card")).find(function (item) { return item.dataset.ruleId === drag.id; });
+      card.querySelector(".rule-drag-handle").focus({ preventScroll: true });
+    }
+  }
+  rulesList.addEventListener("pointerdown", function (event) {
+    var handle = event.target.closest(".rule-drag-handle");
+    if (!handle || (event.button !== 0 && event.pointerType !== "touch")) return;
+    var card = handle.closest(".rule-card");
+    ruleDrag = { id: card.dataset.ruleId, direction: card.dataset.direction, ready: false };
+    handle.setPointerCapture(event.pointerId);
+    ruleDrag.timer = window.setTimeout(function () {
+      if (!ruleDrag) return;
+      ruleDrag.ready = true;
+      card.classList.add("is-dragging");
+      showStatus("Move within " + (card.dataset.direction === "credit" ? "Money in" : "Money out") + "; release to place. Escape cancels.");
+    }, event.pointerType === "touch" ? 350 : 0);
+  });
+  rulesList.addEventListener("pointermove", function (event) {
+    if (!ruleDrag || !ruleDrag.ready) return;
+    var hit = document.elementFromPoint(event.clientX, event.clientY);
+    var target = hit && hit.closest(".rule-card");
+    document.querySelectorAll(".drop-before, .drop-after").forEach(function (card) { card.classList.remove("drop-before", "drop-after"); });
+    ruleDrag.targetId = null;
+    if (target && target.dataset.direction === ruleDrag.direction && target.dataset.ruleId !== ruleDrag.id) {
+      ruleDrag.targetId = target.dataset.ruleId;
+      ruleDrag.after = event.clientY > target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+      target.classList.add(ruleDrag.after ? "drop-after" : "drop-before");
+    }
+    if (event.clientY < 90) window.scrollBy(0, -14);
+    if (event.clientY > window.innerHeight - 80) window.scrollBy(0, 14);
+  });
+  rulesList.addEventListener("pointerup", function () { endRuleDrag(true); });
+  rulesList.addEventListener("pointercancel", function () { endRuleDrag(false); });
+  rulesList.addEventListener("lostpointercapture", function () { endRuleDrag(false); });
+  document.addEventListener("keydown", function (event) { if (event.key === "Escape") endRuleDrag(false); });
+
   projectionTableBody.addEventListener("click", function (event) {
     var button = event.target.closest("[data-action='toggle-instance']");
     var key;
@@ -3163,6 +3334,7 @@
       return;
     }
 
+    clearRemovalUndo();
     key = instanceKey(button.getAttribute("data-rule-id"), button.getAttribute("data-date-key"));
 
     if (state.skippedInstances[key]) {
@@ -3175,7 +3347,7 @@
     var restoredButton = Array.from(projectionTableBody.querySelectorAll("[data-action='toggle-instance']")).find(function (el) {
       return instanceKey(el.dataset.ruleId, el.dataset.dateKey) === key;
     });
-    if (restoredButton) restoredButton.focus();
+    if (restoredButton) restoredButton.focus({ preventScroll: true });
   });
 
   rulesList.addEventListener("toggle", function (event) {
@@ -3209,8 +3381,9 @@
     persistAndRender("Payment restored.");
   });
   document.querySelector("#restore-exclusions").addEventListener("click", function () {
+    clearRemovalUndo();
     state.skippedInstances = {};
-    persistAndRender("All individual payments restored.");
+    persistAndRender("All skipped payments included again. Whole-item exclusions are unchanged.");
     document.querySelector("#scenario-count").setAttribute("tabindex", "-1");
     document.querySelector("#scenario-count").focus();
   });

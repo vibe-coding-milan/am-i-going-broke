@@ -435,3 +435,112 @@ test("rotation survives unavailable or malformed session storage", () => {
     assert.equal(new Set(answers).size, answers.length);
   }
 });
+
+// Usability release: protect forecast semantics while changing presentation and defaults.
+test("whole-item exclusions remain in the ledger without changing balances, including count limits", () => {
+  const inactive = rule({ active: false, startDate: "2026-12-04", limitType: "count", instanceLimit: 2 });
+  context.state = { startDate: "2026-12-01", projectionDays: 30, startingBalance: 100,
+    recurringRules: [inactive], skippedInstances: { "contract::2026-12-04": true } };
+  let rows = context.flattenProjectionRows();
+  assert.deepEqual(Array.from(rows.filter(r => r.type === "item"), r => r.dateKey), ["2026-12-04", "2026-12-11"]);
+  assert.ok(rows.slice(1).every(r => r.skipped && r.wholeExcluded && r.balance === 100));
+  inactive.active = true;
+  rows = context.flattenProjectionRows();
+  assert.equal(rows[1].skipped, true, "independent single-payment exclusion survives re-enabling parent");
+  assert.equal(rows[2].skipped, false);
+  assert.equal(rows.at(-1).balance, 1100);
+});
+
+test("excluded one-time items stay visible outside the window without affecting its forecast", () => {
+  context.state = { startDate: "2026-12-01", projectionDays: 30, startingBalance: 100,
+    recurringRules: [rule({ active: false, scheduleType: "adhoc", scheduleDate: "2027-01-10" })], skippedInstances: {} };
+  const rows = context.flattenProjectionRows();
+  assert.equal(rows.at(-1).outsideWindow, true);
+  assert.equal(rows.at(-1).wholeExcluded, true);
+  assert.equal(rows.at(-1).balance, 100);
+  assert.ok(context.projectionPointsFromRows(rows).every(point => point.balance === 100));
+});
+
+test("blank optional dates impose no bounds and incomplete date/count schedules invent no dates", () => {
+  const item = rule({ startDate: "", endDate: "", limitType: "none" });
+  assert.deepEqual(dates(item, "2026-12-01", 14), ["2026-12-04", "2026-12-11"]);
+  item.limitType = "date";
+  assert.deepEqual(dates(item, "2026-12-01", 14), []);
+  item.limitType = "count";
+  item.pendingSchedule = true;
+  assert.deepEqual(dates(item, "2026-12-01", 14), []);
+  const saved = context.normalizeState({ recurringRules: [item], startingBalance: 100 });
+  assert.equal(saved.recurringRules[0].startDate, "");
+  assert.equal(saved.recurringRules[0].endDate, "");
+  item.scheduleType = "biweekly";
+  item.scheduleDate = "2026-12-04";
+  item.instanceLimit = 2;
+  assert.deepEqual(dates(item, "2026-12-01", 60), ["2026-12-04", "2026-12-18"]);
+  assert.deepEqual(dates(item, "2026-12-19", 60), []);
+  item.scheduleDate = "";
+  assert.deepEqual(dates(item, "2026-12-01", 60), []);
+  assert.equal(context.normalizeState({ recurringRules: [item] }).recurringRules[0].scheduleDate, "");
+});
+
+test("manual order stays within a direction and preserves same-day calculations through backup restoration", () => {
+  const plan = context.normalizeState({ startDate: "2026-12-01", startingBalance: 100, projectionDays: 30,
+    recurringRules: [
+      rule({ id: "salary", direction: "credit", amount: 2000, startDate: "", limitType: "none" }),
+      rule({ id: "rent", direction: "debit", amount: 1900, startDate: "", limitType: "none" }),
+      rule({ id: "gift", direction: "credit", amount: 50, startDate: "", limitType: "none" }),
+    ] });
+  plan.startDate = "2026-12-01";
+  context.state = plan;
+  const before = JSON.stringify(context.flattenProjectionRows());
+  assert.equal(context.moveRuleWithinDirection(plan.recurringRules, "gift", "rent"), false);
+  assert.equal(context.moveRuleWithinDirection(plan.recurringRules, "gift", "salary"), true);
+  assert.deepEqual(Array.from(plan.recurringRules, r => r.id), ["gift", "rent", "salary"]);
+  assert.equal(JSON.stringify(context.flattenProjectionRows()), before);
+  const restored = context.normalizeState(JSON.parse(JSON.stringify(plan)));
+  restored.startDate = "2026-12-01";
+  context.state = restored;
+  assert.deepEqual(Array.from(restored.recurringRules, r => r.id), ["gift", "rent", "salary"]);
+  assert.equal(JSON.stringify(context.flattenProjectionRows()), before);
+});
+
+test("opening balance is not displayed as an incoming payment", () => {
+  context.state = { startDate: "2026-12-01", projectionDays: 30, startingBalance: 1000, recurringRules: [], skippedInstances: {} };
+  const opening = context.flattenProjectionRows()[0];
+  assert.equal(opening.credit, null);
+  assert.equal(opening.debit, null);
+  assert.equal(opening.balance, 1000);
+});
+
+test("local backup download keeps its URL alive, uses one UTC timestamp, and reports initiation accurately", () => {
+  let revoked = 0, clicked = 0, removed = 0, status = "", failure = "", filename, payloadAt;
+  const timers = [];
+  const fixedDate = new Date("2026-10-18T19:20:21.123Z");
+  class ExportDate extends Date { constructor() { super(fixedDate); } }
+  const ui = isolatedFunctions("  function downloadLocalBackup()", "  exportDataButton.addEventListener", {
+    Date: ExportDate, Blob,
+    exportFilename: value => { filename = context.exportFilename(value); return filename; },
+    backupPayload: value => { payloadAt = value.toISOString(); return "{}"; },
+    document: { createElement: () => ({ addEventListener() {}, click() { clicked++; }, remove() { removed++; } }), body: { appendChild() {} } },
+    window: { URL: { createObjectURL: () => "blob:backup", revokeObjectURL: () => { revoked++; } }, setTimeout: (fn, delay) => timers.push({ fn, delay }) },
+    UI_COPY: { status: { backupDownloaded: "Download requested. Check Downloads." } },
+    showDataStatus: message => { status = message; }, showDataIssue: message => { failure = message; },
+  });
+  ui.downloadLocalBackup();
+  assert.equal(clicked, 1); assert.equal(removed, 1); assert.equal(revoked, 0);
+  assert.equal(payloadAt, fixedDate.toISOString());
+  assert.equal(filename, "am-i-going-broke-2026-10-18T19-20-21-123Z.json");
+  assert.match(status, /Download requested.*UTC/); assert.equal(failure, "");
+  assert.equal(timers[0].delay, 60000); timers[0].fn(); assert.equal(revoked, 1);
+  ui.window.URL.createObjectURL = () => { throw new Error("blocked"); };
+  ui.downloadLocalBackup();
+  assert.match(failure, /could not be started.*plan is unchanged/);
+});
+
+
+test("biweekly count origin remains the first payday across reloads with an explicitly blank optional start", () => {
+  const item = rule({ scheduleType: "biweekly", scheduleDate: "2026-10-02", startDate: "",
+    limitType: "count", instanceLimit: 2, pendingSchedule: false });
+  const restored = context.normalizeState({ startDate: "2026-10-18", recurringRules: [item] }).recurringRules[0];
+  assert.equal(restored.startDate, "");
+  assert.deepEqual(dates(restored, "2026-10-18", 40), []);
+});

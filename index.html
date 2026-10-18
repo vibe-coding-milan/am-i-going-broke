@@ -40,8 +40,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=forecast-response-rotation-20261017" />
-    <link rel="stylesheet" href="./styles/projection-answer.css?v=forecast-response-rotation-20261017" />
+    <link rel="stylesheet" href="./styles.css?v=usability-20261018-r2" />
+    <link rel="stylesheet" href="./styles/projection-answer.css?v=usability-20261018-r2" />
   </head>
   <body>
     <main class="app-shell">
@@ -73,6 +73,7 @@
               <p class="data-menu-heading">Saved in this browser</p>
               <div class="data-menu-section" role="group" aria-labelledby="file-backup-heading">
                 <span class="data-menu-label" id="file-backup-heading">Backup file</span>
+                <p class="data-menu-hint">JSON file · restores your full plan. Date and time are in the filename.</p>
                 <button type="button" id="export-data" class="data-menu-action">
                   <span class="data-menu-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5zM14 4v5h5M12 11v6m0 0-3-3m3 3 3-3" /></svg>
@@ -165,6 +166,7 @@
       </nav>
       <p id="save-error" class="form-error is-hidden" role="alert">This browser could not save your changes. Download a backup from Data before closing this page.</p>
       <section id="forecast" class="panel forecast-dashboard" aria-label="Projection dashboard">
+        <div id="sample-banner" class="sample-banner is-hidden"><span id="sample-label"></span><button type="button" id="start-own-plan" class="button secondary">Start my own plan</button></div>
         <header class="forecast-dashboard-header">
           <div class="forecast-status-block">
             <div id="projection-summary" class="summary-grid"></div>
@@ -206,19 +208,20 @@
 
         <section class="chart-panel chart-panel-primary" aria-label="Projected cash balance chart">
           <div id="chart-empty-state" class="chart-empty-state is-hidden">
-            <h2>Start with your balance, or try a sample.</h2>
+            <h2>Preview an example projection</h2>
+            <p class="muted">These examples use fictional data. To create your own plan, enter Cash today and add payments below.</p>
             <div class="empty-demo-actions" aria-label="Sample scenarios">
               <button type="button" class="button secondary sample-button" data-sample-scenario="healthy">
-                Income &amp; bills
+                Try: Income &amp; bills
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="tight">
-                Small cushion
+                Try: Small cushion
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="risk">
-                Cash shortfall
+                Try: Cash shortfall
               </button>
               <button type="button" class="button secondary sample-button" data-sample-scenario="random">
-                Random sample
+                Try: Random example
               </button>
             </div>
           </div>
@@ -273,7 +276,7 @@
       <section id="payments" class="panel">
         <div class="panel-heading with-action">
           <div>
-            <h2>Money moves</h2>
+            <h2>Payments</h2>
             <p>
               Add income and expenses using the dates money reaches or leaves your account. The forecast updates as you edit.
             </p>
@@ -283,17 +286,17 @@
               Hide items
             </button>
             <button type="button" id="add-money-in-rule" class="button secondary">
-              Add income
+              Add money in
             </button>
             <button type="button" id="add-money-out-rule" class="button secondary">
-              Add expense
+              Add money out
             </button>
           </div>
         </div>
-        <div id="undo-removal" class="undo-banner is-hidden" role="status"><span id="undo-removal-copy"></span><button id="undo-remove" type="button" class="button ghost">Undo remove</button></div>
+        <div id="undo-removal" class="undo-banner is-hidden" role="status"><span id="undo-removal-copy"></span><button id="undo-remove" type="button" class="button ghost">Undo remove</button><button id="dismiss-undo" type="button" class="button ghost">Dismiss</button></div>
         <div id="rules-panel-content">
           <div id="empty-state" class="empty-state is-hidden">
-            <p>No money moves yet.</p>
+            <p>No payments yet.</p>
             <p class="muted">
               Add income or an upcoming bill to turn the forecast from a guess into a plan.
             </p>
@@ -311,7 +314,7 @@
             updates the running balance across your chosen window.
           </p>
         </div>
-        <div class="scenario-bar"><span id="scenario-count">Exclude a single payment below, or all occurrences in Payments.</span><button id="restore-exclusions" type="button" class="button ghost is-hidden">Restore excluded payments</button></div>
+        <div class="scenario-bar"><span id="scenario-count">Exclude a single payment below, or all occurrences in Payments.</span><button id="restore-exclusions" type="button" class="button ghost is-hidden">Include all skipped payments</button></div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -341,9 +344,9 @@
       </footer>
     </main>
 
-    <script src="./projectionHealth.js?v=forecast-response-rotation-20261017"></script>
-    <script src="./content/projectionAnswerCopy.js?v=forecast-response-rotation-20261017"></script>
-    <script src="./components/projectionAnswer.js?v=forecast-response-rotation-20261017"></script>
-    <script src="./app.js?v=forecast-response-rotation-20261017"></script>
+    <script src="./projectionHealth.js?v=usability-20261018-r2"></script>
+    <script src="./content/projectionAnswerCopy.js?v=usability-20261018-r2"></script>
+    <script src="./components/projectionAnswer.js?v=usability-20261018-r2"></script>
+    <script src="./app.js?v=usability-20261018-r2"></script>
   </body>
 </html>
