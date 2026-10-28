@@ -47,7 +47,7 @@
     var menu = document.querySelector(".data-menu");
     var entry = document.createElement("button");
     entry.type = "button"; entry.className = "data-menu-action sync-drive-entry";
-    entry.innerHTML = '<span>Google Drive</span><span class="sync-menu-cue is-hidden"><span aria-hidden="true">!</span> <span>Review sync</span></span>';
+    entry.innerHTML = '<span>Google Drive</span><span class="sync-menu-cue is-hidden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 4h.01M4.5 19h15L12 5z" /></svg><span>Review sync</span></span>';
     var menuCue = entry.querySelector(".sync-menu-cue");
     menu.querySelector(".data-menu-section").prepend(entry);
     var dataSummary = menu.querySelector("summary");

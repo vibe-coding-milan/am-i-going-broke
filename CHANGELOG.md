@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-28 — Use familiar sync-review iconography
+
+- Replace the circled text exclamation beside Review sync with the same outlined warning-triangle SVG used by the app’s confirmation dialogs. Keep the review label, semantic theme color, menu layout and sync behavior unchanged.
+- Validation: JavaScript syntax and existing sync/UI regressions; visual menu inspection.
+
 ## 2026-10-28 — Guide users into sync review
 
 - Mark the Google Drive entry with ! Review sync when reconciliation or connection attention is needed. Keep the Data pill and its tooltip; leave the menu’s other actions unchanged.
