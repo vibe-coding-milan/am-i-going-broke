@@ -2,9 +2,9 @@
 
 ## Returning-user refinement
 
-Prepared for publication: read-first connection on ordinary visits, the same four-action Data menu in both modes, focused two-choice comparisons, separate dated manual copies, and legacy-backup migration. Source/CI/deployment evidence will be recorded after release. Automatic sync still requires private OAuth configuration; the ordinary browser connection does not promise background sync.
+Published in [PR #42](https://github.com/vibe-coding-milan/am-i-going-broke/pull/42), release [54fa83f](https://github.com/vibe-coding-milan/am-i-going-broke/commit/54fa83f04d3ccf3c7d371669fbca292aef2919e3), and deployed. [CI passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40721287050). The deployment preview/publication succeeded; all eight public app files match release source and the service still reports available:false. The ordinary site now has the read-first connection and four-action Data menu. A final local-recovery visibility safeguard is being published alongside this record. Automatic sync still requires private OAuth configuration; the ordinary browser connection does not promise background sync.
 
-126 JavaScript runs and 57 isolated PHP assertions passed. Fake Drive fixtures confirmed zero writes during empty-session adoption, explicit local replacement/recovery, older-copy selection, and stale-choice rejection. Dialogs were checked at desktop/tablet/phone/landscape widths and doubled root font size. No conclusion about the owner’s previously saved Drive contents can be drawn from code or fixture tests.
+126 JavaScript runs and 57 isolated PHP assertions passed. Fake Drive fixtures confirmed zero writes during empty-session adoption, explicit local replacement/recovery, older-copy selection, and stale-choice rejection. Dialogs were checked at desktop/tablet/phone/landscape widths and doubled root font size. Local recovery was also verified after disconnecting Google: the previous device plan remained accessible under More options, with four prior mock reads and zero writes; recovery required no new authorization or request. No conclusion about the owner’s previously saved Drive contents can be drawn from code or fixture tests.
 
 ## Initial publication and deployment
 

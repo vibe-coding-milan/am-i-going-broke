@@ -64,7 +64,11 @@
       dialog.querySelector("#drive-connection-mode").classList.toggle("is-hidden", !options.hasAccess());
       connect.classList.toggle("is-hidden", checked && options.hasAccess());
       dialog.querySelector("#drive-connection-intro").classList.toggle("is-hidden", checked);
-      dialog.querySelector("#drive-manual-copies").classList.toggle("is-hidden", !options.hasAccess());
+      var previous = options.recovery();
+      var canRecover = previous && Sync.validPlan(previous.plan) && !empty(previous.plan);
+      dialog.querySelector("#drive-manual-copies").classList.toggle("is-hidden", !options.hasAccess() && !canRecover);
+      dialog.querySelector("#drive-check").classList.toggle("is-hidden", !options.hasAccess());
+      save.classList.toggle("is-hidden", !options.hasAccess());
       dialog.querySelector("#drive-disconnect").classList.toggle("is-hidden", !options.hasAccess());
       dialog.querySelector("#drive-saved-plan").classList.toggle("is-hidden", !remote);
       if (remote) {
