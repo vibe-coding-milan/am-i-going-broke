@@ -6,7 +6,7 @@
 - Explain direct browser-to-Google transfers, local storage, in-memory tokens, HTTPS protection, sharing limits, and the absence of advertising or AI training uses of Google user data.
 - Clarify retention and separate instructions for clearing local data, deleting Drive/downloaded backups, and revoking Google access.
 - Validation: source review against current backup behavior and Google's privacy policy guidance; syntax/link checks and 66 scheduling regressions passed.
-- Prepared locally; not yet published or deployed. Google verification and domain ownership remain separate external steps.
+- Published via [PR #37](https://github.com/vibe-coding-milan/am-i-going-broke/pull/37), release `368ed5d`, and deployed October 28, 2026. Deployment preview and upload changed only privacy.html and preserved a server backup. The live policy exactly matches the merged source; homepage, privacy, and terms returned successful HTTP responses. Google verification, domain ownership, and non-owner Drive testing remain pending in [issue #12](https://github.com/vibe-coding-milan/am-i-going-broke/issues/12).
 
 ## 2026-10-28 — Compact Data menu and separate Appearance controls
 
