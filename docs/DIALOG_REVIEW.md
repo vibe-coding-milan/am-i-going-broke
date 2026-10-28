@@ -1,6 +1,8 @@
 # Data dialog layout review — October 28, 2026
 
-Prepared locally; not published or deployed.
+Published via [PR #39](https://github.com/vibe-coding-milan/am-i-going-broke/pull/39), release `bc3c902`, and deployed October 28, 2026. The four deployed files exactly match merged source. Live desktop and 320px phone reset-dialog checks passed, including cancellation/focus return. Owner/device acceptance remains in [issue #38](https://github.com/vibe-coding-milan/am-i-going-broke/issues/38).
+
+Deployment preview and upload changed only index.html, privacy.html, terms.html, and styles.css, preserving server backups. Each returned HTTP 200 and matched merged source exactly. Live reset-dialog checks confirmed contained labels at desktop and 320px phone widths; Cancel closed the dialog and returned focus to Start over. No plan was cleared.
 
 ## Confirmed issues and fix
 
