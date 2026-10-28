@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-28 — Keep backup downloads quiet
+
+- Close Data after starting a local backup download, without an inline success/request message or filename. Retain the error dialog when a download cannot start. Backup contents, timestamped filenames and delayed URL cleanup are unchanged.
+- Validation: 108 existing JavaScript regression runs, including quiet download behavior and failure handling, plus syntax/link checks.
+
 ## 2026-10-28 — Fit sync status inside Data
 
 - Replace the separate header status control and mobile status row with a fixed-width symbol in the existing Data pill: check for synced, sync arrow for waiting, exclamation for attention. Keep full status and last sync time in Google Drive settings, with a tooltip and accessible status announcement.

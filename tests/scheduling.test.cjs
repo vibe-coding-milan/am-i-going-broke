@@ -451,8 +451,8 @@ test("opening balance is not displayed as an incoming payment", () => {
   assert.equal(opening.balance, 1000);
 });
 
-test("local backup download keeps its URL alive, uses one UTC timestamp, and reports initiation accurately", () => {
-  let revoked = 0, clicked = 0, removed = 0, status = "", failure = "", failureTitle = "", filename, payloadAt;
+test("local backup download stays quiet, preserves its URL and UTC filename, and reports failures", () => {
+  let revoked = 0, clicked = 0, removed = 0, closed = 0, status = "", failure = "", failureTitle = "", filename, payloadAt;
   const timers = [];
   const fixedDate = new Date("2026-10-18T19:20:21.123Z");
   class ExportDate extends Date { constructor() { super(fixedDate); } }
@@ -462,14 +462,14 @@ test("local backup download keeps its URL alive, uses one UTC timestamp, and rep
     backupPayload: value => { payloadAt = value.toISOString(); return "{}"; },
     document: { createElement: () => ({ addEventListener() {}, click() { clicked++; }, remove() { removed++; } }), body: { appendChild() {} } },
     window: { URL: { createObjectURL: () => "blob:backup", revokeObjectURL: () => { revoked++; } }, setTimeout: (fn, delay) => timers.push({ fn, delay }) },
-    UI_COPY: { status: { backupDownloaded: "Download requested. Check Downloads." } },
+    closeDataMenu: () => { closed++; },
     showDataStatus: message => { status = message; }, showDataIssue: (message, title) => { failure = message; failureTitle = title; },
   });
   ui.downloadLocalBackup();
   assert.equal(clicked, 1); assert.equal(removed, 1); assert.equal(revoked, 0);
   assert.equal(payloadAt, fixedDate.toISOString());
   assert.equal(filename, "am-i-going-broke-2026-10-18T19-20-21-123Z.json");
-  assert.match(status, /Download requested.*UTC/); assert.equal(failure, "");
+  assert.equal(status, ""); assert.equal(closed, 1); assert.equal(failure, "");
   assert.equal(timers[0].delay, 60000); timers[0].fn(); assert.equal(revoked, 1);
   ui.window.URL.createObjectURL = () => { throw new Error("blocked"); };
   ui.downloadLocalBackup();
