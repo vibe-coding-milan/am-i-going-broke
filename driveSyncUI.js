@@ -53,11 +53,24 @@
     indicatorText.className = "sync-status-announcement";
     indicatorText.setAttribute("role", "status"); indicatorText.setAttribute("aria-live", "polite");
     indicatorText.setAttribute("aria-atomic", "true"); document.body.appendChild(indicatorText);
+    var activeUploads = 0, indicatorView = null;
     function presentIndicator(status, text, visible) {
+      indicatorView = { status: status, text: text, visible: visible };
+      renderIndicator();
+    }
+    function renderIndicator() {
+      if (!indicatorView) return;
+      var status = indicatorView.status, text = indicatorView.text, visible = indicatorView.visible;
+      if (activeUploads && visible) { status = "saving"; text = LABELS.saving; }
       var attention = ["offline", "reconnect", "conflict", "missing", "account", "remote", "retrying", "storage", "invalid", "unavailable", "service"].indexOf(status) !== -1;
       indicator.classList.toggle("sync-mark", visible);
-      indicator.setAttribute("data-sync-state", !visible ? "none" : attention ? "attention" : status === "synced" ? "synced" : "waiting");
-      indicator.textContent = !visible ? "⇅" : attention ? "!" : status === "synced" ? "✓" : "↻";
+      var visualState = !visible ? "none" : attention ? "attention" : status === "synced" ? "synced" : status === "saving" ? "saving" : "waiting";
+      if (indicator.getAttribute("data-sync-state") !== visualState) {
+        indicator.setAttribute("data-sync-state", visualState);
+        if (visualState === "synced") {
+          indicator.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7" /></svg>';
+        } else indicator.textContent = !visible ? "⇅" : attention ? "!" : "↻";
+      }
       dataSummary.setAttribute("aria-label", "Open data menu" + (visible ? ". Google Drive: " + text : ""));
       dataSummary.setAttribute("title", visible ? "Google Drive: " + text : "Data");
       var announcement = visible ? "Google Drive: " + text : "";
@@ -227,7 +240,11 @@
       }
       controller = root.DriveSync.create({ accountId: session.accountId, storage: queuedStore(),
         operationId: function () { return crypto.randomUUID(); },
-        transport: { read: function () { return request("plan"); }, write: function (body) { return request("plan", body); } },
+        transport: { read: function () { return request("plan"); }, write: async function (body) {
+          activeUploads += 1; renderIndicator();
+          try { return await request("plan", body); }
+          finally { activeUploads -= 1; renderIndicator(); }
+        } },
         onStatus: showStatus,
         onRemote: function (plan) {
           changingRemote = true;

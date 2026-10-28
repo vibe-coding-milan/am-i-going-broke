@@ -59,7 +59,7 @@ function harness(options = {}) {
       return clone(remote);
     },
   };
-  const engine = Sync.create({ accountId, storage, transport: options.transport || transport, clock: time,
+  const engine = Sync.create({ accountId, storage, transport: options.transport || transport, clock: time, random: options.random || (() => 0),
     onStatus: value => statuses.push(value), onRemote: value => adopted.push(value) });
   return {
     engine, time, writes, saved, statuses, adopted, transport, storage,
@@ -80,6 +80,25 @@ test('five seconds of inactivity combines cash and payment edits into one upload
   assert.equal(h.writes.length, 1);
   assert.equal(h.remote().plan.startingBalance, 1200);
   assert.equal(h.engine.snapshot().status, 'synced');
+});
+
+test('cash, payments and transaction exclusions batch together while cosmetic state stays local', async () => {
+  const h = harness(); await h.ready();
+  const edited = plan(1500);
+  edited.recurringRules = [
+    { id: 'pay', name: 'Pay', amount: 200, direction: 'credit', scheduleType: 'adhoc', scheduleDate: '2026-11-01' },
+    { id: 'bill', name: 'Bill', amount: 50, direction: 'debit', scheduleType: 'adhoc', scheduleDate: '2026-11-02' },
+  ];
+  h.engine.setPlan(edited); await h.time.tick(3000);
+  edited.recurringRules[1].amount = 75; h.engine.setPlan(edited); await h.time.tick(3000);
+  edited.skippedInstances = { 'bill:2026-11-02': true }; h.engine.setPlan(edited);
+  await h.time.tick(4999); assert.equal(h.writes.length, 0);
+  await h.time.tick(1); assert.equal(h.writes.length, 1);
+  assert.deepEqual(h.writes[0].plan.skippedInstances, edited.skippedInstances);
+  assert.equal(h.writes[0].plan.recurringRules[1].amount, 75);
+  const reads = h.reads();
+  h.engine.setPlan({ ...edited, rulesCollapsed: true, theme: 'light' });
+  await h.time.tick(60000); assert.equal(h.writes.length, 1); assert.equal(h.reads(), reads);
 });
 
 test('phone, work computer and new tablet converge without restore or extra uploads', async () => {
@@ -138,7 +157,10 @@ test('a reverted edit makes no Drive write', async () => {
 
 test('continuous valid edits flush at the maximum wait without uploading intermediate keystrokes', async () => {
   const h = harness(); await h.ready();
-  for (let i = 1; i <= 8; i++) { h.engine.setPlan(plan(1000 + i)); await h.time.tick(4000); }
+  for (let i = 1; i <= 8; i++) {
+    h.engine.setEditing(true); h.engine.setPlan(plan(1000 + i)); h.engine.setEditing(false);
+    await h.time.tick(4000);
+  }
   assert.equal(h.writes.length, 1); assert.equal(h.writes[0].plan.startingBalance, 1008);
 });
 
@@ -238,6 +260,17 @@ test('temporary errors back off and additional edits do not cause a retry storm'
   assert.equal(h.engine.snapshot().status, 'retrying'); const reads = h.reads();
   h.engine.setPlan(plan(90)); await h.time.tick(9999); assert.equal(h.reads(), reads);
   h.failReads(null); await h.time.tick(1); assert.equal(h.remote().plan.startingBalance, 90);
+});
+
+test('temporary failures add jitter without letting new edits bypass backoff', async () => {
+  const h = harness({ random: () => 0.5 }); await h.ready();
+  h.failReads(new Error('temporarily limited'));
+  h.engine.setPlan(plan(80)); await h.time.tick(5000);
+  const reads = h.reads();
+  h.engine.setPlan(plan(90)); h.failReads(null);
+  await h.time.tick(10499); assert.equal(h.reads(), reads);
+  await h.time.tick(1); assert.equal(h.remote().plan.startingBalance, 90);
+  assert.equal(h.writes.length, 1);
 });
 
 test('edits during an upload are queued and never falsely marked saved', async () => {

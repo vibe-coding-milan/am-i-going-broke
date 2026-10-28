@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-28 — Signal Drive uploads and review batching
+
+- Rotate the existing Data icon during an actual upload, then briefly draw the check on completion. Waiting/checking stays static; no header space or artificial request delay is added. Reduced-motion users get static icons.
+- Keep the five-second resettable inactivity timer, meaningful-plan fingerprint, draft pause and thirty-second maximum wait. Preserve the maximum-wait deadline when an input is committed; add up to one second of random jitter to exponential retries, capped at five minutes.
+- Verify cash, money-in/out changes and transaction exclusions batch into one upload, while cosmetic changes do not upload. Keep one current Drive file, bounded previous versions, one request at a time and fresh revision checks.
+- Validation: 110 JavaScript regression runs plus syntax/link checks; a delayed mock upload showed motion only during the write and one successful write after completion.
+
 ## 2026-10-28 — Keep Drive settings focused on syncing
 
 - Remove the mixed device/Drive previous-plan list and recovery action from Google Drive settings. Keep internal safety copies and conflict reconciliation unchanged; downloaded backup/import actions remain in Data.
