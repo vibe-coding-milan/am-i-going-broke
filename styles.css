@@ -549,6 +549,10 @@ h1 {
 #data-dialog-confirm {
   grid-column: 2;
 }
+.data-dialog.is-notice .data-dialog-icon,
+.data-dialog.is-notice .data-dialog-kicker { display: none; }
+.data-dialog.is-notice .data-dialog-card { grid-template-columns: minmax(0, 1fr); }
+.data-dialog.is-notice #data-dialog-confirm { grid-column: 1 / -1; }
 
 .data-dialog.is-danger .data-dialog-icon {
   border-color: var(--danger-line);
@@ -561,6 +565,58 @@ h1 {
   background: linear-gradient(135deg, var(--danger), var(--primary-deep));
   color: var(--on-accent);
   box-shadow: 0 0 18px var(--primary-glow);
+}
+
+/* Only the opt-in feature creates these elements; an empty feature flag changes no layout. */
+.sync-settings { width: min(520px, calc(100vw - 24px)); }
+.sync-settings-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+  overflow-wrap: anywhere;
+}
+.sync-settings-card h2, .sync-settings-card h3, .sync-settings-card p { margin: 0; }
+.sync-settings-card h2 { font-size: 1.2rem; }
+.sync-settings-card h3 { font-size: 1rem; margin-bottom: 8px; }
+.sync-settings-card p { font-size: .86rem; line-height: 1.5; color: var(--muted-strong); }
+.sync-settings-card details summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: .86rem; font-weight: 700; }
+.sync-settings-card details summary::after { content: "+"; margin-left: auto; padding-left: 12px; flex: 0 0 auto; }
+.sync-settings-card details[open] summary::after { content: "−"; }
+.sync-settings-card details p + p { margin-top: 12px; }
+.sync-settings-card details > .sync-settings-actions { margin-top: 12px; }
+.sync-settings-card .data-menu-note { grid-column: 1 / -1; overflow-wrap: anywhere; }
+.sync-settings-card a { color: var(--primary); text-underline-offset: 3px; }
+.sync-switch { display: flex; gap: 16px; align-items: center; justify-content: space-between; min-height: 44px; font-weight: 700; }
+.sync-switch input {
+  appearance: none; position: relative; flex: 0 0 48px; width: 48px; height: 28px; min-height: 28px;
+  padding: 0; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--line-strong); cursor: pointer;
+}
+.sync-switch input::before {
+  content: ""; position: absolute; width: 20px; height: 20px; top: 3px; left: 3px;
+  border-radius: 50%; background: var(--muted-strong);
+}
+.sync-switch input:checked { background: var(--primary); }
+.sync-switch input:checked::before { transform: translateX(20px); background: var(--on-accent); }
+.sync-switch input:disabled { cursor: default; opacity: .5; }
+.sync-settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sync-settings-actions .button { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; text-align: center; text-decoration: none; }
+#sync-conflict { padding: 12px; border: 1px solid var(--warning-line); border-radius: var(--radius-md); }
+#sync-conflict p { margin-bottom: 10px; }
+.sync-indicator {
+  width: 210px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: transparent; color: var(--muted-strong); font: inherit; font-size: .72rem; line-height: 1.4; cursor: pointer;
+}
+.sync-indicator span { display: block; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .sync-settings-card { padding: 16px; }
+  .sync-settings-actions { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .sync-indicator { display: block; width: 100%; margin: 0 0 10px; text-align: left; }
 }
 
 .theme-switcher {
@@ -2534,7 +2590,7 @@ button:disabled { opacity: .45; cursor: default; }
   .data-menu summary { min-height: 44px; padding: 4px 10px; }
   .data-menu-panel { position: absolute; right: 0; left: auto; width: min(330px, calc(100vw - 20px)); max-height: calc(100vh - 80px); max-height: calc(100dvh - 80px); max-height: calc(100svh - 80px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
   .mobile-section-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; position: sticky; top: 0; z-index: 15; margin: 0 -10px 12px; padding: 6px 10px; background: var(--bg); border-bottom: 1px solid var(--line); }
-  .mobile-section-nav a { display: grid; place-items: center; min-height: 44px; color: var(--text); font-size: .82rem; font-weight: 700; text-decoration: none; border-radius: 8px; background: var(--surface); }
+  .mobile-section-nav a { display: grid; place-items: center; min-width: 0; min-height: 44px; overflow-wrap: anywhere; text-align: center; color: var(--text); font-size: .82rem; font-weight: 700; text-decoration: none; border-radius: 8px; background: var(--surface); }
   .mobile-section-nav a:focus-visible { outline: 3px solid var(--focus-ring); }
   .forecast-dashboard { display: flex; flex-direction: column; gap: 12px; padding: 12px; box-shadow: var(--shadow-soft); }
   .forecast-dashboard-header { display: contents; }
@@ -2823,7 +2879,7 @@ button:disabled { opacity: .45; cursor: default; }
 .chart-controls .chart-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 52px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--input-bg); color: var(--muted-strong); }
 .chart-controls .chart-toggle { position: relative; cursor: pointer; }
 .chart-controls .chart-toggle input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; cursor: pointer; }
-.chart-controls .chart-toggle span, .chart-controls .chart-toggle input:checked + span { display: inline; width: auto; min-height: 0; margin: 0; padding: 0; background: none; box-shadow: none; color: inherit; font: inherit; }
+.chart-controls .chart-toggle span, .chart-controls .chart-toggle input:checked + span { display: inline; width: auto; min-width: 0; min-height: 0; margin: 0; padding: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; background: none; box-shadow: none; color: inherit; font: inherit; }
 .chart-controls .chart-toggle:has(input:checked) { border-color: var(--primary-line); background: var(--primary-soft); color: var(--text); }
 .chart-controls .chart-toggle:hover { border-color: var(--primary); }
 .chart-controls .chart-toggle:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; }

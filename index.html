@@ -5,6 +5,8 @@
     <link rel="canonical" href="https://amigoingbroke.me/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-drive-client-id" content="119325536402-nv5ftckk3mgr9243t0ho1bpmrfvd46tq.apps.googleusercontent.com" />
+    <!-- Empty until the private sync service and acceptance checks are complete. -->
+    <meta name="google-drive-sync-endpoint" content="" />
     <title>amigoingbroke.me</title>
     <script>
       (function () {
@@ -40,7 +42,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=dialog-layout-20261028-r2" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-drive-sync-preview-r1" />
     <link rel="stylesheet" href="./styles/projection-answer.css?v=usability-20261018-r2" />
   </head>
   <body>
@@ -65,16 +67,16 @@
         </section>
         <div class="topbar-utilities" aria-label="App utilities">
           <details class="data-menu">
-            <summary aria-label="Open data and backup menu">
+            <summary aria-label="Open data menu">
               <span aria-hidden="true">⇅</span>
               <span>Data</span>
             </summary>
             <div class="data-menu-panel">
               <div class="data-menu-section" role="group" aria-label="Export and import plan">
-                <button type="button" id="export-data" class="data-menu-action">Export to file</button>
-                <button type="button" id="import-data" class="data-menu-action">Import from file…</button>
-                <button type="button" id="save-drive" class="data-menu-action">Export to Google Drive</button>
-                <button type="button" id="restore-drive" class="data-menu-action">Import from Google Drive…</button>
+                <button type="button" id="export-data" class="data-menu-action">Download a backup</button>
+                <button type="button" id="import-data" class="data-menu-action">Import a backup…</button>
+                <button type="button" id="save-drive" class="data-menu-action">Back up to Google Drive</button>
+                <button type="button" id="restore-drive" class="data-menu-action">Restore a Drive backup…</button>
                 <span id="drive-backup-status" class="data-menu-note is-hidden"></span>
               </div>
               <div class="data-menu-section data-menu-section-danger">
@@ -311,6 +313,8 @@
     <script src="./projectionHealth.js?v=usability-20261018-r2"></script>
     <script src="./content/projectionAnswerCopy.js?v=usability-20261018-r2"></script>
     <script src="./components/projectionAnswer.js?v=usability-20261018-r2"></script>
-    <script src="./app.js?v=appearance-20261028"></script>
+    <script src="./driveSync.js?v=20261028-drive-sync-preview-r1"></script>
+    <script src="./driveSyncUI.js?v=20261028-drive-sync-preview-r1"></script>
+    <script src="./app.js?v=20261028-drive-sync-preview-r1"></script>
   </body>
 </html>

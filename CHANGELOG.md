@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-28 — Prepare production-URL sync preview and simplify error dialogs
+
+- Add an explicit `?drive-sync=preview` entry on the production origin, retaining it through the fixed OAuth callback. Ordinary visitors retain manual Drive controls until general activation.
+- Replace alarming generic error dialogs with concise titles, plain guidance, and one OK action. Cancelled/blocked Google sign-in, missing backups, expired permission, failed downloads, and invalid imports get specific messages; raw Google errors stay out of app dialogs. Destructive confirmations retain their warnings.
+- Validation: 116 JavaScript regression runs; final PHP lint and 49 isolated service assertions; cancellation dialogs checked at desktop/tablet/phone/landscape widths without overflow.
+- Publication/deployment/configuration status: [production preview release record](docs/DRIVE_SYNC_RELEASE.md). Real Google OAuth configuration and cross-device owner acceptance remain separate gates; see [#40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40).
+
+## 2026-10-28 — Build optional automatic Drive sync behind an inactive flag
+
+- Add account-bound debounced syncing, durable per-tab pending state, conflict choices, offline/reconnect handling, and bounded recovery. Keep immediate local saving and manual downloads.
+- Present Google Drive sync as the primary connection in a four-action Data menu; keep manual Drive snapshots and recovery secondary. Add first-time, older-backup, returning-device, expired-session, and account-change guidance.
+- Check Drive on device/page return, including a trailing check after rapid returns. Expose both resolved conflict candidates through recovery.
+- Keep confirmation dialogs returning to their originating settings/menu, and wrap mobile navigation/chart labels under enlarged text without changing theme tokens.
+- Add a default-off optional interface with connected account, last successful sync, folder/recovery controls, and cross-device reset/restore warnings. Place mobile status below the header to preserve the existing layout.
+- Add a disabled-by-default PHP authorization/Drive service with encrypted credentials, PKCE/state/CSRF protections, account locks, version checks, one working file, timestamped manual snapshots, and legacy-backup discovery.
+- Prepare accurate privacy disclosures and guarded deployment inclusion. Details, test evidence, and activation gates: [Drive sync implementation](docs/DRIVE_SYNC.md).
+- Validation: 114 JavaScript regression runs; PHP lint and 49 isolated service assertions with simulated Google requests; enabled-preview and feature-off browser checks across desktop/tablet/phone/landscape layouts.
+- Local development only: not published, deployed, authorized with real Google credentials, or enabled for users. Public endpoint flag remains empty.
+
 ## 2026-10-28 — Keep dialog text inside its controls
 
 - Replace the compressed confirmation-button row with a two-column action grid and a full-width backup action. Wrap long labels and error text; constrain dialogs to the viewport and allow vertical scrolling.

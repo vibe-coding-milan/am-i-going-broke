@@ -174,9 +174,9 @@
     },
     errors: {
       cushionOrder: "Keep red lowest, yellow in the middle, and green highest.",
-      importInvalid: "We couldn't load that file. Choose a valid JSON export.",
+      importInvalid: "Choose a JSON backup downloaded from this app. Your current plan is unchanged.",
       driveNotConfigured:
-        "Google Drive backup needs a Google OAuth client ID before it can connect.",
+        "Drive isn't ready to connect yet. Your plan still saves on this device.",
     },
     confirms: {
       reset: {
@@ -287,6 +287,9 @@
       );
       var message = document.querySelector("#save-error");
       if (message) message.classList.add("is-hidden");
+      if (typeof window.dispatchEvent === "function" && typeof window.CustomEvent === "function") {
+        window.dispatchEvent(new window.CustomEvent("aigb:plan-saved"));
+      }
       return true;
     } catch (error) {
       var message = document.querySelector("#save-error");
@@ -308,10 +311,10 @@
             (rule.endDate && !isValidInputDate(rule.endDate)) ||
             (rule.scheduleDate && !isValidInputDate(rule.scheduleDate));
         })) {
-      throw new Error("This file is not a valid financial plan backup. Your current plan is unchanged.");
+      throw Object.assign(new Error("This file is not a valid financial plan backup. Your current plan is unchanged."), { code: "backup_invalid" });
     }
     if (parsed.version && Number(parsed.version) > STORAGE_VERSION) {
-      throw new Error("This backup was made by a newer app version. Your current plan is unchanged.");
+      throw Object.assign(new Error("This backup was made by a newer app version. Your current plan is unchanged."), { code: "backup_newer" });
     }
     return normalizeState(candidate);
   }
@@ -769,6 +772,7 @@
   var dataStatusTimeoutId = null;
   var googleTokenClient = null;
   var googleAccessToken = null;
+  var automaticDriveSync = null;
   var latestProjectionRows = [];
   var projectionAnswer = projectionAnswerElement && window.ProjectionAnswer
     ? window.ProjectionAnswer.create(projectionAnswerElement)
@@ -2031,6 +2035,9 @@
 
     dataActionStatus.textContent = message;
     dataActionStatus.classList.remove("is-hidden");
+    var manualStatus = document.querySelector("#sync-manual-status");
+    var manualPanel = document.querySelector("#sync-manual-backups");
+    if (manualStatus && manualPanel.open) manualStatus.textContent = message;
     if (!persistent) {
       dataStatusTimeoutId = window.setTimeout(function () {
         dataActionStatus.classList.add("is-hidden");
@@ -2047,11 +2054,16 @@
   function requestDataConfirmation(copy, options) {
     var settings = options || {};
     var returnFocus = settings.returnFocus || document.activeElement;
+    var syncSettings = document.querySelector(".sync-settings");
+    var returnToSync = syncSettings && syncSettings.open;
+    if (returnToSync) syncSettings.close();
 
     closeDataMenu();
 
     if (!dataDialog || typeof dataDialog.showModal !== "function") {
-      return Promise.resolve(window.confirm(copy.message));
+      var accepted = window.confirm(copy.message);
+      if (returnToSync) syncSettings.showModal();
+      return Promise.resolve(accepted);
     }
 
     dataDialogTitle.textContent = copy.title;
@@ -2061,12 +2073,17 @@
     document.querySelector("#data-dialog-backup").classList.toggle("is-hidden", settings.alertOnly === true);
     dataDialogConfirm.classList.toggle("danger-action", settings.danger === true);
     dataDialog.classList.toggle("is-danger", settings.danger === true);
+    dataDialog.classList.toggle("is-notice", settings.alertOnly === true);
     dataDialog.returnValue = "";
 
     return new Promise(function (resolve) {
       function handleClose() {
         dataDialog.removeEventListener("close", handleClose);
-        if (dataMenu) {
+        if (returnToSync) {
+          closeDataMenu();
+          if (!syncSettings.open) syncSettings.showModal();
+          if (returnFocus && syncSettings.contains(returnFocus) && !returnFocus.disabled) returnFocus.focus();
+        } else if (dataMenu) {
           dataMenu.setAttribute("open", "");
           var focusTarget = returnFocus && dataMenu.contains(returnFocus) && !returnFocus.disabled
             ? returnFocus : dataMenu.querySelector("summary");
@@ -2080,15 +2097,33 @@
     });
   }
 
-  function showDataIssue(message) {
+  function showDataIssue(message, title) {
     return requestDataConfirmation(
       {
-        title: "That didn't work",
+        title: title || "Couldn't complete that",
         message: message,
-        action: "Got it",
+        action: "OK",
       },
-      { alertOnly: true, danger: true },
+      { alertOnly: true },
     );
+  }
+
+  function driveIssueCopy(error, action) {
+    var code = error && (error.type || error.code || error.error);
+    if (code === "popup_closed" || code === "popup_closed_by_user" || code === "access_denied") {
+      return { title: "Connection cancelled", message: "Your plan is unchanged. Connect again whenever you're ready." };
+    }
+    if (code === "popup_failed_to_open") return { title: "Sign-in window blocked", message: "Allow pop-ups for this site, then try connecting again. Your plan is unchanged." };
+    if (code === "no_backup" || error && error.status === 404) return { title: "No Drive backup found", message: "This account has no available backup for this app. Check the account or save a new backup." };
+    if (code === "backup_invalid" || code === "backup_newer") return { title: "Couldn't open this backup", message: code === "backup_newer" ? "This backup needs a newer app version. Refresh the app and try again; your plan is unchanged." : UI_COPY.errors.importInvalid };
+    if (error && error.status === 429) return { title: "Drive needs a moment", message: "Try again shortly. Your plan on this device is unchanged." };
+    if (code === "auth" || error && (error.status === 401 || error.status === 403)) return { title: "Reconnect Google Drive", message: "Check the selected Google account and allow access to this app's files, then try again. Your local plan is unchanged." };
+    return { title: action === "restore" ? "Couldn't load the Drive backup" : "Couldn't save to Drive", message: "Your plan on this device is unchanged. Check your connection and try again." };
+  }
+  function showDriveIssue(error, action) {
+    var copy = driveIssueCopy(error, action);
+    showDataStatus(copy.message);
+    return showDataIssue(copy.message, copy.title);
   }
 
   function getLocalStorageValue(key) {
@@ -2199,7 +2234,7 @@
               resolve(response.access_token);
               return;
             }
-            reject(new Error("Google Drive access was not granted."));
+            reject(Object.assign(new Error("Google Drive access was not granted."), { code: response && response.error || "auth" }));
           };
           googleTokenClient.error_callback = reject;
           googleTokenClient.requestAccessToken({ prompt: prompt || "" });
@@ -2224,7 +2259,7 @@
       normalizedMessage.indexOf("has not been used in project") !== -1 ||
       normalizedMessage.indexOf("it is disabled") !== -1
     ) {
-      return "Enable the Google Drive API in the same Google Cloud project as this OAuth client ID, then try again.";
+      return "Drive isn't ready to connect yet. Your plan still saves on this device.";
     }
 
     if (
@@ -2241,11 +2276,7 @@
       return "Your Google Drive connection needs to be refreshed. Try the action again.";
     }
 
-    if (apiMessage) {
-      return "Google Drive request failed: " + apiMessage;
-    }
-
-    return "Google Drive request failed (HTTP " + status + ").";
+    return "Couldn't reach Drive. Your plan on this device is unchanged. Try again shortly.";
   }
 
   function driveRequest(url, options, hasRetriedAuthorization) {
@@ -2373,6 +2404,16 @@
   function saveBackupToDrive() {
     var savedAt;
 
+    if (automaticDriveSync && automaticDriveSync.usesService()) {
+      return automaticDriveSync.backup().then(function (result) {
+        setLocalStorageValue(DRIVE_BACKUP_AT_STORAGE_KEY, result.savedAt);
+        syncDriveStatus();
+        showDataStatus(UI_COPY.status.driveSaved);
+      }).catch(function (error) {
+        return showDriveIssue(error, "backup");
+      });
+    }
+
     return findDriveBackupFileId()
       .then(function (existingFileId) {
         if (existingFileId) {
@@ -2417,16 +2458,15 @@
         showDataStatus(UI_COPY.status.driveSaved);
       })
       .catch(function (error) {
-        showDataIssue(error.message || UI_COPY.status.driveFailed);
-        showDataStatus(UI_COPY.status.driveFailed);
+        return showDriveIssue(error, "backup");
       });
   }
 
   function restoreBackupFromDrive() {
-    return findDriveBackupFileId()
+    var backupSource = automaticDriveSync && automaticDriveSync.usesService() ? automaticDriveSync.restore() : findDriveBackupFileId()
       .then(function (fileId) {
         if (!fileId) {
-          throw new Error("No Google Drive backup was found for this app.");
+          throw Object.assign(new Error("No Google Drive backup was found for this app."), { code: "no_backup" });
         }
 
         return driveRequest(
@@ -2435,21 +2475,23 @@
       })
       .then(function (response) {
         return response.json();
-      })
-      .then(function (parsed) {
+      });
+    return backupSource.then(function (parsed) {
         var restoredState = readBackupState(parsed);
         return requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreDrive, restoredState, parsed.exportedAt)).then(function (confirmed) {
           if (!confirmed) {
             return;
           }
-          state = restoredState;
-          persistAndRender();
-          showDataStatus(UI_COPY.status.driveRestored);
+          return beforeSyncedReplacement("restore").then(function (allowed) {
+            if (!allowed) return;
+            state = restoredState;
+            persistAndRender();
+            showDataStatus(UI_COPY.status.driveRestored);
+          });
         });
       })
       .catch(function (error) {
-        showDataIssue(error.message || UI_COPY.status.driveFailed);
-        showDataStatus(UI_COPY.status.driveFailed);
+        return showDriveIssue(error, "restore");
       });
   }
 
@@ -2998,7 +3040,7 @@
       link.click();
       showDataStatus(UI_COPY.status.backupDownloaded + " File: " + filename + " (UTC timestamp).", true);
     } catch (error) {
-      showDataIssue("The download could not be started. Your plan is unchanged. Try again and check your browser’s download settings.");
+      showDataIssue("Try again, then check Downloads. Your plan is unchanged.", "Couldn't start the download");
     } finally {
       if (link) link.remove();
       // Keep the Blob alive while the browser takes ownership of the download.
@@ -3032,13 +3074,16 @@
         var restoredState = readBackupState(parsed);
         requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreFile, restoredState, parsed.exportedAt)).then(function (confirmed) {
           if (confirmed) {
-            state = restoredState;
-            persistAndRender();
-            showDataStatus(UI_COPY.status.importSuccess);
+            beforeSyncedReplacement("restore").then(function (allowed) {
+              if (!allowed) return;
+              state = restoredState;
+              persistAndRender();
+              showDataStatus(UI_COPY.status.importSuccess);
+            });
           }
         });
       } catch (error) {
-        showDataIssue(UI_COPY.errors.importInvalid);
+        showDataIssue(UI_COPY.errors.importInvalid, "Couldn't import this backup");
       }
       importFileInput.value = "";
     };
@@ -3050,9 +3095,12 @@
       if (!confirmed) {
         return;
       }
-      state = cloneDefaultState();
-      persistAndRender();
-      showDataStatus(UI_COPY.status.resetSuccess);
+      beforeSyncedReplacement("reset").then(function (allowed) {
+        if (!allowed) return;
+        state = cloneDefaultState();
+        persistAndRender();
+        showDataStatus(UI_COPY.status.resetSuccess);
+      });
     });
   });
 
@@ -3068,6 +3116,8 @@
       button.removeAttribute("aria-busy");
       controls.forEach(function (control) { control.disabled = false; });
       if (dataActionStatus.textContent === message) dataActionStatus.classList.add("is-hidden");
+      var manualStatus = document.querySelector("#sync-manual-status");
+      if (manualStatus && manualStatus.textContent === message) manualStatus.textContent = "";
     });
   }
 
@@ -3461,4 +3511,30 @@
   configureResponsiveUI();
   syncDriveStatus();
   persistAndRender();
+  function beforeSyncedReplacement(kind) {
+    return automaticDriveSync ? automaticDriveSync.beforeReplace(kind) : Promise.resolve(true);
+  }
+  // A missing/disabled optional service must not interrupt the forecasting application.
+  try {
+    if (window.DriveSyncUI) automaticDriveSync = window.DriveSyncUI.mount({
+      getPlan: function () { return state; },
+      resetManualAuth: function () {
+        googleAccessToken = null; googleTokenClient = null;
+        removeLocalStorageValue(DRIVE_FILE_ID_STORAGE_KEY);
+        removeLocalStorageValue(DRIVE_CONNECTED_STORAGE_KEY);
+      },
+      hasInvalidDraft: function () {
+        return Boolean(document.querySelector('#balance-error:not(.is-hidden), .rule-error:not(.is-hidden)'));
+      },
+      applyPlan: function (plan) {
+        var financial = window.DriveSync.planData(plan);
+        state = normalizeState(Object.assign({}, state, financial, { sampleScenario: "" }));
+        clearRemovalUndo();
+        persistAndRender();
+      },
+      confirm: function (copy) { return requestDataConfirmation(copy); },
+    });
+  } catch (error) {
+    automaticDriveSync = null;
+  }
 })();

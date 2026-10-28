@@ -313,6 +313,7 @@ test("busy Drive operations prevent duplicates and release controls on completio
     dataMenu: { getAttribute: key => attrs[key], setAttribute: (key, value) => { attrs[key] = value; }, removeAttribute: key => { delete attrs[key]; } },
     saveDriveButton: controls[0], restoreDriveButton: controls[1], importDataButton: controls[2], resetDataButton: controls[3],
     dataActionStatus: status, showDataStatus: message => { status.textContent = message; },
+    document: { querySelector: () => null },
   });
   let finish, calls = 0;
   const pending = ui.runDriveAction(() => { calls++; return new Promise(resolve => { finish = resolve; }); }, controls[0], "Saving…");
@@ -512,7 +513,7 @@ test("opening balance is not displayed as an incoming payment", () => {
 });
 
 test("local backup download keeps its URL alive, uses one UTC timestamp, and reports initiation accurately", () => {
-  let revoked = 0, clicked = 0, removed = 0, status = "", failure = "", filename, payloadAt;
+  let revoked = 0, clicked = 0, removed = 0, status = "", failure = "", failureTitle = "", filename, payloadAt;
   const timers = [];
   const fixedDate = new Date("2026-10-18T19:20:21.123Z");
   class ExportDate extends Date { constructor() { super(fixedDate); } }
@@ -523,7 +524,7 @@ test("local backup download keeps its URL alive, uses one UTC timestamp, and rep
     document: { createElement: () => ({ addEventListener() {}, click() { clicked++; }, remove() { removed++; } }), body: { appendChild() {} } },
     window: { URL: { createObjectURL: () => "blob:backup", revokeObjectURL: () => { revoked++; } }, setTimeout: (fn, delay) => timers.push({ fn, delay }) },
     UI_COPY: { status: { backupDownloaded: "Download requested. Check Downloads." } },
-    showDataStatus: message => { status = message; }, showDataIssue: message => { failure = message; },
+    showDataStatus: message => { status = message; }, showDataIssue: (message, title) => { failure = message; failureTitle = title; },
   });
   ui.downloadLocalBackup();
   assert.equal(clicked, 1); assert.equal(removed, 1); assert.equal(revoked, 0);
@@ -533,7 +534,24 @@ test("local backup download keeps its URL alive, uses one UTC timestamp, and rep
   assert.equal(timers[0].delay, 60000); timers[0].fn(); assert.equal(revoked, 1);
   ui.window.URL.createObjectURL = () => { throw new Error("blocked"); };
   ui.downloadLocalBackup();
-  assert.match(failure, /could not be started.*plan is unchanged/);
+  assert.match(failureTitle, /download/);
+  assert.match(failure, /check Downloads.*plan is unchanged/);
+});
+
+test("closed and blocked Google windows get calm actionable messages without provider internals", () => {
+  const ui = isolatedFunctions("  function driveIssueCopy(", "  function getLocalStorageValue(", {
+    UI_COPY: { errors: { importInvalid: 'Choose an app backup. Your plan is unchanged.' } },
+  });
+  const cancelled = ui.driveIssueCopy({ type: 'popup_closed', message: 'internal Google details' });
+  assert.equal(cancelled.title, 'Connection cancelled');
+  assert.match(cancelled.message, /plan is unchanged/);
+  assert.doesNotMatch(cancelled.message, /internal|popup_closed/);
+  assert.equal(ui.driveIssueCopy({ type: 'popup_failed_to_open' }).title, 'Sign-in window blocked');
+  assert.equal(ui.driveIssueCopy({ code: 'access_denied' }).title, 'Connection cancelled');
+  assert.equal(ui.driveIssueCopy({ code: 'no_backup' }, 'restore').title, 'No Drive backup found');
+  assert.equal(ui.driveIssueCopy({ status: 429 }).title, 'Drive needs a moment');
+  assert.equal(ui.driveIssueCopy({ status: 401 }).title, 'Reconnect Google Drive');
+  assert.equal(ui.driveIssueCopy(new Error('long raw upstream body'), 'restore').title, "Couldn't load the Drive backup");
 });
 
 

@@ -37,7 +37,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=dialog-layout-20261028-r2" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-drive-sync-preview-r1" />
   </head>
   <body>
     <main class="policy-shell">
@@ -50,7 +50,7 @@
         <p class="policy-updated">Effective and last updated: October 28, 2026</p>
       </header>
 
-      <details class="policy-toc"><summary>On this page</summary><nav aria-label="Page contents"><a href="#overview">Overview</a><a href="#information-you-provide">Information you provide</a><a href="#how-information-is-used">How information is used</a><a href="#not-financial-advice">Not financial advice</a><a href="#google-drive-access">Google Drive access</a><a href="#local-storage-and-retention">Local storage and retention</a><a href="#external-services">External services and backups</a><a href="#hosting-logs">Hosting logs</a><a href="#future-analytics">Future analytics</a><a href="#your-choices">Your choices</a><a href="#changes-to-this-policy">Changes to this policy</a><a href="#contact">Contact</a></nav></details>
+      <details class="policy-toc"><summary>On this page</summary><nav aria-label="Page contents"><a href="#overview">Overview</a><a href="#information-you-provide">Information you provide</a><a href="#how-information-is-used">How information is used</a><a href="#not-financial-advice">Not financial advice</a><a href="#google-drive-access">Google Drive access</a><a href="#automatic-sync">Automatic Drive sync</a><a href="#local-storage-and-retention">Local storage and retention</a><a href="#external-services">External services and backups</a><a href="#hosting-logs">Hosting logs</a><a href="#future-analytics">Future analytics</a><a href="#your-choices">Your choices</a><a href="#changes-to-this-policy">Changes to this policy</a><a href="#contact">Contact</a></nav></details>
       <article class="panel policy-page">
         <section id="overview">
           <h2>Overview</h2>
@@ -59,8 +59,9 @@
             independent developer, Milan Mijatovic, at <a href="https://amigoingbroke.me/">amigoingbroke.me</a>.
             This policy covers the website and its optional Google Drive backup feature.
             Your financial plan is stored locally in your browser by
-            default. The app does not currently operate a backend server, database, or backend API
-            that receives or stores your financial plan.
+            default. Manual backups transfer directly between your browser and Google Drive.
+            If you choose the optional automatic sync feature when available, the secure sync
+            service handles your plan during transfers as explained below.
           </p>
           <p>
             Am I Going Broke? is not a bank, lender, investment adviser, tax adviser, or financial
@@ -81,8 +82,9 @@
               connection status, backup file ID, and last backup time.
             </li>
             <li>
-              A short-lived Google access token when you choose to connect Google Drive. Access
-              tokens are kept in memory and are not stored in browser storage by the app.
+              For manual Drive backup, a short-lived Google access token held in page memory.
+              Automatic sync also uses the Google account identifier, verified email address,
+              and server-held Google credentials described below.
             </li>
           </ul>
           <p>
@@ -115,7 +117,7 @@
         <section id="google-drive-access">
           <h2>Google Drive access</h2>
           <p>
-            Connecting Google Drive is optional. Choosing “Export to Google Drive” or “Import from
+            Manual Google Drive backup is optional. Choosing “Export to Google Drive” or “Import from
             Google Drive…” in the Data menu starts Google authorization when needed. You choose
             your Google Account and grant access on Google's authorization screen. Each person's
             backups are saved in their own Drive. The app does not receive your Google password.
@@ -135,10 +137,11 @@
             downloads that file, checks its format, and asks for confirmation before replacing
             your local plan. It also uses backup file IDs and app-specific file metadata to find
             its backups. This Google user data is used only to provide the backup and restore
-            actions you request. Drive backup is manual, not continuous synchronization.
+            actions you request. These manual backups are separate from the optional automatic
+            sync working file described below.
           </p>
           <p>
-            <strong>Storage and sharing.</strong> Backup contents travel directly between your
+            <strong>Storage and sharing for manual browser authorization.</strong> Backup contents travel directly between your
             browser and Google Drive over HTTPS. Google stores the backup in your Drive under
             your account's controls and Google's policies. Restored financial data is saved in
             your browser. The app stores the backup file ID, last backup time, and a connection
@@ -148,8 +151,8 @@
             this does not revoke the permission you granted to Google.
           </p>
           <p>
-            The developer does not receive or retain your Drive backup contents or tokens on a
-            server, and the app does not automatically share your backup with the developer or
+            With manual browser authorization, the developer does not receive or retain your Drive
+            backup contents or tokens on a server. The app does not automatically share your backup with the developer or
             other users. Google receives the data necessary for authorization and the requested
             Drive transfers. The app does not sell Google user data or provide it to advertisers
             or data brokers, use it for credit or lending decisions, or use it to develop, improve,
@@ -163,6 +166,66 @@
               Google API Services User Data Policy
             </a>,
             including the Limited Use requirements.
+          </p>
+        </section>
+
+        <section id="automatic-sync">
+          <h2>Optional automatic Drive sync</h2>
+          <p>
+            Automatic sync is off by default and requires explicit setup when the feature is
+            available. Authorizing manual Drive backups does not enable it. Setup requests your
+            Google account identifier and verified email address to identify the connected account,
+            and limited <code>drive.file</code> access to manage app-created files. It also requests
+            offline access so the server can refresh the connection without repeatedly interrupting
+            you. Your Google password is never received by the app.
+          </p>
+          <p>
+            When enabled, your valid plan changes save in this browser and are sent to the sync
+            service after you pause editing. The service passes the plan to one working file,
+            <code>Current plan.json</code>, in an <code>Am I Going Broke?</code> Drive folder.
+            It also reads that file to bring newer changes from your connected devices into this
+            browser. Sample scenarios are excluded from automatic uploads. Separate manual Drive
+            exports through this connection create timestamped files in the folder's
+            <code>Backups</code> subfolder; legacy backups remain discoverable.
+          </p>
+          <p>
+            The website's hosting provider processes these HTTPS requests. The service temporarily
+            handles your plan in server memory during transfers; it does not maintain a server
+            database of financial plans. It stores encrypted Google access and refresh credentials,
+            your email address, the account identifier, Drive file/folder identifiers, and limited
+            operational metadata outside the publicly served website. The browser receives a secure,
+            HTTP-only session cookie rather than Google's refresh token. Google receives the plan
+            and metadata needed to provide Drive storage. This data is used only for the requested
+            sync, backup, restore, and account-connection functions; it is not sold or used for
+            advertising, credit decisions, or AI training.
+          </p>
+          <p>
+            Pending sync changes and recovery information are stored in browser storage, separately
+            for each connected account and tab. They create no downloaded files. The working Drive
+            file retains up to three previous synced versions; older internal recovery versions are
+            replaced as new changes are saved. A local recovery slot preserves the plan before a
+            confirmed reset or restore, and conflict recovery preserves both candidates. These
+            browser records remain until site storage is cleared. Manual backups are retained until
+            you delete them, independently of automatic recovery retention. Google's own file-version
+            and trash retention rules also apply.
+          </p>
+          <p>
+            Turning the toggle off stops automatic transfers on this device but keeps your local
+            plan, Drive files, and saved server connection. A transfer already accepted by the
+            service may finish. Choosing <strong>Disconnect all devices</strong> removes the server's
+            saved connection credentials and account record and pauses automatic sync for this
+            account on other devices. Browser session records expire after up to 30 days of
+            inactivity, subject to hosting cleanup. To revoke Google's authorization itself, use
+            your <a href="https://myaccount.google.com/connections" rel="noopener">Google Account connections</a>.
+            Delete Drive files, downloaded backups, and each device's site storage separately.
+          </p>
+          <p>
+            Restoring a backup or starting over while sync is on can replace the plan on connected
+            devices; the app asks you to confirm. If both local and Drive plans have changed,
+            it preserves both candidates for a choice. Changes not yet uploaded when a browser
+            closes remain local and require a later visit to sync. As with manual backups, the app
+            does not add password encryption to local plans or Drive files; protect your device,
+            Google Account, and sharing settings.
           </p>
         </section>
 
