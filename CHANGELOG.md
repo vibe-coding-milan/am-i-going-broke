@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — Fit sync status inside Data
+
+- Replace the separate header status control and mobile status row with a fixed-width symbol in the existing Data pill: check for synced, sync arrow for waiting, exclamation for attention. Keep full status and last sync time in Google Drive settings, with a tooltip and accessible status announcement.
+- Keep sync triggers, debounce timing, reconciliation and storage unchanged. Header controls fit desktop, tablet, phone and landscape widths without a separate status footprint.
+- Validation: existing 108 JavaScript regression runs pass; local mock checks at 1280, 768, 390, 320 and 568 pixels, including light and dark themes.
+
 ## 2026-10-28 — Unify Google Drive around automatic sync
 
 - Replace the browser-only connection and manual Drive transfer controls with one server-backed Connect action. Connecting enables automatic sync; local file download/import remain independent.
