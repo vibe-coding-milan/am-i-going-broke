@@ -40,7 +40,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=data-menu-20261028-r2" />
+    <link rel="stylesheet" href="./styles.css?v=appearance-20261028" />
     <link rel="stylesheet" href="./styles/projection-answer.css?v=usability-20261018-r2" />
   </head>
   <body>
@@ -83,18 +83,23 @@
               <p id="data-action-status" class="data-menu-status is-hidden" aria-live="polite"></p>
             </div>
           </details>
-          <div class="theme-switcher" aria-label="Theme">
-            <span class="mobile-theme-heading">Appearance <small id="resolved-theme-label"></small></span>
-            <button type="button" data-theme-choice="system" aria-pressed="true" aria-label="Use system theme" title="System theme">
-              <span aria-hidden="true">◐</span><span class="theme-choice-label">Device</span>
-            </button>
-            <button type="button" data-theme-choice="dark" aria-pressed="false" aria-label="Use dark theme" title="Dark theme">
-              <span aria-hidden="true">☾</span><span class="theme-choice-label">Dark</span>
-            </button>
-            <button type="button" data-theme-choice="light" aria-pressed="false" aria-label="Use light theme" title="Light theme">
-              <span aria-hidden="true">☼</span><span class="theme-choice-label">Light</span>
-            </button>
-          </div>
+          <details class="appearance-menu" open>
+            <summary aria-label="Appearance" title="Appearance">
+              <span aria-hidden="true">◐</span>
+              <svg aria-hidden="true" viewBox="0 0 12 12"><path d="m3 4.5 3 3 3-3" /></svg>
+            </summary>
+            <div class="theme-switcher" role="group" aria-label="Appearance">
+              <button type="button" data-theme-choice="system" aria-pressed="true" aria-label="Use system theme" title="System theme">
+                <span aria-hidden="true">◐</span><span class="theme-choice-label">Device</span>
+              </button>
+              <button type="button" data-theme-choice="dark" aria-pressed="false" aria-label="Use dark theme" title="Dark theme">
+                <span aria-hidden="true">☾</span><span class="theme-choice-label">Dark</span>
+              </button>
+              <button type="button" data-theme-choice="light" aria-pressed="false" aria-label="Use light theme" title="Light theme">
+                <span aria-hidden="true">☼</span><span class="theme-choice-label">Light</span>
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -306,6 +311,6 @@
     <script src="./projectionHealth.js?v=usability-20261018-r2"></script>
     <script src="./content/projectionAnswerCopy.js?v=usability-20261018-r2"></script>
     <script src="./components/projectionAnswer.js?v=usability-20261018-r2"></script>
-    <script src="./app.js?v=data-menu-20261028"></script>
+    <script src="./app.js?v=appearance-20261028"></script>
   </body>
 </html>

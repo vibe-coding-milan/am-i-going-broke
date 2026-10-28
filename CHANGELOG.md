@@ -1,11 +1,13 @@
 # Changelog
 
-## 2026-10-28 — Compact Data menu (source change; not deployed)
+## 2026-10-28 — Compact Data menu and separate Appearance controls
 
 - Use inline Export/Import labels for files and Google Drive; remove section headings, icons, and explanatory copy.
-- Use compact desktop rows and larger targets for narrow screens and touch-capable devices, preserving mobile Appearance controls.
-- Integrate mobile Appearance choices into the menu with one divider, plain text, and a subtle outlined selection instead of a boxed gradient control.
+- Use compact desktop rows and larger targets for narrow screens and touch-capable devices.
+- Keep Appearance separate from Data, using a wide pill-shaped group and a compact Appearance pill/dropdown on narrow screens. Preserve saved Device/Light/Dark preferences and keyboard dismissal.
 - Retain the last Drive backup time, operation feedback, restore previews, and the separate Start over confirmation.
+- Validation: syntax/link checks and 66 regression runs; browser checks across desktop, tablet, phone, and short-screen layouts in both themes, including theme persistence and keyboard dismissal.
+- Approved for publication; production deployment is recorded separately after verification.
 
 ## 2026-10-18 — Payment usability and local backup reliability
 
