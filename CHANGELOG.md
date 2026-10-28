@@ -5,7 +5,7 @@
 - Replace the compressed confirmation-button row with a two-column action grid and a full-width backup action. Wrap long labels and error text; constrain dialogs to the viewport and allow vertical scrolling.
 - Refresh shared stylesheet URLs across the app and policy pages.
 - Checked backup-update, reset, invalid-import, restore-preview, and simulated long-error dialogs across desktop, tablet, phone, and short landscape layouts; inspected both themes and enlarged text. Details and limitations: [Dialog review](docs/DIALOG_REVIEW.md).
-- Prepared locally; not yet published or deployed.
+- Published via [PR #39](https://github.com/vibe-coding-milan/am-i-going-broke/pull/39), release `bc3c902`, and deployed October 28, 2026. The four deployed files exactly match merged source. Live desktop and 320px phone reset-dialog checks passed, including cancellation/focus return. Owner/device acceptance remains in [issue #38](https://github.com/vibe-coding-milan/am-i-going-broke/issues/38).
 
 ## 2026-10-28 — Clarify privacy policy for Google Drive verification
 
