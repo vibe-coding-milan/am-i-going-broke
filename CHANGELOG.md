@@ -6,6 +6,7 @@
 - Collapse advanced controls under More options and remove redundant confirmation steps. Keep ordinary confirmations calm; reserve danger treatment for destructive actions. Preserve all system theme choices and responsive dialog sizing.
 - Replace the old manual overwrite path with separate timestamped snapshots. Block empty/example/unfinished saves, skip identical copies, recheck plans before replacing local data, and keep one local recovery slot. Older copies remain discoverable.
 - Let automatic setup discover a previous manual backup as a versioned baseline, preserving that file when a separate current sync file is created.
+- Published in [PR #42](https://github.com/vibe-coding-milan/am-i-going-broke/pull/42), release 54fa83f, and deployed with byte-matched live app files. Local recovery remains available after Google is disconnected; automatic-sync configuration remains pending.
 - Validation: 126 JavaScript regression runs and 57 isolated PHP assertions; browser tests covered returning/empty sessions, comparison/recovery, stale choices and responsive/enlarged text. No real Google files were changed during those tests. See [release record](docs/DRIVE_SYNC_RELEASE.md).
 
 ## 2026-10-28 — Publish production-URL sync preview and simplify error dialogs
