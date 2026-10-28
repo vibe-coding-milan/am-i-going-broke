@@ -118,6 +118,15 @@ try {
     check($migrated['plan']['startingBalance'] === 1100, 'First change creates a separate current sync plan');
     check($manual['data']['startingBalance'] === 1050, 'Migration retains the original manual backup unchanged');
     check($cloud['recovery'][0]['plan']['startingBalance'] === 1050, 'Original manual candidate enters current-plan recovery');
+    $cloud = null; $allocated = 0;
+    $vault->put('connect-account', ['refresh' => 'refresh', 'access' => 'access', 'expires' => time() + 600, 'email' => 'connect@example.test', 'folder' => 'folder']);
+    $connected = $service->setup('connect-account');
+    check($connected['folderUrl'] === 'https://drive.google.com/drive/folders/folder', 'Connect returns the app folder');
+    check($cloud['plan']['startingBalance'] === 1050, 'Connect places the existing cloud plan in a separate working file immediately');
+    check($manual['data']['startingBalance'] === 1050, 'Connecting retains the older backup');
+    $afterSetup = count($calls);
+    $service->setup('connect-account');
+    check(count(array_filter(array_slice($calls, $afterSetup), fn($call) => $call[0] !== 'GET')) === 0, 'Repeated connect creates no extra Drive writes');
     $manual = null;
     $cloud = null; $allocated = 0; $lost = true;
     $vault->put('new-account', ['refresh' => 'refresh-new', 'access' => 'access', 'expires' => time() + 600, 'email' => 'new@example.test', 'folder' => 'folder']);

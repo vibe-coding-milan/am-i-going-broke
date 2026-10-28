@@ -115,8 +115,6 @@ try {
     if ($method === 'POST' && $action === 'setup') { sync_body(); sync_reply($service->setup($subject)); }
     if ($method === 'GET' && $action === 'plan') sync_reply($service->read($subject));
     if ($method === 'POST' && $action === 'plan') sync_reply($service->write($subject, sync_body()));
-    if ($method === 'POST' && $action === 'backup') sync_reply($service->backup($subject, sync_body()));
-    if ($method === 'GET' && $action === 'backup') sync_reply($service->latestBackup($subject));
     if ($method === 'GET' && $action === 'recovery') sync_reply($service->recovery($subject));
     if ($method === 'POST' && $action === 'recreate') sync_reply($service->recreate($subject, sync_body()));
     if ($method === 'POST' && $action === 'disconnect') {

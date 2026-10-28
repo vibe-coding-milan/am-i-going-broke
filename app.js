@@ -101,11 +101,6 @@
 
   var STORAGE_KEY = "cash-flow-projector-state";
   var THEME_STORAGE_KEY = "cash-flow-projector-theme-preference";
-  var DRIVE_FILE_ID_STORAGE_KEY = "cash-flow-projector-drive-file-id";
-  var DRIVE_BACKUP_AT_STORAGE_KEY = "cash-flow-projector-last-drive-backup-at";
-  var DRIVE_CONNECTED_STORAGE_KEY = "cash-flow-projector-drive-connected";
-  var DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-  var driveConnection = null;
   var LEGACY_STORAGE_KEYS = [
     "cash-flow-projector-state-v3",
     "cash-flow-projector-state-v2",
@@ -154,10 +149,6 @@
       sampleLoaded: "Sample scenario loaded.",
       backupDownloaded: "Download requested. Check your browser’s Downloads for the JSON backup.",
       importSuccess: "Backup restored from file.",
-      driveConnected: "Google Drive connected.",
-      driveSaved: "Backup saved to Drive.",
-      driveRestored: "Backup restored from Drive.",
-      driveFailed: "Drive backup failed. Your browser data is unchanged.",
       resetSuccess: "Start over complete. Fresh plan ready.",
       addedMoneyIn: "Added money in.",
       addedMoneyOut: "Added money out.",
@@ -175,13 +166,12 @@
     errors: {
       cushionOrder: "Keep red lowest, yellow in the middle, and green highest.",
       importInvalid: "Choose a JSON backup downloaded from this app. Your current plan is unchanged.",
-      driveNotConfigured:
-        "Drive isn't ready to connect yet. Your plan still saves on this device.",
+
     },
     confirms: {
       reset: {
         title: "Start over?",
-        message: "This clears the plan saved on this device. Downloaded and Drive backups stay intact.",
+        message: "This clears the plan saved on this device. Downloaded backups and Drive files stay intact.",
         action: "Clear plan",
       },
       restoreFile: {
@@ -189,11 +179,7 @@
         message: "Your current plan on this device will be replaced with the selected backup.",
         action: "Restore",
       },
-      restoreDrive: {
-        title: "Restore from Drive?",
-        message: "Your current plan on this device will be replaced with your Drive backup.",
-        action: "Restore",
-      },
+
 
     },
   };
@@ -722,9 +708,6 @@
   var dataDialogMessage = document.querySelector("#data-dialog-message");
   var dataDialogCancel = document.querySelector("#data-dialog-cancel");
   var dataDialogConfirm = document.querySelector("#data-dialog-confirm");
-  var saveDriveButton = document.querySelector("#save-drive");
-  var restoreDriveButton = document.querySelector("#restore-drive");
-  var driveBackupStatus = document.querySelector("#drive-backup-status");
   var sampleScenarioButtons = document.querySelectorAll("[data-sample-scenario]");
   var importFileInput = document.querySelector("#import-file");
   var rulesPanelContent = document.querySelector("#rules-panel-content");
@@ -766,8 +749,6 @@
   var ruleInputTimeoutId = null;
   var resizeTimeoutId = null;
   var dataStatusTimeoutId = null;
-  var googleTokenClient = null;
-  var googleAccessToken = null;
   var automaticDriveSync = null;
   var latestProjectionRows = [];
   var projectionAnswer = projectionAnswerElement && window.ProjectionAnswer
@@ -2031,9 +2012,6 @@
 
     dataActionStatus.textContent = message;
     dataActionStatus.classList.remove("is-hidden");
-    var manualStatus = document.querySelector("#sync-manual-status, #drive-connection-note");
-    var manualPanel = document.querySelector("#sync-manual-backups, #drive-manual-copies");
-    if (manualStatus && manualPanel.open) manualStatus.textContent = message;
     if (!persistent) {
       dataStatusTimeoutId = window.setTimeout(function () {
         dataActionStatus.classList.add("is-hidden");
@@ -2103,342 +2081,6 @@
       },
       { alertOnly: true },
     );
-  }
-
-  function driveIssueCopy(error, action) {
-    var code = error && (error.type || error.code || error.error);
-    if (code === "popup_closed" || code === "popup_closed_by_user" || code === "access_denied") {
-      return { title: "Connection cancelled", message: "Your plan is unchanged. Connect again whenever you're ready." };
-    }
-    if (code === "popup_failed_to_open") return { title: "Sign-in window blocked", message: "Allow pop-ups for this site, then try connecting again. Your plan is unchanged." };
-    if (code === "storage") return { title: "Couldn't save a recovery copy", message: "Download a backup before replacing this device’s plan. Nothing has been replaced." };
-    if (code === "no_backup" || error && error.status === 404) return { title: "No Drive backup found", message: "This account has no available backup for this app. Check the account or save a new backup." };
-    if (code === "backup_invalid" || code === "backup_newer") return { title: "Couldn't open this backup", message: code === "backup_newer" ? "This backup needs a newer app version. Refresh the app and try again; your plan is unchanged." : UI_COPY.errors.importInvalid };
-    if (error && error.status === 429) return { title: "Drive needs a moment", message: "Try again shortly. Your plan on this device is unchanged." };
-    if (code === "auth" || error && (error.status === 401 || error.status === 403)) return { title: "Reconnect Google Drive", message: "Check the selected Google account and allow access to this app's files, then try again. Your local plan is unchanged." };
-    return { title: action === "restore" ? "Couldn't load the Drive backup" : "Couldn't save to Drive", message: "Your plan on this device is unchanged. Check your connection and try again." };
-  }
-  function showDriveIssue(error, action) {
-    var copy = driveIssueCopy(error, action);
-    showDataStatus(copy.message);
-    return showDataIssue(copy.message, copy.title);
-  }
-
-  function getLocalStorageValue(key) {
-    try {
-      return window.localStorage.getItem(key);
-    } catch (error) {
-      return null;
-    }
-  }
-
-  function setLocalStorageValue(key, value) {
-    try {
-      window.localStorage.setItem(key, value);
-    } catch (error) {
-      return;
-    }
-  }
-
-  function removeLocalStorageValue(key) {
-    try {
-      window.localStorage.removeItem(key);
-    } catch (error) {
-      return;
-    }
-  }
-
-  function syncDriveStatus() {
-    var backupAt = getLocalStorageValue(DRIVE_BACKUP_AT_STORAGE_KEY);
-    var formatted;
-
-    driveBackupStatus.classList.add("is-hidden");
-    if (!backupAt || Number.isNaN(Date.parse(backupAt))) return;
-
-    try {
-      formatted = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date(backupAt));
-      driveBackupStatus.textContent = "Last Drive backup: " + formatted;
-      driveBackupStatus.classList.remove("is-hidden");
-    } catch (error) {
-      driveBackupStatus.textContent = "";
-    }
-  }
-
-  function googleDriveClientId() {
-    var config = document.querySelector('meta[name="google-drive-client-id"]');
-    return config ? config.getAttribute("content").trim() : "";
-  }
-
-  function loadGoogleIdentityServices() {
-    return new Promise(function (resolve, reject) {
-      var existing = document.querySelector('script[data-google-identity-services]');
-      var script;
-
-      if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-        resolve();
-        return;
-      }
-
-      if (existing) {
-        existing.addEventListener("load", resolve, { once: true });
-        existing.addEventListener("error", reject, { once: true });
-        return;
-      }
-
-      script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.defer = true;
-      script.setAttribute("data-google-identity-services", "true");
-      script.addEventListener("load", resolve, { once: true });
-      script.addEventListener("error", reject, { once: true });
-      document.head.appendChild(script);
-    });
-  }
-
-  function requestDriveAccess(prompt) {
-    return new Promise(function (resolve, reject) {
-      var clientId = googleDriveClientId();
-
-      if (!clientId) {
-        reject(new Error(UI_COPY.errors.driveNotConfigured));
-        return;
-      }
-
-      loadGoogleIdentityServices()
-        .then(function () {
-          if (!googleTokenClient) {
-            googleTokenClient = window.google.accounts.oauth2.initTokenClient({
-              client_id: clientId,
-              scope: DRIVE_SCOPE,
-              callback: function () {},
-              error_callback: function (error) {
-                reject(error);
-              },
-            });
-          }
-
-          googleTokenClient.callback = function (response) {
-            if (response && response.access_token) {
-              googleAccessToken = response.access_token;
-              setLocalStorageValue(DRIVE_CONNECTED_STORAGE_KEY, "true");
-              syncDriveStatus();
-              resolve(response.access_token);
-              return;
-            }
-            reject(Object.assign(new Error("Google Drive access was not granted."), { code: response && response.error || "auth" }));
-          };
-          googleTokenClient.error_callback = reject;
-          googleTokenClient.requestAccessToken({ prompt: prompt || "" });
-        })
-        .catch(reject);
-    });
-  }
-
-  function ensureDriveAccess() {
-    return googleAccessToken ? Promise.resolve(googleAccessToken) : requestDriveAccess("select_account");
-  }
-
-  function driveErrorMessage(status, details) {
-    var apiError = details && details.error ? details.error : null;
-    var apiMessage = apiError && apiError.message ? apiError.message : "";
-    var reason =
-      apiError && apiError.errors && apiError.errors[0] ? apiError.errors[0].reason : "";
-    var normalizedMessage = apiMessage.toLowerCase();
-
-    if (
-      reason === "accessNotConfigured" ||
-      normalizedMessage.indexOf("has not been used in project") !== -1 ||
-      normalizedMessage.indexOf("it is disabled") !== -1
-    ) {
-      return "Drive isn't ready to connect yet. Your plan still saves on this device.";
-    }
-
-    if (
-      status === 403 &&
-      (reason === "insufficientPermissions" ||
-        normalizedMessage.indexOf("insufficient authentication scopes") !== -1)
-    ) {
-      return "Google Drive permission was not granted. Try the action again and allow file access.";
-    }
-
-    if (status === 401) {
-      googleAccessToken = null;
-      syncDriveStatus();
-      return "Your Google Drive connection needs to be refreshed. Try the action again.";
-    }
-
-    return "Couldn't reach Drive. Your plan on this device is unchanged. Try again shortly.";
-  }
-
-  function driveRequest(url, options, hasRetriedAuthorization) {
-    return ensureDriveAccess().then(function (accessToken) {
-      var requestOptions = options || {};
-      var headers = new Headers(requestOptions.headers || {});
-      headers.set("Authorization", "Bearer " + accessToken);
-      requestOptions.headers = headers;
-
-      return window.fetch(url, requestOptions).then(function (response) {
-        if (response.ok) {
-          return response;
-        }
-
-        if (response.status === 401 && !hasRetriedAuthorization) {
-          googleAccessToken = null;
-          syncDriveStatus();
-          return driveRequest(url, options, true);
-        }
-
-        return response
-          .clone()
-          .json()
-          .catch(function () {
-            return null;
-          })
-          .then(function (details) {
-            var apiError = details && details.error;
-            if (response.status === 403 && apiError &&
-                ((apiError.errors || []).some(function (item) { return item.reason === "insufficientPermissions"; }) ||
-                 String(apiError.message || "").toLowerCase().indexOf("insufficient authentication scopes") !== -1)) {
-              googleAccessToken = null;
-            }
-            var error = new Error(driveErrorMessage(response.status, details));
-            error.status = response.status;
-            error.details = details;
-            throw error;
-          });
-      });
-    });
-  }
-
-  function createDriveBackup(payload) {
-    var boundary = "am-i-going-broke-backup";
-    var exportedAt = JSON.parse(payload).exportedAt;
-    var metadata = JSON.stringify({
-      name: "am-i-going-broke-backup-" + new Date(exportedAt).toISOString().replace(/:/g, "-") + ".json",
-      mimeType: "application/json",
-      appProperties: { app: "am-i-going-broke", purpose: "manual-backup" },
-    });
-    var body =
-      "--" +
-      boundary +
-      "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
-      metadata +
-      "\r\n--" +
-      boundary +
-      "\r\nContent-Type: application/json\r\n\r\n" +
-      payload +
-      "\r\n--" +
-      boundary +
-      "--";
-
-    return driveRequest(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
-      {
-        method: "POST",
-        headers: { "Content-Type": "multipart/related; boundary=" + boundary },
-        body: body,
-      },
-    ).then(function (response) {
-      return response.json();
-    });
-  }
-
-  async function readDriveConnection(selectedId) {
-    // Discover afresh in the account authorized for this session; cached IDs are not identity.
-    var copies = [], page = "";
-    do {
-      var query = "trashed = false and appProperties has { key='app' and value='am-i-going-broke' } and (appProperties has { key='purpose' and value='manual-backup' } or appProperties has { key='purpose' and value='sync-current' })";
-      var url = "https://www.googleapis.com/drive/v3/files?" + new URLSearchParams({ q: query,
-        pageSize: "100", orderBy: "modifiedTime desc", fields: "nextPageToken,files(id,name,modifiedTime,appProperties)",
-        spaces: "drive", pageToken: page });
-      var response = await driveRequest(url);
-      var result = await response.json();
-      if (!Array.isArray(result.files)) throw Object.assign(new Error("Invalid listing"), { code: "remote" });
-      copies = copies.concat(result.files.map(function (file) {
-        return { id: file.id, name: file.name, modifiedTime: file.modifiedTime,
-          kind: file.appProperties && file.appProperties.purpose === "sync-current" ? "current" : "copy" };
-      }));
-      page = result.nextPageToken || "";
-      if (page && copies.length >= 500) throw Object.assign(new Error("Too many saved plans to review safely"), { code: "remote" });
-    } while (page);
-    var selected = selectedId ? copies.find(function (file) { return file.id === selectedId; }) :
-      copies.find(function (file) { return file.kind === "current"; }) || copies[0];
-    if (!selected) {
-      if (selectedId) throw Object.assign(new Error("Drive copy no longer available"), { status: 404 });
-      return { plan: null, copies: copies };
-    }
-    if (!/^[A-Za-z0-9_-]+$/.test(selected.id)) throw Object.assign(new Error("Invalid file"), { code: "remote" });
-    var content = await driveRequest("https://www.googleapis.com/drive/v3/files/" + selected.id + "?alt=media");
-    var text = await content.text();
-    if (text.length > 220000) throw Object.assign(new Error("Backup too large"), { code: "backup_invalid" });
-    var parsed = JSON.parse(text);
-    var restored = readBackupState(parsed.format === 1 && parsed.plan ? { version: 3, data: parsed.plan } : parsed);
-    if (!window.DriveSync.validPlan(restored)) throw Object.assign(new Error("Invalid plan"), { code: "backup_invalid" });
-    return Object.assign({}, selected, { plan: restored, savedAt: parsed.savedAt || selected.modifiedTime || parsed.exportedAt, copies: copies });
-  }
-
-  function hasDriveDraft() {
-    return Boolean(document.querySelector('#balance-error:not(.is-hidden), .rule-error:not(.is-hidden)')) ||
-      Boolean(document.activeElement && document.activeElement.matches("#starting-balance, [data-field]"));
-  }
-
-  async function saveBackupToDrive() {
-    if (!window.DriveConnection || !window.DriveSync) return showDataIssue("Refresh the page and try again. Your plan is unchanged.", "Drive couldn't load");
-    // A fresh/fictional session must never create or replace a user's financial backup.
-    if (!window.DriveConnection || window.DriveConnection.empty(state) || state.sampleScenario || hasDriveDraft() || !window.DriveSync.validPlan(state)) {
-      return showDataIssue("Add your own balance and complete the payment details first. Connect Google Drive to check for an existing plan.", "Nothing to back up yet");
-    }
-    try {
-      var localKey = window.DriveSync.fingerprint(state);
-      if (automaticDriveSync && automaticDriveSync.usesService()) {
-        var snapshot = await automaticDriveSync.backup();
-        setLocalStorageValue(DRIVE_BACKUP_AT_STORAGE_KEY, snapshot.savedAt);
-        syncDriveStatus(); showDataStatus("A separate copy was saved to Drive. Existing files are unchanged."); return;
-      }
-      var remote = await readDriveConnection();
-      if (remote.plan && window.DriveSync.fingerprint(remote.plan) === localKey) {
-        showDataStatus("Drive already has this plan. No new copy was needed.", true); return;
-      }
-      if (remote.plan) {
-        var accepted = await requestDataConfirmation({ title: "Save a separate Drive copy?", action: "Save copy",
-          message: "Drive already has a plan saved " + window.DriveConnection.date(remote.savedAt) + ". " + window.DriveConnection.describe(remote.plan) + ". It will be kept. Your current plan will be saved as a new dated copy." });
-        if (!accepted) return;
-      }
-      if (localKey !== window.DriveSync.fingerprint(state) || state.sampleScenario || hasDriveDraft()) {
-        return showDataIssue("Your plan changed while you were reviewing. Review it again before saving.", "Plan updated");
-      }
-      var at = new Date();
-      await createDriveBackup(backupPayload(at));
-      setLocalStorageValue(DRIVE_BACKUP_AT_STORAGE_KEY, at.toISOString());
-      syncDriveStatus(); showDataStatus("A separate copy was saved to Drive. Existing files are unchanged.", true);
-      if (driveConnection) await driveConnection.refresh();
-    } catch (error) { return showDriveIssue(error, "backup"); }
-  }
-
-  function restoreBackupFromDrive() {
-    if (driveConnection) return driveConnection.open();
-    var backupSource = automaticDriveSync && automaticDriveSync.usesService() ? automaticDriveSync.restore() :
-      readDriveConnection().then(function (remote) {
-        if (!remote.plan) throw Object.assign(new Error("No available plan"), { code: "no_backup" });
-        return { version: 3, data: remote.plan, exportedAt: remote.savedAt };
-      });
-    return backupSource.then(function (parsed) {
-      var restoredState = readBackupState(parsed);
-      return requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreDrive, restoredState, parsed.exportedAt)).then(function (confirmed) {
-        if (!confirmed) return;
-        return beforeSyncedReplacement("restore").then(function (allowed) {
-          if (!allowed) return;
-          state = restoredState; persistAndRender(); showDataStatus(UI_COPY.status.driveRestored);
-        });
-      });
-    }).catch(function (error) { return showDriveIssue(error, "restore"); });
   }
 
   function clearRemovalUndo() {
@@ -3050,29 +2692,6 @@
     });
   });
 
-  function runDriveAction(action, button, message) {
-    if (dataMenu.getAttribute("data-busy") === "true") return Promise.resolve();
-    var controls = [saveDriveButton, restoreDriveButton, importDataButton, resetDataButton];
-    dataMenu.setAttribute("data-busy", "true");
-    button.setAttribute("aria-busy", "true");
-    controls.forEach(function (control) { control.disabled = true; });
-    showDataStatus(message, true);
-    return Promise.resolve().then(action).finally(function () {
-      dataMenu.removeAttribute("data-busy");
-      button.removeAttribute("aria-busy");
-      controls.forEach(function (control) { control.disabled = false; });
-      if (dataActionStatus.textContent === message) dataActionStatus.classList.add("is-hidden");
-      var manualStatus = document.querySelector("#sync-manual-status, #drive-connection-note");
-      if (manualStatus && manualStatus.textContent === message) manualStatus.textContent = "";
-    });
-  }
-
-  saveDriveButton.addEventListener("click", function () {
-    runDriveAction(saveBackupToDrive, saveDriveButton, "Backing up to Drive…");
-  });
-  restoreDriveButton.addEventListener("click", function () {
-    runDriveAction(restoreBackupFromDrive, restoreDriveButton, "Loading Drive backup…");
-  });
   dataMenu.addEventListener("keydown", function (event) {
     if (event.key !== "Escape") return;
     event.preventDefault();
@@ -3455,7 +3074,6 @@
     if (!document.hidden) refreshDeviceTheme();
   });
   configureResponsiveUI();
-  syncDriveStatus();
   persistAndRender();
   function beforeSyncedReplacement(kind) {
     return automaticDriveSync ? automaticDriveSync.beforeReplace(kind) : Promise.resolve(true);
@@ -3464,11 +3082,6 @@
   try {
     if (window.DriveSyncUI) automaticDriveSync = window.DriveSyncUI.mount({
       getPlan: function () { return state; },
-      resetManualAuth: function () {
-        googleAccessToken = null; googleTokenClient = null;
-        removeLocalStorageValue(DRIVE_FILE_ID_STORAGE_KEY);
-        removeLocalStorageValue(DRIVE_CONNECTED_STORAGE_KEY);
-      },
       hasInvalidDraft: function () {
         return Boolean(document.querySelector('#balance-error:not(.is-hidden), .rule-error:not(.is-hidden)'));
       },
@@ -3482,26 +3095,5 @@
     });
   } catch (error) {
     automaticDriveSync = null;
-  }
-  if (!automaticDriveSync && window.DriveConnection && window.DriveSync) {
-    driveConnection = window.DriveConnection.mount({
-      getPlan: function () { return state; }, hasDraft: hasDriveDraft,
-      hasAccess: function () { return !!googleAccessToken; }, read: readDriveConnection,
-      errorCopy: driveIssueCopy, confirm: requestDataConfirmation,
-      apply: function (plan) {
-        state = normalizeState(Object.assign({}, state, window.DriveSync.planData(plan), { sampleScenario: plan.sampleScenario || "" }));
-        clearRemovalUndo(); persistAndRender();
-      },
-      preserve: function () {
-        // Store one recovery slot before replacement; a quota failure prevents replacement.
-        try { localStorage.setItem("aigb-drive-before-load", JSON.stringify({ plan: Object.assign(window.DriveSync.planData(state), { sampleScenario: state.sampleScenario || "" }), at: new Date().toISOString() })); }
-        catch (error) { throw Object.assign(new Error("Recovery unavailable"), { code: "storage" }); }
-      },
-      recovery: function () { try { return JSON.parse(localStorage.getItem("aigb-drive-before-load")); } catch (error) { return null; } },
-      disconnect: function () {
-        googleAccessToken = null; googleTokenClient = null;
-        removeLocalStorageValue(DRIVE_FILE_ID_STORAGE_KEY); removeLocalStorageValue(DRIVE_CONNECTED_STORAGE_KEY);
-      },
-    });
   }
 })();

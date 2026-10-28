@@ -266,67 +266,6 @@ function isolatedFunctions(from, to, globals) {
   return isolated;
 }
 
-test("Drive actions authorize on demand and retry expired access only once", async () => {
-  let authorizations = 0, fetches = 0;
-  const responses = [];
-  const drive = isolatedFunctions("  function ensureDriveAccess()", "  function createDriveBackup(", {
-    googleAccessToken: null, Headers,
-    requestDriveAccess: () => { drive.googleAccessToken = "token" + (++authorizations); return Promise.resolve(drive.googleAccessToken); },
-    syncDriveStatus() {},
-    window: { fetch: async (url, options) => { fetches++; assert.match(options.headers.get("Authorization"), /^Bearer token/); return responses.shift(); } },
-  });
-  const denied = { ok: false, status: 401, clone: () => ({ json: async () => ({}) }) };
-  responses.push(denied, { ok: true, status: 200 });
-  assert.equal((await drive.driveRequest("/backup")).status, 200);
-  assert.equal(authorizations, 2);
-  assert.equal(fetches, 2);
-  drive.googleAccessToken = null;
-  responses.push(denied, denied);
-  await assert.rejects(drive.driveRequest("/backup"), error => error.status === 401);
-  assert.equal(authorizations, 4);
-  assert.equal(fetches, 4);
-});
-
-test("Drive permission errors allow the next user retry to request authorization again", async () => {
-  let authorizations = 0;
-  const responses = [{ ok: false, status: 403, clone: () => ({ json: async () => ({
-    error: { errors: [{ reason: "insufficientPermissions" }] },
-  }) }) }, { ok: true, status: 200 }];
-  const drive = isolatedFunctions("  function ensureDriveAccess()", "  function createDriveBackup(", {
-    googleAccessToken: "old-token", Headers,
-    requestDriveAccess: () => { authorizations++; return Promise.resolve("fresh-token"); },
-    syncDriveStatus() {}, window: { fetch: async () => responses.shift() },
-  });
-  await assert.rejects(drive.driveRequest("/backup"), error => error.status === 403);
-  assert.equal(drive.googleAccessToken, null);
-  assert.equal(authorizations, 0);
-  assert.equal((await drive.driveRequest("/backup")).status, 200);
-  assert.equal(authorizations, 1);
-});
-
-test("busy Drive operations prevent duplicates and release controls on completion or failure", async () => {
-  const attrs = {};
-  const button = () => ({ disabled: false, setAttribute() {}, removeAttribute() {} });
-  const controls = [button(), button(), button(), button()];
-  const status = { textContent: "", classList: { add() {} } };
-  const ui = isolatedFunctions("  function runDriveAction(", "  saveDriveButton.addEventListener(", {
-    dataMenu: { getAttribute: key => attrs[key], setAttribute: (key, value) => { attrs[key] = value; }, removeAttribute: key => { delete attrs[key]; } },
-    saveDriveButton: controls[0], restoreDriveButton: controls[1], importDataButton: controls[2], resetDataButton: controls[3],
-    dataActionStatus: status, showDataStatus: message => { status.textContent = message; },
-    document: { querySelector: () => null },
-  });
-  let finish, calls = 0;
-  const pending = ui.runDriveAction(() => { calls++; return new Promise(resolve => { finish = resolve; }); }, controls[0], "Saving…");
-  await ui.runDriveAction(() => { calls++; }, controls[0], "Saving…");
-  assert.equal(calls, 1);
-  assert.ok(controls.every(control => control.disabled));
-  finish(); await pending;
-  assert.ok(controls.every(control => !control.disabled));
-  assert.equal(attrs["data-busy"], undefined);
-  await assert.rejects(ui.runDriveAction(() => Promise.reject(new Error("network")), controls[1], "Loading…"));
-  assert.ok(controls.every(control => !control.disabled));
-});
-
 test("compact forecast summary preserves low dates and specific risk warnings without duplicate metrics", () => {
   const summaryElement = { innerHTML: "" };
   let hasData = true;
@@ -536,22 +475,6 @@ test("local backup download keeps its URL alive, uses one UTC timestamp, and rep
   ui.downloadLocalBackup();
   assert.match(failureTitle, /download/);
   assert.match(failure, /check Downloads.*plan is unchanged/);
-});
-
-test("closed and blocked Google windows get calm actionable messages without provider internals", () => {
-  const ui = isolatedFunctions("  function driveIssueCopy(", "  function getLocalStorageValue(", {
-    UI_COPY: { errors: { importInvalid: 'Choose an app backup. Your plan is unchanged.' } },
-  });
-  const cancelled = ui.driveIssueCopy({ type: 'popup_closed', message: 'internal Google details' });
-  assert.equal(cancelled.title, 'Connection cancelled');
-  assert.match(cancelled.message, /plan is unchanged/);
-  assert.doesNotMatch(cancelled.message, /internal|popup_closed/);
-  assert.equal(ui.driveIssueCopy({ type: 'popup_failed_to_open' }).title, 'Sign-in window blocked');
-  assert.equal(ui.driveIssueCopy({ code: 'access_denied' }).title, 'Connection cancelled');
-  assert.equal(ui.driveIssueCopy({ code: 'no_backup' }, 'restore').title, 'No Drive backup found');
-  assert.equal(ui.driveIssueCopy({ status: 429 }).title, 'Drive needs a moment');
-  assert.equal(ui.driveIssueCopy({ status: 401 }).title, 'Reconnect Google Drive');
-  assert.equal(ui.driveIssueCopy(new Error('long raw upstream body'), 'restore').title, "Couldn't load the Drive backup");
 });
 
 

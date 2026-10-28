@@ -37,7 +37,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20261028-drive-connection-r2" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-unified-sync-r1" />
   </head>
   <body>
     <main class="policy-shell">
@@ -116,68 +116,38 @@
 
         <section id="google-drive-access">
           <h2>Google Drive access</h2>
-          <p>
-            Manual Google Drive backup is optional. Choosing “Export to Google Drive” or “Import from
-            Google Drive…” in the Data menu starts Google authorization when needed. You choose
-            your Google Account and grant access on Google's authorization screen. Each person's
-            backups are saved in their own Drive. The app does not receive your Google password.
-          </p>
-          <p>
-            <strong>Permission requested.</strong> The app requests only the
-            <code>https://www.googleapis.com/auth/drive.file</code> scope. This limits access to
-            files the app creates or files you explicitly make available to it. The current
-            backup feature searches for and reads or updates its own backup files; it does not
-            request access to your entire Drive, Gmail, contacts, calendar, or Google profile.
-          </p>
-          <p>
-            <strong>Data accessed and purpose.</strong> Connecting first reads app-owned Drive files
-            to find an existing plan, including older <code>am-i-going-broke-data.json</code> backups.
-            Connecting does not upload or replace a Drive file. Saving a copy creates a separate,
-            dated JSON file. It contains your financial plan,
-            including balances, payment names and amounts, income and expense schedules, dates,
-            projection settings, a backup format version, and the export time. The app checks a
-            saved plan's format before loading it. An empty session can pick up an existing plan;
-            different populated plans are shown for an explicit choice. One local recovery slot
-            preserves the device plan before replacement. The app uses file IDs, modification dates,
-            and app-specific file metadata to find
-            its backups. This Google user data is used only to provide the backup and restore
-            actions you request. These manual backups are separate from the optional automatic
-            sync working file described below.
-          </p>
-          <p>
-            <strong>Storage and sharing for manual browser authorization.</strong> Backup contents travel directly between your
-            browser and Google Drive over HTTPS. Google stores the backup in your Drive under
-            your account's controls and Google's policies. Restored financial data is saved in
-            your browser. The app stores the backup file ID, last backup time, and a connection
-            indicator locally. Google access tokens are held only in the page's memory, are sent
-            to Google to authorize Drive requests, and are not saved in browser storage or on the
-            website server. Reloading or closing the page clears the app's in-memory token;
-            this does not revoke the permission you granted to Google.
-          </p>
-          <p>
-            With manual browser authorization, the developer does not receive or retain your Drive
-            backup contents or tokens on a server. The app does not automatically share your backup with the developer or
-            other users. Google receives the data necessary for authorization and the requested
-            Drive transfers. The app does not sell Google user data or provide it to advertisers
-            or data brokers, use it for credit or lending decisions, or use it to develop, improve,
-            or train AI or machine-learning models. There is no routine developer review of
-            your financial plan or Drive files. If you choose to email information for support,
-            the developer receives what you send; please do not send financial backups or tokens.
-          </p>
-          <p>
-            The app's use and transfer of information received from Google APIs adheres to the
-            <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">
-              Google API Services User Data Policy
-            </a>,
-            including the Limited Use requirements.
-          </p>
+          <p>Google Drive is an optional sync connection. Choosing <strong>Connect Google Drive</strong>
+            starts Google authorization, lets you select an account, and enables automatic sync.
+            Google identifies the account and asks for permission; the app never receives your Google password.</p>
+          <p><strong>Permissions and purpose.</strong> The connection requests your Google account identifier,
+            verified email address, offline access, and the <code>https://www.googleapis.com/auth/drive.file</code>
+            scope. Drive access is limited to files the app creates or files you explicitly make available to it;
+            it does not request access to your entire Drive, Gmail, contacts, or calendar.</p>
+          <p>The app finds or creates an <code>Am I Going Broke?</code> folder and synchronizes one
+            <code>Current plan.json</code> file. An empty device can pick up an existing plan automatically.
+            Different existing plans are shown for a choice, with recovery copies retained. The plan includes
+            balances, payment names and amounts, schedules, dates, projection settings, and saved-time metadata.
+            An older app backup may be read and copied into the working file without overwriting the original.</p>
+          <p>Transfers pass through the website's server over HTTPS. Google connection credentials are stored
+            encrypted outside the public website; the browser uses a secure HTTP-only session cookie.
+            The details and retention limits are described below. Google receives the plan and metadata needed
+            for your storage requests. Financial plans are handled in server memory during transfers, rather
+            than kept in a server plan database.</p>
+          <p>Google user data is used only for account connection, synchronization, and recovery. It is not sold,
+            provided to advertisers or data brokers, used for credit or lending decisions, or used to develop,
+            improve, or train AI or machine-learning models. There is no routine developer review of plans.
+            If you email information for support, the developer receives what you send; do not send financial
+            backups, tokens, or client secrets.</p>
+          <p>The app's use and transfer of information received from Google APIs adheres to the
+            <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google API Services User Data Policy</a>,
+            including the Limited Use requirements.</p>
         </section>
 
         <section id="automatic-sync">
           <h2>Optional automatic Drive sync</h2>
           <p>
-            Automatic sync is off by default and requires explicit setup when the feature is
-            available. Authorizing manual Drive backups does not enable it. Setup requests your
+            Automatic sync is not enabled until you explicitly connect. Connecting enables it;
+            earlier manual-backup authorization does not enable it. Setup requests your
             Google account identifier and verified email address to identify the connected account,
             and limited <code>drive.file</code> access to manage app-created files. It also requests
             offline access so the server can refresh the connection without repeatedly interrupting
@@ -188,9 +158,9 @@
             service after you pause editing. The service passes the plan to one working file,
             <code>Current plan.json</code>, in an <code>Am I Going Broke?</code> Drive folder.
             It also reads that file to bring newer changes from your connected devices into this
-            browser. Sample scenarios are excluded from automatic uploads. Separate manual Drive
-            exports through this connection create timestamped files in the folder's
-            <code>Backups</code> subfolder; legacy backups remain discoverable.
+            browser. Sample scenarios are excluded from automatic uploads. Older app backups remain
+            discoverable for migration. File download and import stay independent of Google Drive;
+            there are no separate manual Drive export/import controls.
           </p>
           <p>
             The website's hosting provider processes these HTTPS requests. The service temporarily
@@ -216,7 +186,7 @@
           <p>
             Turning the toggle off stops automatic transfers on this device but keeps your local
             plan, Drive files, and saved server connection. A transfer already accepted by the
-            service may finish. Choosing <strong>Disconnect all devices</strong> removes the server's
+            service may finish. Choosing <strong>Disconnect Google Drive</strong> removes the server's
             saved connection credentials and account record and pauses automatic sync for this
             account on other devices. Browser session records expire after up to 30 days of
             inactivity, subject to hosting cleanup. To revoke Google's authorization itself, use
@@ -242,8 +212,7 @@
             plan. Downloaded backups remain wherever you save them until you delete them.
           </p>
           <p>
-            Drive backups remain in your Google Drive until you delete them. Manual saves create
-            separate dated copies rather than replacing existing backups; the app does not automatically expire
+            Drive backups remain in your Google Drive until you delete them. Existing older manual copies are retained; the app does not automatically expire
             old backups. Google's trash and file-history retention rules apply to copies held
             by Google. Deleting local data, revoking Google access, and deleting a Drive backup
             are separate actions; none automatically performs the others.
