@@ -6,6 +6,7 @@
 - Show the account, actual sync status, one pause/resume toggle and the Am I Going Broke? folder. Keep disconnect and contextual recovery secondary. Remove the misleading last-backup indicator.
 - During connection, copy a legacy cloud plan into a separate current sync file inside the app folder without modifying the original. Continue protecting empty devices and genuinely competing edits.
 - Retire the public manual Drive backup routes, old browser OAuth code and obsolete transfer tests. Update privacy disclosures for the single server-backed flow.
+- Published in [PR #44](https://github.com/vibe-coding-milan/am-i-going-broke/pull/44), release e07cbab, deployed and activated with private credentials outside the site. Real Google authorization, offline token renewal, folder/current-file metadata and saved-plan readability passed; the owner reported Up to date. No credentials or financial contents are in the release record.
 - Verification: 108 retained JavaScript regression runs, 61 isolated PHP assertions, and responsive mock connection/automatic-write checks. Private configuration is provisioned; actual authorization and refresh verification are recorded separately in the [release log](docs/DRIVE_SYNC_RELEASE.md).
 
 ## 2026-10-28 — Read Drive before saving and simplify plan choices
