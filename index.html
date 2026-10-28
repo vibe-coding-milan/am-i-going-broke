@@ -41,7 +41,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20261028-sync-motion-r1" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-checking-r1" />
     <link rel="stylesheet" href="./styles/projection-answer.css?v=usability-20261018-r2" />
   </head>
   <body>
@@ -128,7 +128,7 @@
       </nav>
       <p id="save-error" class="form-error is-hidden" role="alert">This browser could not save your changes. Download a backup from Data before closing this page.</p>
       <section id="forecast" class="panel forecast-dashboard" aria-label="Projection dashboard">
-        <div id="sample-banner" class="sample-banner is-hidden"><span id="sample-label"></span><button type="button" id="start-own-plan" class="button secondary">Start my own plan</button></div>
+        <div id="sample-banner" class="sample-banner is-hidden" aria-label="Example projection with fictional data"><span id="sample-label" aria-live="polite" aria-atomic="true"><span id="sample-kind">Fictional example</span><strong id="sample-title"></strong><span id="sample-story"></span></span><div class="sample-banner-actions"><button type="button" id="next-example" class="button secondary">Next example</button><button type="button" id="start-own-plan" class="button secondary">Start my own plan</button></div></div>
         <header class="forecast-dashboard-header">
           <div class="forecast-status-block">
             <div id="projection-summary" class="summary-grid"></div>
@@ -170,21 +170,10 @@
 
         <section class="chart-panel chart-panel-primary" aria-label="Projected cash balance chart">
           <div id="chart-empty-state" class="chart-empty-state is-hidden">
-            <h2>Preview an example projection</h2>
-            <p class="muted">These examples use fictional data. To create your own plan, enter Cash today and add payments below.</p>
-            <div class="empty-demo-actions" aria-label="Sample scenarios">
-              <button type="button" class="button secondary sample-button" data-sample-scenario="healthy">
-                Try: Income &amp; bills
-              </button>
-              <button type="button" class="button secondary sample-button" data-sample-scenario="tight">
-                Try: Small cushion
-              </button>
-              <button type="button" class="button secondary sample-button" data-sample-scenario="risk">
-                Try: Cash shortfall
-              </button>
-              <button type="button" class="button secondary sample-button" data-sample-scenario="random">
-                Try: Random example
-              </button>
+            <h2 id="empty-title">Preview an example projection</h2>
+            <p id="empty-description" class="muted">Try fake money first, or enter your cash and payments below.</p>
+            <div id="intro-actions" class="empty-demo-actions" aria-label="Get started">
+              <button type="button" class="button secondary sample-button" data-sample-scenario="risk">Try an example</button>
             </div>
           </div>
           <div class="chart-plot-wrap">
@@ -309,8 +298,8 @@
     <script src="./projectionHealth.js?v=usability-20261018-r2"></script>
     <script src="./content/projectionAnswerCopy.js?v=usability-20261018-r2"></script>
     <script src="./components/projectionAnswer.js?v=usability-20261018-r2"></script>
-    <script src="./driveSync.js?v=20261028-sync-motion-r1"></script>
-    <script src="./driveSyncUI.js?v=20261028-sync-motion-r1"></script>
-    <script src="./app.js?v=20261028-sync-motion-r1"></script>
+    <script src="./driveSync.js?v=20261028-checking-r1"></script>
+    <script src="./driveSyncUI.js?v=20261028-checking-r1"></script>
+    <script src="./app.js?v=20261028-checking-r1"></script>
   </body>
 </html>

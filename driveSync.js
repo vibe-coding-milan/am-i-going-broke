@@ -100,6 +100,7 @@
     var conflict = null;
     var status = "off";
     var pendingOperation = null;
+    var retrieveIntro = false;
     var stored = options.storage.load(accountId);
     if (stored && stored.accountId !== accountId) throw new Error("Account mismatch in saved sync state");
     var record = stored ? copy(stored) : {
@@ -135,23 +136,24 @@
       timer = null;
     }
 
-    function eligible() {
+    function eligible(forRead) {
       return !destroyed && record.enabled && authenticated && !paused && !editing &&
-        record.local && !record.sample && validate(record.local);
+        record.local && (!record.sample || (forRead && retrieveIntro)) &&
+        (forRead || !record.intro) && ((forRead && record.sample) || validate(record.local));
     }
 
     function dirty() { return record.local && fingerprint(record.local) !== record.base; }
 
     function schedule(wait) {
       cancelTimer();
-      if (!eligible()) {
+      if (!eligible(true)) {
         if (!destroyed) emit(!record.enabled ? "off" : (paused || (editing ? "editing" : (!authenticated ? "reconnect" :
           (record.sample ? "sample" : (record.local ? "invalid" : "local"))))));
         return;
       }
       if (!online) { emit("offline"); return; }
       if (inFlight) return;
-      emit(retryNotBefore > clock.now() ? "retrying" : (dirty() ? "pending" : "checking"));
+      emit(retryNotBefore > clock.now() ? "retrying" : (!record.sample && !record.intro && dirty() ? "pending" : "checking"));
       timer = clock.setTimeout(function () { timer = null; flush(); }, Math.max(0, wait, retryNotBefore - clock.now()));
     }
 
@@ -161,9 +163,16 @@
       try { local = copy(planData(plan)); }
       catch (error) { paused = "invalid"; cancelTimer(); emit("invalid"); return; }
       var sample = !!plan.sampleScenario;
-      if (record.local && stableJSON(local) === stableJSON(record.local) && sample === record.sample) return;
+      var intro = !plan.clearedPlan && (plan.planOrigin === "empty" ||
+        (plan.planOrigin === "personal" && plan.hasPersonalData === false));
+      var personal = !sample && plan.hasPersonalData === true;
+      if (record.local && stableJSON(local) === stableJSON(record.local) && sample === record.sample &&
+          intro === !!record.intro && personal === !!record.personal) return;
       record.local = local;
       record.sample = sample;
+      retrieveIntro = false;
+      record.intro = intro;
+      record.personal = personal;
       if (conflict) {
         conflict.local = copy(local);
         record.conflict = copy(conflict);
@@ -172,9 +181,15 @@
       if (paused === "invalid") paused = null;
       if (!persist()) { cancelTimer(); return; }
       cancelTimer();
-      if (sample || !validate(local)) {
+      if (!validate(local)) {
         firstEditAt = null;
-        emit(sample ? "sample" : "invalid");
+        emit("invalid");
+        return;
+      }
+      if (sample || intro) {
+        firstEditAt = null;
+        emit(sample ? "sample" : "local");
+        if (!sample && record.enabled && authenticated && !paused) schedule(0);
         return;
       }
       if (!record.enabled) { emit("off"); return; }
@@ -220,7 +235,26 @@
     async function cycle() {
       try {
         var remote = verifyRemote(await options.transport.read({ accountId: accountId }));
-        if (!eligible() || !online) return;
+        if (!eligible(true) || !online) return;
+        // Introductory state can retrieve a personal plan, but cannot publish.
+        if (record.sample || record.intro) {
+          if (remote.plan === null) { retrieveIntro = false; emit("noPlan"); return; }
+          record.local = copy(remote.plan);
+          record.base = fingerprint(remote.plan);
+          record.revision = remote.revision;
+          record.savedAt = remote.savedAt;
+          record.sample = false;
+          retrieveIntro = false;
+          record.intro = false;
+          record.personal = true;
+          firstEditAt = null;
+          pendingOperation = null;
+          if (persist()) {
+            if (options.onRemote) options.onRemote(copy(remote.plan));
+            emit("synced");
+          }
+          return;
+        }
         var localKey = fingerprint(record.local);
         var remoteKey = remote.plan === null ? null : fingerprint(remote.plan);
         if (localKey === remoteKey) {
@@ -241,7 +275,7 @@
           paused = "missing"; emit("missing"); return;
         }
         var firstConnection = record.base === null && record.revision === null;
-        if (remote.plan !== null && firstConnection && emptyPlan(record.local)) {
+        if (remote.plan !== null && firstConnection && emptyPlan(record.local) && !record.personal) {
           // An empty new browser must never erase an existing Drive plan.
           record.local = copy(remote.plan);
           record.base = remoteKey;
@@ -311,13 +345,13 @@
 
     function flush() {
       cancelTimer();
-      if (!eligible()) return Promise.resolve();
+      if (!eligible(true)) return Promise.resolve();
       if (!online) { emit("offline"); return Promise.resolve(); }
       if (inFlight) return inFlight;
       inFlight = cycle().finally(function () {
         inFlight = null;
         // A newer edit made during upload must be queued, never marked as the saved version.
-        if (eligible() && timer === null && (status === "retrying" || (dirty() && status === "pending"))) schedule(delay);
+        if (eligible(true) && timer === null && (status === "retrying" || (dirty() && status === "pending"))) schedule(delay);
       });
       return inFlight;
     }
@@ -394,6 +428,12 @@
           if (!dirty() && eligible()) emit("synced");
           else schedule(Math.min(delay, firstEditAt === null ? delay : Math.max(0, firstEditAt + maxWait - clock.now())));
         }
+      },
+      retrieve: function () {
+        // Explicitly opening Drive may retrieve from a sandbox; never enable writes.
+        retrieveIntro = true;
+        editing = false;
+        schedule(0);
       },
       check: function () {
         if (!record.enabled) return;

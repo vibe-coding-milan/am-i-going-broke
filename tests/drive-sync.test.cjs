@@ -357,10 +357,12 @@ test('closing during upload does not drop the durable pending plan', async () =>
   assert.equal(next.writes.length, 0); assert.equal(next.engine.snapshot().status, 'synced');
 });
 
-test('sample opt-in never uploads or falsely reports a working connection', async () => {
+test('connecting from an example retrieves the personal Drive plan without uploading the example', async () => {
   const h = harness({ record: null }); h.engine.setPlan({ ...plan(80), sampleScenario: 'test' });
-  h.engine.enable(true); await h.ready(); await h.time.tick(60000);
-  assert.equal(h.writes.length, 0); assert.equal(h.engine.snapshot().status, 'sample');
+  h.engine.enable(true); await h.ready(); h.engine.retrieve(); await h.time.tick(0); await h.time.tick(60000);
+  assert.equal(h.writes.length, 0); assert.equal(h.engine.snapshot().status, 'synced');
+  assert.equal(h.adopted.at(-1).startingBalance, 1000);
+  assert.equal(h.record().sample, false);
 });
 
 test('device focus events do not bypass the inactivity timer', async () => {
@@ -409,4 +411,63 @@ test('explicit replacement preserves local recovery and never blindly overwrites
   await h.engine.recreateRemote();
   assert.equal(h.writes.length, 0); assert.equal(h.engine.snapshot().status, 'conflict');
   assert.equal(h.record().recovery.local.startingBalance, 80);
+});
+
+test('edited examples stay local on resume, but explicit Drive retrieval replaces them without writes', async () => {
+  const h = harness({ record: null });
+  h.engine.setPlan({ ...plan(89000), sampleScenario: 'edited', planOrigin: 'example' });
+  h.engine.enable(true); await h.ready();
+  h.engine.check(); await h.time.tick(60000);
+  assert.equal(h.writes.length, 0); assert.equal(h.adopted.length, 0);
+  assert.equal(h.engine.snapshot().status, 'sample');
+  h.engine.retrieve(); await h.time.tick(0);
+  assert.equal(h.writes.length, 0); assert.equal(h.adopted.at(-1).startingBalance, 1000);
+});
+
+test('connecting an example to an account with no plan never creates a fictional file', async () => {
+  const h = harness({ record: null, remote: { accountId: 'account-a', revision: null, plan: null } });
+  h.engine.setPlan({ ...plan(8000), sampleScenario: 'fictional' });
+  h.engine.enable(true); await h.ready(); h.engine.retrieve(); await h.time.tick(60000);
+  assert.equal(h.engine.snapshot().status, 'noPlan');
+  assert.equal(h.writes.length, 0); assert.equal(h.adopted.length, 0);
+});
+
+test('introductory state and an untouched personal draft retrieve Drive without publishing defaults', async () => {
+  for (const origin of ['empty', 'personal']) {
+    const h = harness({ record: null });
+    h.engine.setPlan({ ...plan(0), planOrigin: origin, hasPersonalData: false });
+    h.engine.enable(true); await h.ready();
+    assert.equal(h.writes.length, 0); assert.equal(h.adopted.at(-1).startingBalance, 1000);
+  }
+});
+
+test('explicit personal zero dollars requires review against a different Drive plan', async () => {
+  const h = harness({ record: null });
+  h.engine.setPlan({ ...plan(0), planOrigin: 'personal', hasPersonalData: true });
+  h.engine.enable(true); await h.ready();
+  assert.equal(h.engine.snapshot().status, 'conflict');
+  assert.equal(h.writes.length, 0); assert.equal(h.adopted.length, 0);
+});
+
+test('a confirmed synced reset still clears the shared plan, and subsequent examples stay local', async () => {
+  const h = harness(); await h.ready();
+  h.engine.setPlan({ ...plan(0), planOrigin: 'empty', hasPersonalData: false, clearedPlan: true });
+  await h.time.tick(5000);
+  assert.equal(h.writes.length, 1); assert.equal(h.remote().plan.startingBalance, 0);
+  h.engine.setPlan({ ...plan(950), sampleScenario: 'Cash shortfall', planOrigin: 'example' });
+  h.engine.check(); await h.time.tick(60000);
+  assert.equal(h.writes.length, 1); assert.equal(h.adopted.length, 0);
+});
+
+test('an example edit during Drive retrieval cancels adoption without publishing either version', async () => {
+  let release;
+  const readGate = new Promise(resolve => { release = resolve; });
+  const h = harness({ record: null, transport: {
+    read: () => readGate, write: () => { throw new Error('Example must never upload'); },
+  } });
+  h.engine.setPlan({ ...plan(100), sampleScenario: 'fictional' });
+  h.engine.enable(true); await h.ready(); h.engine.retrieve(); await h.time.tick(0);
+  h.engine.setPlan({ ...plan(200), sampleScenario: 'edited fictional' });
+  release({ accountId: 'account-a', revision: 'r1', plan: plan(900) }); await settle();
+  assert.equal(h.adopted.length, 0); assert.equal(h.record().local.startingBalance, 200);
 });

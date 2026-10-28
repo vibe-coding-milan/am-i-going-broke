@@ -82,6 +82,9 @@
     startingBalance: 0,
     projectionDays: 30,
     sampleScenario: "",
+    planOrigin: "empty",
+    hasPersonalData: false,
+    clearedPlan: false,
     rulesCollapsed: false,
     ruleGroups: {
       moneyInOpen: true,
@@ -146,7 +149,6 @@
       refreshed: "Numbers rerun from today.",
       projectionWindowUpdated: "Forecast window updated.",
       cushionUpdated: "Cushion target updated.",
-      sampleLoaded: "Sample scenario loaded.",
       importSuccess: "Backup restored from file.",
       resetSuccess: "Start over complete. Fresh plan ready.",
       addedMoneyIn: "Added money in.",
@@ -195,6 +197,15 @@
       startingBalance: clampCashBalance(Number(next.startingBalance || 0)),
       projectionDays: Number(next.projectionDays || 30),
       sampleScenario: typeof next.sampleScenario === "string" ? next.sampleScenario : "",
+      sampleScenarioKey: typeof next.sampleScenarioKey === "string" ? next.sampleScenarioKey : "",
+      sampleStory: typeof next.sampleStory === "string" ? next.sampleStory : "",
+      // Legacy saved plans are conservatively personal, even at zero dollars.
+      planOrigin: next.sampleScenario ? "example" : ["empty", "personal"].indexOf(next.planOrigin) !== -1
+        ? next.planOrigin : Array.isArray(next.recurringRules) ? "personal" : "empty",
+      hasPersonalData: !next.sampleScenario && (next.hasPersonalData === true ||
+        (next.planOrigin === undefined && Array.isArray(next.recurringRules)) ||
+        Number(next.startingBalance || 0) !== 0 || (next.recurringRules || []).length > 0),
+      clearedPlan: next.clearedPlan === true,
       rulesCollapsed: Boolean(next.rulesCollapsed),
       ruleGroups: {
         moneyInOpen:
@@ -274,7 +285,12 @@
       return true;
     } catch (error) {
       var message = document.querySelector("#save-error");
-      if (message) message.classList.remove("is-hidden");
+      if (message) {
+        message.textContent = state.sampleScenario ? "This browser could not save your example changes."
+          : state.hasPersonalData ? "This browser could not save your changes. Download a backup from Data before closing this page."
+          : "This browser could not save your changes. Check browser storage before entering your plan.";
+        message.classList.remove("is-hidden");
+      }
       return false;
     }
   }
@@ -297,7 +313,13 @@
     if (parsed.version && Number(parsed.version) > STORAGE_VERSION) {
       throw Object.assign(new Error("This backup was made by a newer app version. Your current plan is unchanged."), { code: "backup_newer" });
     }
-    return normalizeState(candidate);
+    var restored = normalizeState(candidate);
+    if (!restored.sampleScenario) {
+      restored.planOrigin = "personal";
+      restored.hasPersonalData = true;
+      restored.clearedPlan = false;
+    }
+    return restored;
   }
 
   function backupRestoreCopy(copy, restoredState, exportedAt) {
@@ -306,7 +328,7 @@
       : "date unavailable";
     return Object.assign({}, copy, { message: restoredState.recurringRules.length + " payment rules; balance " +
       formatCurrency(restoredState.startingBalance) + " as of " + formatProjectionHealthDate(restoredState.lastRefreshDate) +
-      ". Backup saved: " + savedDate + ". This replaces your current plan. You can download it first." });
+      ". Backup saved: " + savedDate + ". This replaces your current plan." + (canDownloadPlan() ? " You can download it first." : "") });
   }
 
   function backupPayload(exportedAt) {
@@ -1163,8 +1185,12 @@
     };
   }
 
+  function canDownloadPlan() {
+    return !state.sampleScenario && state.hasPersonalData === true;
+  }
+
   function hasProjectionData() {
-    return Number(state.startingBalance || 0) !== 0 || state.recurringRules.length > 0;
+    return canDownloadPlan() || Number(state.startingBalance || 0) !== 0 || state.recurringRules.length > 0;
   }
 
   function renderSummary(rows) {
@@ -1855,6 +1881,12 @@
     document.querySelector("#transaction-count").textContent = Math.min(ledgerLimit, rows.length) + " of " + rows.length + " transactions shown";
     if (chartEmptyState) {
       chartEmptyState.classList.toggle("is-hidden", hasData);
+      var introductory = !state.hasPersonalData && !state.sampleScenario;
+      document.querySelector("#intro-actions").classList.toggle("is-hidden", !introductory);
+      document.querySelector("#empty-title").textContent = introductory ? "Preview an example projection" : "Start with the cash you have today";
+      document.querySelector("#empty-description").textContent = introductory
+        ? "Try fake money first, or enter your cash and payments below."
+        : "Enter Cash today and add your payments below.";
     }
     if (chartPanel) {
       chartPanel.classList.toggle("is-empty", !hasData);
@@ -1869,7 +1901,9 @@
     }
     var sampleBanner = document.querySelector("#sample-banner");
     sampleBanner.classList.toggle("is-hidden", !state.sampleScenario);
-    document.querySelector("#sample-label").textContent = state.sampleScenario ? "Example projection · fictional data: " + state.sampleScenario : "";
+    document.querySelector("#sample-title").textContent = state.sampleScenario || "";
+    document.querySelector("#sample-story").textContent = state.sampleStory || "";
+    exportDataButton.disabled = !canDownloadPlan();
     renderSummary(rows);
 
     for (i = 0; i < rows.length; i += 1) {
@@ -2043,7 +2077,7 @@
     dataDialogMessage.textContent = copy.message;
     dataDialogConfirm.textContent = copy.action;
     dataDialogCancel.classList.toggle("is-hidden", settings.alertOnly === true);
-    document.querySelector("#data-dialog-backup").classList.toggle("is-hidden", settings.alertOnly === true);
+    document.querySelector("#data-dialog-backup").classList.toggle("is-hidden", settings.alertOnly === true || !canDownloadPlan());
     dataDialogConfirm.classList.toggle("danger-action", settings.danger === true);
     dataDialog.classList.toggle("is-danger", settings.danger === true);
     dataDialog.classList.toggle("is-notice", settings.alertOnly === true);
@@ -2120,6 +2154,11 @@
   }
 
   function persistAndRender(statusMessage) {
+    if (!state.sampleScenario && (Number(state.startingBalance) !== 0 || state.recurringRules.length)) {
+      state.planOrigin = "personal";
+      state.hasPersonalData = true;
+      state.clearedPlan = false;
+    }
     var view = captureView();
     if (undoRemoval && undoRemoval.state !== state) clearRemovalUndo();
     saveState(state);
@@ -2132,9 +2171,9 @@
     else restoreView(view);
   }
 
-  function createSampleRule(rule) {
+  function createSampleRule(rule, index) {
     return {
-      id: makeId("sample"),
+      id: "sample-" + index,
       name: rule.name,
       direction: rule.direction,
       amount: rule.amount,
@@ -2171,220 +2210,128 @@
     });
   }
 
-  function randomMoney(min, max, step) {
-    var range = Math.floor((max - min) / step);
-    return min + Math.floor(Math.random() * (range + 1)) * step;
-  }
-
-  function buildRandomSampleScenario() {
-    var today = parseInputDate(todayInputValue());
-    var cushion = randomMoney(800, 1800, 100);
-    var paycheck = randomMoney(1350, 2600, 50);
-    var rent = randomMoney(1350, 2600, 50);
-    var oneTimeHit = randomMoney(450, 1600, 50);
-    var labels = ["Plot twist month", "Bills doing the most", "Comeback arc"];
-    var label = labels[Math.floor(Math.random() * labels.length)];
-
-    return {
-      label: label,
-      state: createSampleState({
-        startingBalance: randomMoney(900, 5200, 100),
-        projectionDays: [60, 90, 120, 180][Math.floor(Math.random() * 4)],
-        thresholds: {
-          red: cushion,
-          yellow: cushion + randomMoney(700, 1300, 100),
-          green: cushion + randomMoney(2600, 4200, 100),
-        },
-        rules: [
-          {
-            name: "Paycheck",
-            direction: "credit",
-            amount: paycheck,
-            scheduleType: "biweekly",
-            scheduleDate: todayInputValue(),
-          },
-          {
-            name: "Rent",
-            direction: "debit",
-            amount: rent,
-            variable: false,
-            scheduleType: "monthly",
-            dayOfMonth: 1,
-          },
-          {
-            name: "Groceries",
-            direction: "debit",
-            amount: randomMoney(120, 240, 10),
-            variable: true,
-            scheduleType: "weekly",
-            dayOfWeek: 5,
-          },
-          {
-            name: "Surprise expense",
-            direction: "debit",
-            amount: oneTimeHit,
-            variable: true,
-            scheduleType: "adhoc",
-            scheduleDate: dateInputValue(addDays(today, randomMoney(4, 24, 1))),
-          },
-        ],
-      }),
-    };
-  }
+  // Alternate pressure and progress; longer horizons reveal changes within a story.
+  var SAMPLE_SCENARIO_KEYS = ["risk", "growing", "layoff", "healthy", "emergency", "gigs", "tight", "debt"];
 
   function buildSampleScenario(key) {
     var today = parseInputDate(todayInputValue());
+    function startsIn(offset) { return dateInputValue(addDays(today, offset)); }
+    function monthly(name, amount, offset, direction, extra) {
+      return Object.assign({ name: name, amount: amount, direction: direction || "debit",
+        scheduleType: "monthly", dayOfMonth: addDays(today, offset).getDate(), startDate: startsIn(offset) }, extra || {});
+    }
+    function weekly(name, amount, offset, direction, extra) {
+      return Object.assign({ name: name, amount: amount, direction: direction || "debit",
+        scheduleType: "weekly", dayOfWeek: addDays(today, offset).getDay(), startDate: startsIn(offset) }, extra || {});
+    }
+    function biweekly(name, amount, offset, extra) {
+      return Object.assign({ name: name, amount: amount, direction: "credit", scheduleType: "biweekly",
+        scheduleDate: startsIn(offset) }, extra || {});
+    }
+    function once(name, amount, offset, direction) {
+      return { name: name, amount: amount, direction: direction || "debit", scheduleType: "adhoc", scheduleDate: startsIn(offset) };
+    }
+    // Fictional checking-account movements. Routine card purchases appear in the
+    // scheduled card payment, not again as itemized spending. Separate purchases
+    // and transfers below are direct cash movements outside those routine bills.
     var scenarios = {
+      risk: {
+        label: "Riley · Tips vs. rent",
+        story: "Riley’s tips arrive after rent. The landlord remains unimpressed.",
+        startingBalance: 950, projectionDays: 30,
+        thresholds: { red: 300, yellow: 750, green: 1500 },
+        rules: [weekly("Paycheck", 600, 7, "credit"), weekly("Tips deposit", 180, 7, "credit", { variable: true }),
+          monthly("Rent", 1450, 3), monthly("Capital One payment", 610, 12), monthly("Electric bill", 190, 15),
+          monthly("Car insurance", 120, 16), monthly("Childcare", 260, 18), once("Car repair", 450, 9)],
+      },
+      growing: {
+        label: "Nia · Cushion era",
+        story: "Nia got a raise and kept the same apartment. The cushion is getting comfortable.",
+        startingBalance: 4400, projectionDays: 180,
+        thresholds: { red: 1500, yellow: 3000, green: 6000 },
+        rules: [biweekly("Paycheck", 2200, 7), monthly("Rent", 1600, 3), monthly("Amex payment", 800, 12),
+          monthly("Electric bill", 180, 15), monthly("Student loan", 240, 19),
+          monthly("Help with Grandma’s rent", 300, 20), once("Handbag", 950, 46)],
+      },
+      layoff: {
+        label: "Jordan · After the layoff",
+        story: "Jordan’s severance and six months of benefits buy time. Rent keeps its calendar.",
+        startingBalance: 5200, projectionDays: 90,
+        thresholds: { red: 2000, yellow: 5000, green: 10000 },
+        rules: [once("Final paycheck", 1200, 5, "credit"), once("Severance payout", 6000, 12, "credit"),
+          weekly("Temporary unemployment benefits", 420, 7, "credit", { limitType: "count", instanceLimit: 26 }),
+          monthly("Rent", 1700, 3), monthly("Credit card payment", 600, 12), monthly("Electric bill", 160, 15),
+          monthly("Health insurance", 350, 16), monthly("Internet", 80, 18)],
+      },
       healthy: {
-        label: "Income and bills",
-        state: createSampleState({
-          startingBalance: 6800,
-          projectionDays: 90,
-          thresholds: {
-            red: 1000,
-            yellow: 2500,
-            green: 5000,
-          },
-          rules: [
-            {
-              name: "Paycheck",
-              direction: "credit",
-              amount: 3200,
-              scheduleType: "monthly",
-              dayOfMonth: 15,
-            },
-            {
-              name: "Rent",
-              direction: "debit",
-              amount: 1850,
-              variable: false,
-              scheduleType: "monthly",
-              dayOfMonth: 1,
-            },
-            {
-              name: "Utilities",
-              direction: "debit",
-              amount: 260,
-              variable: true,
-              scheduleType: "monthly",
-              dayOfMonth: 8,
-            },
-            {
-              name: "Groceries",
-              direction: "debit",
-              amount: 165,
-              variable: true,
-              scheduleType: "weekly",
-              dayOfWeek: 6,
-            },
-          ],
-        }),
+        label: "Taylor · Beautifully boring",
+        story: "Taylor’s paycheck covers the usual bills. Financial plot twists are taking the year off.",
+        startingBalance: 4400, projectionDays: 90,
+        thresholds: { red: 500, yellow: 1500, green: 2500 },
+        rules: [monthly("Paycheck", 2700, 7, "credit"), monthly("Jamie’s share of rent", 650, 2, "credit"),
+          monthly("Rent", 2050, 3), monthly("Visa payment", 1000, 10),
+          monthly("Electric bill", 180, 11), monthly("Car insurance", 100, 16)],
+      },
+      emergency: {
+        label: "Avery · The emergency buffer",
+        story: "A burst pipe means repairs, a hotel, and card payments. Avery’s cushion takes the hit.",
+        startingBalance: 9000, projectionDays: 90,
+        thresholds: { red: 1500, yellow: 3500, green: 8000 },
+        // Cash repair stages exclude the portion financed on the separate repair card.
+        rules: [biweekly("Paycheck", 1800, 7), monthly("Mortgage", 1700, 3), monthly("Visa payment", 650, 12),
+          monthly("Electric bill", 190, 15), monthly("Car insurance", 150, 16),
+          once("Emergency plumber", 1800, 5), once("Hotel during repairs", 900, 9),
+          once("Repair deposit", 2400, 13), once("Repair balance", 2400, 27),
+          monthly("Repair card payment", 350, 35, "debit", { limitType: "count", instanceLimit: 4 })],
+      },
+      gigs: {
+        label: "Alex · The contract cliff",
+        story: "Alex juggles a design contract and delivery shifts. Only one of those gigs has an end date.",
+        startingBalance: 3200, projectionDays: 60,
+        thresholds: { red: 750, yellow: 1800, green: 3500 },
+        rules: [biweekly("Design contract", 1400, 7, { limitType: "count", instanceLimit: 4 }),
+          weekly("Delivery payout", 180, 6, "credit", { variable: true }), monthly("Rent", 1450, 3),
+          monthly("Mastercard payment", 850, 10), monthly("Electric bill", 190, 15),
+          monthly("Car payment", 280, 14), monthly("Car insurance", 140, 16),
+          once("Cabin deposit", 1200, 14), once("Jamie’s vacation share", 600, 21, "credit")],
       },
       tight: {
-        label: "Small cushion",
-        state: createSampleState({
-          startingBalance: 2550,
-          projectionDays: 60,
-          thresholds: {
-            red: 900,
-            yellow: 1900,
-            green: 4300,
-          },
-          rules: [
-            {
-              name: "Paycheck",
-              direction: "credit",
-              amount: 2400,
-              scheduleType: "monthly",
-              dayOfMonth: 18,
-            },
-            {
-              name: "Rent",
-              direction: "debit",
-              amount: 2050,
-              variable: false,
-              scheduleType: "monthly",
-              dayOfMonth: 1,
-            },
-            {
-              name: "Credit card",
-              direction: "debit",
-              amount: 650,
-              variable: true,
-              scheduleType: "monthly",
-              dayOfMonth: 12,
-            },
-            {
-              name: "Groceries",
-              direction: "debit",
-              amount: 190,
-              variable: true,
-              scheduleType: "weekly",
-              dayOfWeek: 4,
-            },
-          ],
-        }),
+        label: "Casey · Class, shifts, repeat",
+        story: "Casey’s café shifts cover the basics. Next semester has entered the chat.",
+        startingBalance: 1800, projectionDays: 30,
+        thresholds: { red: 250, yellow: 600, green: 1200 },
+        rules: [weekly("Paycheck", 260, 7, "credit"), monthly("Rent", 750, 3), monthly("Discover payment", 300, 12),
+          monthly("Bus pass", 60, 8), once("Tuition installment", 2400, 75),
+          monthly("Aunt Jo’s rent help", 300, 18, "credit", { limitType: "date", endDate: startsIn(59) })],
       },
-      risk: {
-        label: "Cash shortfall",
-        state: createSampleState({
-          startingBalance: 950,
-          projectionDays: 60,
-          thresholds: {
-            red: 1000,
-            yellow: 2000,
-            green: 5000,
-          },
-          rules: [
-            {
-              name: "Paycheck",
-              direction: "credit",
-              amount: 2200,
-              scheduleType: "monthly",
-              dayOfMonth: 20,
-            },
-            {
-              name: "Rent",
-              direction: "debit",
-              amount: 1800,
-              variable: false,
-              scheduleType: "monthly",
-              dayOfMonth: 3,
-            },
-            {
-              name: "Car repair",
-              direction: "debit",
-              amount: 900,
-              variable: true,
-              scheduleType: "adhoc",
-              scheduleDate: dateInputValue(addDays(today, 9)),
-            },
-            {
-              name: "Minimum card payment",
-              direction: "debit",
-              amount: 420,
-              variable: false,
-              scheduleType: "monthly",
-              dayOfMonth: 11,
-            },
-          ],
-        }),
+      debt: {
+        label: "Morgan · The card-payment creep",
+        story: "Morgan’s paycheck stays steady. The scheduled card payments have other ambitions.",
+        startingBalance: 3600, projectionDays: 30,
+        thresholds: { red: 1000, yellow: 2500, green: 5000 },
+        rules: [biweekly("Paycheck", 1300, 7), monthly("Rent", 1400, 3), monthly("Electric bill", 200, 11),
+          monthly("Car insurance", 120, 16), monthly("After-school care", 325, 5, "debit", { limitType: "date", endDate: startsIn(90) }),
+          monthly("Chase card payment", 950, 10, "debit", { limitType: "date", endDate: startsIn(59) }),
+          monthly("Chase card payment", 1300, 10, "debit", { startDate: startsIn(60), limitType: "date", endDate: startsIn(119) }),
+          monthly("Chase card payment", 2000, 10, "debit", { startDate: startsIn(120) })],
       },
     };
-
-    if (key === "random") {
-      return buildRandomSampleScenario();
-    }
-
-    return scenarios[key] || scenarios.healthy;
+    var scenario = scenarios[key] || scenarios.risk;
+    return { label: scenario.label, story: scenario.story, state: createSampleState(scenario) };
   }
 
   function applySampleScenario(key) {
+    if (state.planOrigin === "personal" && state.hasPersonalData) return;
+    dataActionStatus.classList.add("is-hidden");
     var sample = buildSampleScenario(key);
     state = sample.state;
     state.sampleScenario = sample.label;
+    state.sampleStory = sample.story;
+    state.sampleScenarioKey = key;
+    state.planOrigin = "example";
+    state.hasPersonalData = false;
     state.recurringRules.forEach(function (rule, index) { rule.calculationOrder = index; });
-    persistAndRender(UI_COPY.status.sampleLoaded + " " + sample.label + ".");
+    persistAndRender();
   }
 
   function refreshFromToday(refreshAnswer) {
@@ -2398,6 +2345,11 @@
     state.startDate = todayInputValue();
     state.lastRefreshDate = state.startDate;
     state.startingBalance = clampCashBalance(Number(cash));
+    if (!state.sampleScenario) {
+      state.planOrigin = "personal";
+      state.hasPersonalData = true;
+      state.clearedPlan = false;
+    }
     state.projectionDays = parseInt(projectionDaysInput.value, 10) || 30;
     answerRefreshRequested = refreshAnswer === true;
     persistAndRender("Forecast updated from today.");
@@ -2612,6 +2564,7 @@
   });
 
   function downloadLocalBackup() {
+    if (!canDownloadPlan()) return;
     var url;
     var link;
     try {
@@ -2636,7 +2589,25 @@
   }
 
   exportDataButton.addEventListener("click", downloadLocalBackup);
-  document.querySelector("#start-own-plan").addEventListener("click", function () { resetDataButton.click(); });
+  function startPersonalPlan() {
+    if (state.planOrigin === "personal") return;
+    state = cloneDefaultState();
+    dataActionStatus.classList.add("is-hidden");
+    clearRemovalUndo();
+    persistAndRender();
+    startingBalanceInput.focus({ preventScroll: true });
+    startingBalanceInput.select();
+  }
+  document.querySelector("#start-own-plan").addEventListener("click", startPersonalPlan);
+  document.querySelector("#next-example").addEventListener("click", function () {
+    var keys = SAMPLE_SCENARIO_KEYS;
+    var index = keys.indexOf(state.sampleScenarioKey);
+    if (index < 0) {
+      var legacyKey = { "Cash shortfall": "risk", "Small cushion": "tight", "Income and bills": "healthy" }[state.sampleScenario];
+      index = keys.indexOf(legacyKey);
+    }
+    applySampleScenario(keys[(index + 1) % keys.length]);
+  });
   document.querySelector("#dismiss-undo").addEventListener("click", function () {
     clearRemovalUndo();
     addMoneyInRuleButton.focus({ preventScroll: true });
@@ -2685,6 +2656,8 @@
       beforeSyncedReplacement("reset").then(function (allowed) {
         if (!allowed) return;
         state = cloneDefaultState();
+        // A confirmed reset may clear the shared plan; examples still never publish.
+        state.clearedPlan = true;
         persistAndRender();
         showDataStatus(UI_COPY.status.resetSuccess);
       });
@@ -3086,7 +3059,8 @@
       },
       applyPlan: function (plan) {
         var financial = window.DriveSync.planData(plan);
-        state = normalizeState(Object.assign({}, state, financial, { sampleScenario: "" }));
+        state = normalizeState(Object.assign({}, state, financial, { sampleScenario: "", sampleScenarioKey: "", sampleStory: "", planOrigin: "personal", hasPersonalData: true, clearedPlan: false }));
+        dataActionStatus.classList.add("is-hidden");
         clearRemovalUndo();
         persistAndRender();
       },
