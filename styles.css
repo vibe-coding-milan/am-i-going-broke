@@ -450,6 +450,10 @@ h1 {
 
 .data-dialog {
   width: min(430px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   border: 0;
   padding: 0;
   background: transparent;
@@ -498,6 +502,7 @@ h1 {
 
 .data-dialog-copy {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .data-dialog-kicker {
@@ -522,11 +527,27 @@ h1 {
 }
 
 .data-dialog-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-column: 1 / -1;
   gap: 8px;
-  justify-content: flex-end;
   margin-top: 4px;
+}
+
+.data-dialog-actions .button {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+#data-dialog-backup {
+  grid-column: 1 / -1;
+}
+
+#data-dialog-confirm {
+  grid-column: 2;
 }
 
 .data-dialog.is-danger .data-dialog-icon {
@@ -2362,15 +2383,6 @@ tbody td {
     height: 34px;
   }
 
-  .data-dialog-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .data-dialog-actions .button {
-    width: 100%;
-  }
-
   .rule-card-main {
     grid-template-columns: 1fr;
   }
@@ -2618,7 +2630,6 @@ button:disabled { opacity: .45; cursor: default; }
 @media (max-width: 520px) {
   .policy-toc nav { grid-template-columns: 1fr; }
   .policy-return { flex-wrap: wrap; }
-  #data-dialog-backup { grid-column: 1 / -1; }
 }
 
 @media (max-width: 860px) {
