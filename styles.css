@@ -571,10 +571,10 @@ h1 {
 }
 
 /* Only the opt-in feature creates these elements; an empty feature flag changes no layout. */
-.sync-settings { width: min(520px, calc(100vw - 24px)); }
+.sync-settings { width: min(460px, calc(100vw - 24px)); }
 .sync-settings-card {
   display: grid;
-  gap: 16px;
+  gap: 10px;
   padding: 20px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);

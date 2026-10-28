@@ -77,11 +77,9 @@
       '<h3 id="sync-conflict-title">Choose the plan to keep using</h3><p>Both versions are preserved before your choice is applied. Other devices will receive the chosen plan.</p>' +
       '<p id="sync-local-preview"></p><p id="sync-remote-preview"></p>' +
       '<div class="sync-settings-actions"><button type="button" id="sync-use-local" class="button ghost">Use this device’s plan</button><button type="button" id="sync-use-remote" class="button ghost">Use Drive plan</button></div></section>' +
-      '<a id="sync-folder" class="sync-folder is-hidden" target="_blank" rel="noopener noreferrer">Am I Going Broke?</a>' +
+      '<a id="sync-folder" class="sync-folder is-hidden" target="_blank" rel="noopener noreferrer">Open folder in Google Drive</a>' +
       '<div id="sync-help-actions" class="sync-settings-actions is-hidden"><button type="button" id="sync-retry" class="button ghost is-hidden">Try again</button>' +
       '<button type="button" id="sync-recreate" class="button ghost is-hidden">Repair sync…</button></div>' +
-      '<section id="sync-recovery" class="is-hidden" aria-labelledby="sync-recovery-title"><h3 id="sync-recovery-title">Recover a previous plan</h3><div id="sync-recovery-list" class="sync-settings-actions"></div></section>' +
-      '<button type="button" id="sync-show-recovery" class="sync-secondary is-hidden">Recover previous plan…</button>' +
       '<footer class="sync-settings-footer"><button type="button" id="sync-connect" class="button primary">Connect Google Drive</button>' +
       '<button type="button" id="sync-disconnect" class="sync-secondary is-hidden" aria-label="Disconnect Google Drive">Disconnect</button>' +
       '<button type="button" id="sync-close" class="button ghost">Done</button></footer></div>';
@@ -140,18 +138,6 @@
       connect.textContent = view.action || "Connect Google Drive";
       if (session && !session.available) connect.classList.add("is-hidden");
     }
-    function localRecovery() {
-      try {
-        var owner = session && session.accountId || read("aigb-sync-plan-owner");
-        var text = owner && read("aigb-sync-before-replace:" + owner) || read("aigb-drive-before-load");
-        var candidate = text && JSON.parse(text);
-        return candidate && root.DriveSync.validPlan(candidate.plan) ? candidate : null;
-      } catch (error) { return null; }
-    }
-    function showRecoveryAction() {
-      var candidate = controller && controller.recovery();
-      dialog.querySelector("#sync-show-recovery").classList.toggle("is-hidden", !candidate && !localRecovery());
-    }
     function setDialogMessage(text) {
       if (statusText.textContent !== text) statusText.textContent = text;
     }
@@ -165,7 +151,6 @@
       toggle.checked = value.enabled === true;
       conflictPanel.classList.toggle("is-hidden", !value.conflict);
       if (value.conflict) {
-        dialog.querySelector("#sync-recovery").classList.add("is-hidden");
         dialog.querySelector("#sync-local-preview").textContent = preview("This device", value.conflict.local);
         var remoteDate = value.conflict.remote.savedAt;
         var savedLabel = remoteDate && !Number.isNaN(Date.parse(remoteDate)) ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(remoteDate)) : "date unavailable";
@@ -173,7 +158,6 @@
       }
       if (value.status === "reconnect") sessionExpired = true;
       if (value.status === "synced") sessionExpired = false;
-      showRecoveryAction();
       dialog.querySelector("#sync-retry").classList.toggle("is-hidden", ["missing", "remote", "storage", "service"].indexOf(value.status) === -1);
       dialog.querySelector("#sync-recreate").classList.toggle("is-hidden", value.status !== "missing");
       dialog.querySelector("#sync-help-actions").classList.toggle("is-hidden", ["missing", "remote", "storage", "service"].indexOf(value.status) === -1);
@@ -269,13 +253,12 @@
         toggle.disabled = !rememberedEnabled(); connect.disabled = true;
         if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
         else { presentIndicator("off", "", false); setDialogMessage(LABELS.unavailable); }
-        showRecoveryAction(); presentConnection(); return;
+        presentConnection(); return;
       }
       if (!busy) { toggle.disabled = false; connect.disabled = false; }
       accountText.textContent = session.authenticated ? "Connected account: " + session.email : "Choose your Google account to sync your plan.";
       sessionExpired = false;
       disconnect.classList.toggle("is-hidden", !session.authenticated);
-      showRecoveryAction();
       if (session.authenticated && session.folderUrl && /^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]+$/.test(session.folderUrl)) {
         folder.href = session.folderUrl; folder.classList.remove("is-hidden");
       } else folder.classList.add("is-hidden");
@@ -384,55 +367,6 @@
       } catch (error) { setDialogMessage("The destination could not be replaced safely. Check Drive again before trying to create a replacement."); }
       finally { setBusy(false); }
     });
-    dialog.querySelector("#sync-show-recovery").addEventListener("click", async function () {
-      if (busy) return;
-      if (controller && controller.snapshot().conflict) { setDialogMessage("Resolve the different current versions before choosing a recovery version."); return; }
-      var versions = [];
-      setBusy(true);
-      try {
-        var candidates = controller && controller.recovery();
-        if (candidates) {
-          var recoveredAt = new Date(candidates.at).toISOString();
-          if (root.DriveSync.validPlan(candidates.local)) versions.push({ plan: candidates.local, label: "This device before version review", at: recoveredAt });
-          if (candidates.remote && root.DriveSync.validPlan(candidates.remote.plan)) versions.push({ plan: candidates.remote.plan, label: "Drive before version review", at: recoveredAt });
-        }
-        var local = localRecovery();
-        if (local) versions.push({ plan: local.plan, label: "Previous device plan", at: local.at });
-        if (controller && session && session.authenticated) {
-          var result = await request("recovery");
-          if (result.accountId !== session.accountId || !Array.isArray(result.versions)) throw new Error("Invalid recovery response");
-          result.versions.slice(0, 3).forEach(function (version) {
-            if (!root.DriveSync.validPlan(version.plan)) throw new Error("Invalid recovery version");
-            versions.push({ plan: version.plan, label: "Previous synced plan", at: version.savedAt });
-          });
-        }
-      } catch (error) { setDialogMessage("Could not load Drive recovery history. Any available local recovery is shown below."); }
-      finally { setBusy(false); }
-      var list = dialog.querySelector("#sync-recovery-list"); list.replaceChildren();
-      dialog.querySelector("#sync-recovery").classList.remove("is-hidden");
-      if (!versions.length) { var empty = document.createElement("p"); empty.textContent = "There are no earlier plans to recover. You can still import a file backup from Data."; list.appendChild(empty); }
-      versions.forEach(function (version) {
-        var action = document.createElement("button"); action.type = "button"; action.className = "button ghost";
-        var date = !Number.isNaN(Date.parse(version.at)) ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(version.at)) : "date unavailable";
-        action.textContent = preview(version.label + " · " + date, version.plan);
-        action.addEventListener("click", async function () {
-          if (busy || controller && controller.snapshot().conflict) return;
-          var accepted = await options.confirm({ title: "Restore this recovery version?", action: "Restore", message:
-            preview("Selected plan", version.plan) + (controller && controller.snapshot().enabled ? " This replaces the synced plan on connected devices." : " This replaces this device’s plan. Automatic sync is off.") });
-          if (!accepted) return;
-          try {
-            var account = session && session.accountId || read("aigb-sync-plan-owner");
-            save(account ? "aigb-sync-before-replace:" + account : "aigb-drive-before-load", JSON.stringify({ accountId: account, plan: options.getPlan(), reason: "recovery restore", at: new Date().toISOString() }));
-            changingRemote = true;
-            try { options.applyPlan(version.plan); } finally { changingRemote = false; }
-            if (controller) controller.setPlan(enginePlan());
-            else setDialogMessage("Previous plan loaded on this device. Drive files are unchanged.");
-            dialog.querySelector("#sync-recovery").classList.add("is-hidden");
-          } catch (error) { setDialogMessage("Recovery could not be completed safely. Check browser storage and try again."); }
-        });
-        list.appendChild(action);
-      });
-    });
     function changed() {
       if (!controller || changingRemote || !controller.snapshot().enabled) return;
       try { controller.setPlan(enginePlan()); }
@@ -497,7 +431,7 @@
       beforeReplace: async function (kind) {
         if (!controller || !controller.snapshot().enabled) return true;
         var accepted = await options.confirm({ title: kind === "reset" ? "Start over on connected devices?" : "Replace the synced plan?",
-          action: "Continue", message: "This change will update the plan on your connected devices after syncing. Your previous plan is kept for recovery." });
+          action: "Continue", message: "This change will update the plan on your connected devices after syncing. Download a backup first if you want to keep a separate copy." });
         if (!accepted) return false;
         try {
           save("aigb-sync-before-replace:" + session.accountId, JSON.stringify({ accountId: session.accountId,
