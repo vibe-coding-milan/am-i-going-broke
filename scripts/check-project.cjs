@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const { execFileSync, spawnSync } = require("node:child_process");
 
 const root = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
 process.chdir(root);
@@ -37,6 +37,18 @@ for (const file of files.filter(file => /\.(html|md)$/.test(file))) {
 }
 if (errors.length) throw new Error(errors.join("\n"));
 console.log(`Syntax and ${linksChecked} local documentation/HTML link checks passed.`);
+
+if (spawnSync("php", ["-v"], { stdio: "ignore" }).status === 0) {
+  run("php", ["-r", 'if (PHP_VERSION_ID < 80200) { fwrite(STDERR, "PHP 8.2 or newer required\\n"); exit(1); }']);
+  for (const file of files.filter(file => file.endsWith(".php"))) run("php", ["-l", file]);
+  run("php", ["tests/drive-service.test.php"]);
+} else {
+  if (process.env.CI) throw new Error("PHP 8.2+ with PDO SQLite, sodium, and cURL is required for server checks in CI.");
+  console.log("PHP unavailable locally: server lint/tests must pass separately before publication.");
+}
+
+console.log("Drive sync state-machine regressions");
+run(process.execPath, ["--test", "tests/drive-sync.test.cjs", "tests/drive-sync-ui.test.cjs"]);
 
 for (const TZ of ["America/New_York", "Pacific/Auckland"]) {
   console.log(`Scheduling regressions: ${TZ}`);

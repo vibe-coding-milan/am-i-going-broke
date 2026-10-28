@@ -18,6 +18,8 @@ The deployment workflow reads account configuration from Actions secrets: `DREAM
 
 ## Recovery
 
+Automatic Drive sync has an explicit production-URL acceptance preview at /?drive-sync=preview; ordinary visits retain an empty public endpoint flag. Private configuration defaults to disabled. Its service credentials and encrypted database belong outside the served website and are not included in public deployment backups. Follow the [sync activation gates](DRIVE_SYNC.md) before configuration or release; browser-only and simulated-service checks do not establish real OAuth acceptance. Keep private encryption-key recovery separate from source control.
+
 Deployment retains copies of replaced website files and preserves server-only files. This is not a complete site snapshot or a backup of users' financial plans. Obsolete files require a separate review before removal. Backup retention should be reviewed periodically.
 
 For a code rollback, restore the intended source version, run the checks, and publish it manually. Confirm the live site afterward. Record source publication and actual deployment separately in the changelog.
