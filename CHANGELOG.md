@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-28 — Clarify privacy policy for Google Drive verification
+
+- Identify the developer and app domain, and describe the exact Drive permission, backup contents, file metadata, and manual export/import purposes.
+- Explain direct browser-to-Google transfers, local storage, in-memory tokens, HTTPS protection, sharing limits, and the absence of advertising or AI training uses of Google user data.
+- Clarify retention and separate instructions for clearing local data, deleting Drive/downloaded backups, and revoking Google access.
+- Validation: source review against current backup behavior and Google's privacy policy guidance; syntax/link checks and 66 scheduling regressions passed.
+- Prepared locally; not yet published or deployed. Google verification and domain ownership remain separate external steps.
+
 ## 2026-10-28 — Compact Data menu and separate Appearance controls
 
 - Use inline Export/Import labels for files and Google Drive; remove section headings, icons, and explanatory copy.
