@@ -47,25 +47,22 @@
     var entry = document.createElement("button");
     entry.type = "button"; entry.className = "data-menu-action"; entry.textContent = "Google Drive…";
     menu.querySelector(".data-menu-section").prepend(entry);
-    var indicator = document.createElement("button");
-    indicator.type = "button"; indicator.className = "sync-indicator is-hidden";
-    indicator.setAttribute("aria-label", "Drive sync settings");
+    var dataSummary = menu.querySelector("summary");
+    var indicator = dataSummary.querySelector("span");
     var indicatorText = document.createElement("span");
+    indicatorText.className = "sync-status-announcement";
     indicatorText.setAttribute("role", "status"); indicatorText.setAttribute("aria-live", "polite");
-    indicatorText.setAttribute("aria-atomic", "true"); indicator.appendChild(indicatorText);
-    document.querySelector(".topbar-utilities").appendChild(indicator);
-    var utilities = document.querySelector(".topbar-utilities");
-    var topbar = utilities.closest(".app-topbar");
-    var compact = window.matchMedia("(max-width: 860px)");
-    function placeIndicator() {
-      var focused = document.activeElement === indicator;
-      if (compact.matches && indicator.parentElement === utilities) topbar.after(indicator);
-      else if (!compact.matches && indicator.parentElement !== utilities) utilities.appendChild(indicator);
-      if (focused) indicator.focus({ preventScroll: true });
+    indicatorText.setAttribute("aria-atomic", "true"); document.body.appendChild(indicatorText);
+    function presentIndicator(status, text, visible) {
+      var attention = ["offline", "reconnect", "conflict", "missing", "account", "remote", "retrying", "storage", "invalid", "unavailable", "service"].indexOf(status) !== -1;
+      indicator.classList.toggle("sync-mark", visible);
+      indicator.setAttribute("data-sync-state", !visible ? "none" : attention ? "attention" : status === "synced" ? "synced" : "waiting");
+      indicator.textContent = !visible ? "⇅" : attention ? "!" : status === "synced" ? "✓" : "↻";
+      dataSummary.setAttribute("aria-label", "Open data menu" + (visible ? ". Google Drive: " + text : ""));
+      dataSummary.setAttribute("title", visible ? "Google Drive: " + text : "Data");
+      var announcement = visible ? "Google Drive: " + text : "";
+      if (indicatorText.textContent !== announcement) indicatorText.textContent = announcement;
     }
-    placeIndicator();
-    if (compact.addEventListener) compact.addEventListener("change", placeIndicator);
-    else compact.addListener(placeIndicator);
     var dialog = document.createElement("dialog");
     dialog.className = "sync-settings data-dialog";
     dialog.setAttribute("aria-labelledby", "sync-settings-title");
@@ -164,7 +161,7 @@
       var text = LABELS[value.status] || "Sync needs attention";
       if (value.status === "off" && (!session || read("aigb-sync-service-backups") !== session.accountId)) text = "Connect to start syncing";
       if (value.status === "missing") text += ". Your plan is still on this device. Check the folder or reconnect.";
-      if (indicatorText.textContent !== text) indicatorText.textContent = text;
+      presentIndicator(value.status, text, !!value.enabled || value.status === "unavailable");
       if (statusText.textContent !== text) statusText.textContent = text;
       statusText.classList.toggle("is-hidden", !!value.conflict);
       var lastSaved = dialog.querySelector("#sync-last-saved");
@@ -172,7 +169,6 @@
       if (value.savedAt && !Number.isNaN(Date.parse(value.savedAt))) {
         lastSaved.textContent = "Last synced: " + new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value.savedAt));
       }
-      indicator.classList.toggle("is-hidden", !value.enabled && value.status !== "unavailable");
       toggle.checked = value.enabled === true;
       conflictPanel.classList.toggle("is-hidden", !value.conflict);
       if (value.conflict) {
@@ -227,11 +223,11 @@
       menu.removeAttribute("open");
       if (!dialog.open) dialog.showModal();
     }
-    entry.addEventListener("click", open); indicator.addEventListener("click", open);
+    entry.addEventListener("click", open);
     dialog.querySelector("#sync-close").addEventListener("click", function () { dialog.close(); });
     dialog.addEventListener("close", function () {
       if (dialog.open || document.querySelector(".data-dialog[open]")) return;
-      if (trigger === entry) { menu.open = true; entry.focus(); } else indicator.focus();
+      if (trigger === entry) { menu.open = true; entry.focus(); } else dataSummary.focus();
     });
     function enginePlan() {
       var data = options.getPlan();
@@ -279,7 +275,7 @@
       if (!session.available) {
         toggle.disabled = !rememberedEnabled(); connect.disabled = true;
         if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
-        else { indicator.classList.add("is-hidden"); statusText.textContent = LABELS.unavailable; }
+        else { presentIndicator("off", "", false); statusText.textContent = LABELS.unavailable; }
         showRecoveryAction(); presentConnection(); return;
       }
       if (!busy) { toggle.disabled = false; connect.disabled = false; }
