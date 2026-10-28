@@ -4,7 +4,7 @@
 
 Status: implemented for local/PR review; not deployed or owner-accepted. Related: GitHub issue #11.
 
-Approved design replaces section headings, icons, and explanatory paragraphs with five text actions: Export to file, Import from file…, Export to Google Drive, Import from Google Drive…, and Start over…. Only the destructive action has a divider. Known Drive backup time and relevant operation feedback remain visible. Mobile Appearance controls remain in the menu.
+Approved design replaces section headings, icons, and explanatory paragraphs with five text actions: Export to file, Import from file…, Export to Google Drive, Import from Google Drive…, and Start over…. Only the destructive action has a divider. Known Drive backup time and relevant operation feedback remain visible. Mobile Appearance controls remain in the menu, sharing its text-only style: one top divider, no enclosing frame or icons, and a subtle outlined selected choice. The redundant resolved-theme subtitle is hidden visually; accessible names and pressed states remain.
 
 Desktop pointer rows are 32px in a 280px panel. Narrow layouts (up to 860px) and devices with any coarse pointer use 44px rows in a panel up to 300px. Width is bounded by viewport gutters; short screens scroll internally. Light mode uses a darker red for readable destructive text.
 

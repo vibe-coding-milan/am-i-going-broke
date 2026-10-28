@@ -4,6 +4,7 @@
 
 - Use inline Export/Import labels for files and Google Drive; remove section headings, icons, and explanatory copy.
 - Use compact desktop rows and larger targets for narrow screens and touch-capable devices, preserving mobile Appearance controls.
+- Integrate mobile Appearance choices into the menu with one divider, plain text, and a subtle outlined selection instead of a boxed gradient control.
 - Retain the last Drive backup time, operation feedback, restore previews, and the separate Start over confirmation.
 
 ## 2026-10-18 — Payment usability and local backup reliability

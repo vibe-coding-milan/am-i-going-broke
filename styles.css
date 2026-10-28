@@ -2723,9 +2723,49 @@ button:disabled { opacity: .45; cursor: default; }
   .data-menu-action { min-height: 44px; padding-block: 12px; }
 }
 @media (max-width: 860px) {
-  .data-menu .theme-switcher { gap: 4px; padding: 6px 4px; border-top: 1px solid var(--line); }
-  .mobile-theme-heading { padding: 2px 4px 4px; font-size: .74rem; }
-  .data-menu .theme-switcher button { min-height: 44px; }
+  .data-menu .theme-switcher {
+    gap: 4px;
+    margin-top: 4px;
+    padding: 8px 0 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    background: none;
+    box-shadow: none;
+  }
+  .data-menu .mobile-theme-heading {
+    padding: 0 12px 2px;
+    color: var(--muted-strong);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .data-menu .mobile-theme-heading small { display: none; }
+  .data-menu .theme-switcher button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 4px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: none;
+    box-shadow: none;
+    color: var(--muted-strong);
+    font-weight: 400;
+  }
+  .data-menu .theme-switcher button > span:first-child { display: none; }
+  .data-menu .theme-choice-label { font-size: 14px; }
+  .data-menu .theme-switcher button:hover { background: var(--hover-bg); }
+  .data-menu .theme-switcher button[aria-pressed="true"] {
+    border-color: var(--line-strong);
+    background: var(--hover-bg);
+    color: var(--text);
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .data-menu .theme-switcher button:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
 }
 
 /* Chart options: matching toggles, followed by compact editable target fields. */
