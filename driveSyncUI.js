@@ -7,7 +7,8 @@
     conflict: "Different versions · Review sync", missing: "Drive file unavailable · Review sync",
     account: "Google account changed · Review sync", remote: "Drive file needs attention",
     retrying: "Saved on this device · Retrying Drive", storage: "Sync paused · Browser storage is full",
-    sample: "Start your own plan to enable sync", invalid: "Finish the payment details to sync",
+    sample: "Examples aren’t synced. Open your Drive plan to continue",
+    noPlan: "No saved Drive plan. Start your own plan to sync", invalid: "Finish the payment details to sync",
     editing: "Finish editing to sync", unavailable: "Drive sync isn’t ready to connect yet. Your plan is saved on this device.",
     service: "Saved on this device · Sync unavailable",
   };
@@ -212,6 +213,7 @@
       trigger = event && event.currentTarget || entry;
       menu.removeAttribute("open");
       if (!dialog.open) dialog.showModal();
+      if (controller && controller.snapshot().enabled && options.getPlan().sampleScenario) controller.retrieve();
     }
     entry.addEventListener("click", open);
     dialog.querySelector("#sync-close").addEventListener("click", function () { dialog.close(); });
@@ -221,7 +223,7 @@
     });
     function enginePlan() {
       var data = options.getPlan();
-      if (options.hasInvalidDraft && options.hasInvalidDraft()) {
+      if (!data.sampleScenario && options.hasInvalidDraft && options.hasInvalidDraft()) {
         return Object.assign({}, data, { startingBalance: NaN });
       }
       return data;
@@ -285,8 +287,7 @@
     }
     async function authorize() {
       if (busy) return;
-      if (options.getPlan().sampleScenario) { setDialogMessage(LABELS.sample); toggle.checked = false; return; }
-      if (options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
+      if (!options.getPlan().sampleScenario && options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
       setBusy(true);
       try {
         await refreshSession();
@@ -301,10 +302,9 @@
     }
     async function enableSync() {
       if (!session || !session.authenticated || sessionExpired) return authorize();
-      if (options.getPlan().sampleScenario) { setDialogMessage(LABELS.sample); toggle.checked = false; return; }
-      if (options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
+      if (!options.getPlan().sampleScenario && options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
       var owner = read("aigb-sync-plan-owner");
-      if (owner && owner !== session.accountId && (Number(options.getPlan().startingBalance) !== 0 || options.getPlan().recurringRules.length)) {
+      if (owner && owner !== session.accountId && !options.getPlan().sampleScenario && (options.getPlan().hasPersonalData || Number(options.getPlan().startingBalance) !== 0 || options.getPlan().recurringRules.length)) {
         var accepted = await options.confirm({ title: "Use this plan with another account?", action: "Use this plan", message:
           "This device’s plan was linked to another Google account. Continuing will use it with " + session.email + ". Any different Drive plan will be reviewed before replacement." });
         if (!accepted) { toggle.checked = false; return; }
@@ -320,6 +320,7 @@
         await attach();
         folder.href = setup.folderUrl; folder.classList.remove("is-hidden");
         controller.enable(true);
+        controller.retrieve();
       } catch (error) {
         try { save(enabledKey(), "false"); } catch (storageError) { /* Keep the local plan even if preferences cannot be saved. */ }
         if (controller) controller.enable(false);

@@ -105,7 +105,7 @@ test('confirmation cancellation returns to sync settings while ordinary Data dia
     const dialog = { classList: { toggle() {} }, addEventListener(event, fn) { closed = fn; }, removeEventListener() {}, showModal() {} };
     const menu = { open: true, contains: () => true, setAttribute() { this.open = true; }, querySelector: () => focusTarget };
     const ctx = vm.createContext({ Promise, document: { activeElement: focusTarget, querySelector(selector) { return selector === '.sync-settings' ? sync : { classList: { toggle() {} } }; } },
-      dataDialog: dialog, dataDialogTitle: {}, dataDialogMessage: {}, dataDialogConfirm: { classList: { toggle() {} } },
+      canDownloadPlan: () => true, dataDialog: dialog, dataDialogTitle: {}, dataDialogMessage: {}, dataDialogConfirm: { classList: { toggle() {} } },
       dataDialogCancel: { classList: { toggle() {} } }, dataMenu: menu, closeDataMenu() { menu.open = false; } });
     const start = app.indexOf('  function requestDataConfirmation(');
     vm.runInContext(app.slice(start, app.indexOf('  function showDataIssue(', start)), ctx);
