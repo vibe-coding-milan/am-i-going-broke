@@ -269,10 +269,24 @@ final class DriveSyncService
     }
     public function setup(string $subject): array
     {
-        return $this->operation($subject, function (array &$account) use ($subject): array {
+        $result = $this->operation($subject, function (array &$account) use ($subject): array {
             $folder = $this->ensureFolder($subject, $account, 'folder', 'sync-folder', 'Am I Going Broke?');
             return ['accountId' => $subject, 'folderUrl' => 'https://drive.google.com/drive/folders/' . $this->id($folder)];
         });
+        // Put the existing cloud plan in the app folder as part of connecting.
+        // This copies an older backup, never a device plan, and retains the source.
+        // Keep separate account-lock operations so normal version checks arbitrate races.
+        try {
+            $existing = $this->read($subject);
+            if ($existing['plan'] !== null && str_starts_with($existing['revision'], 'legacy:')) {
+                $this->write($subject, ['accountId' => $subject, 'expectedRevision' => $existing['revision'],
+                    'operationId' => 'connect-' . hash('sha256', $existing['revision']), 'plan' => $existing['plan']]);
+            }
+        } catch (SyncFailure $error) {
+            // Let the connected client reconcile a concurrent edit or show repair/recovery.
+            if (!in_array($error->reason, ['conflict', 'missing', 'remote', 'ambiguous'], true)) throw $error;
+        }
+        return $result;
     }
     private function current(string $subject, array &$account): array
     {

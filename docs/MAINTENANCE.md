@@ -18,7 +18,7 @@ The deployment workflow reads account configuration from Actions secrets: `DREAM
 
 ## Recovery
 
-Automatic Drive sync has an explicit production-URL acceptance preview at /?drive-sync=preview; ordinary visits retain an empty public endpoint flag. Private configuration defaults to disabled. Its service credentials and encrypted database belong outside the served website and are not included in public deployment backups. Follow the [sync activation gates](DRIVE_SYNC.md) before configuration or release; browser-only and simulated-service checks do not establish real OAuth acceptance. Keep private encryption-key recovery separate from source control.
+The unified Drive interface uses /api/drive-sync.php on ordinary visits. Private configuration defaults to disabled and is enabled only after server provisioning. Old preview links remain compatible; they no longer expose a different Drive system. Its service credentials and encrypted database belong outside the served website and are not included in public deployment backups. Follow the [sync activation gates](DRIVE_SYNC.md) before configuration or release; browser-only and simulated-service checks do not establish real OAuth acceptance. Keep private encryption-key recovery separate from source control.
 
 Deployment retains copies of replaced website files and preserves server-only files. This is not a complete site snapshot or a backup of users' financial plans. Obsolete files require a separate review before removal. Backup retention should be reviewed periodically.
 

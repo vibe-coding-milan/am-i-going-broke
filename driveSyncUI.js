@@ -1,14 +1,14 @@
 (function (root) {
   "use strict";
   var LABELS = {
-    off: "Automatic sync off", local: "Saved on this device", pending: "Changes waiting to sync",
-    checking: "Checking Drive…", saving: "Saving to Drive…", synced: "Saved to Drive",
+    off: "Sync paused", local: "Ready to sync", pending: "Waiting to sync",
+    checking: "Checking Drive…", saving: "Syncing…", synced: "Up to date",
     offline: "Saved on this device · Offline", reconnect: "Reconnect Drive to resume sync",
     conflict: "Different versions · Review sync", missing: "Drive file unavailable · Review sync",
     account: "Google account changed · Review sync", remote: "Drive file needs attention",
     retrying: "Saved on this device · Retrying Drive", storage: "Sync paused · Browser storage is full",
     sample: "Start your own plan to enable sync", invalid: "Finish the payment details to sync",
-    editing: "Finish editing to sync", unavailable: "Automatic sync is not available yet",
+    editing: "Finish editing to sync", unavailable: "Drive sync isn’t ready to connect yet. Your plan is saved on this device.",
     service: "Saved on this device · Sync unavailable",
   };
   // Presentation never grants permission: setup and engine reconciliation remain separate.
@@ -17,8 +17,8 @@
     if (state.expired) return { action: "Reconnect Google Drive", description: "Reconnect to resume syncing. Your local changes stay on this device until the connection is restored.", setup: true, toggle: false };
     if (state.otherAccount) return { action: "Set up this account", description: "This device’s plan belongs to another Google connection. Review it before using this account; nothing will upload automatically.", setup: true, toggle: false };
     if (state.ready) return { action: "", description: "When automatic sync is on, your plan stays current across connected devices.", setup: false, toggle: true };
-    return { action: state.authenticated ? "Turn on sync" : "Connect Google Drive", setup: true, toggle: false,
-      description: state.legacy ? "Your older backups stay available. Connect to start automatic sync; different plans are reviewed first." :
+    return { action: "Connect Google Drive", setup: true, toggle: false,
+      description: state.legacy ? "Connect to sync your saved plan. Different existing plans are reviewed first." :
         "Connect to pick up your saved plan or sync this device. Different plans are reviewed first." };
   }
   function mount(options) {
@@ -73,9 +73,9 @@
       '<h2 id="sync-settings-title">Google Drive sync</h2>' +
       '<p id="sync-account">Choose your Google account during setup.</p>' +
       '<p id="sync-introduction"></p>' +
-      '<label class="sync-switch"><span>Automatic Drive sync</span><input id="sync-enabled" type="checkbox" role="switch" aria-describedby="sync-explanation"></label>' +
+      '<label class="sync-switch"><span>Automatic sync</span><input id="sync-enabled" type="checkbox" role="switch" aria-describedby="sync-explanation"></label>' +
       '<p id="sync-explanation">Changes sync after a five-second pause. Your plan saves on this device immediately.</p>' +
-      '<p id="sync-consent">Connecting enables sync and stores an encrypted Google connection on our server. <a href="./privacy.html#automatic-sync">Privacy details</a></p>' +
+      '<p id="sync-consent">Connecting turns on automatic sync. <a href="./privacy.html#automatic-sync">Privacy details</a></p>' +
       '<p id="sync-settings-status" role="status" aria-live="polite" aria-atomic="true"></p>' +
       '<p id="sync-last-saved" class="is-hidden"></p>' +
       '<section id="sync-conflict" class="is-hidden" aria-labelledby="sync-conflict-title">' +
@@ -83,25 +83,15 @@
       '<p id="sync-local-preview"></p><p id="sync-remote-preview"></p>' +
       '<div class="sync-settings-actions"><button type="button" id="sync-use-local" class="button ghost">Use this device’s plan</button><button type="button" id="sync-use-remote" class="button ghost">Use Drive plan</button></div></section>' +
       '<div class="sync-settings-actions"><button type="button" id="sync-connect" class="button primary">Connect Google Drive</button><button type="button" id="sync-close" class="button ghost">Done</button></div>' +
-      '<details id="sync-options"><summary>More options</summary>' +
-      '<details id="sync-disclosure"><summary>How sync handles your data</summary><p>Sync checks Drive when you open or return to this page. It runs while the page is open; wait for Saved to Drive before switching devices. Offline or pending changes stay on this device until it reconnects. If devices have different unsynced edits, both versions are preserved for review.</p><p>Setup connects Google through our secure server. It stores an encrypted Google connection and handles your plan during transfers. Three previous versions stay inside the Drive file for recovery. Turning sync off keeps your local plan and Drive files.</p>' +
-      '<p><a href="./privacy.html#automatic-sync">Read about automatic sync and privacy</a></p></details>' +
-      '<section id="sync-recovery" class="is-hidden" aria-labelledby="sync-recovery-title"><h3 id="sync-recovery-title">Recovery versions</h3><div id="sync-recovery-list" class="sync-settings-actions"></div></section>' +
-      '<details id="sync-manual-backups"><summary>Manual Drive backups</summary><p>Save a separate snapshot, or import an older backup. These are separate from your automatically synced current plan.</p><div id="sync-manual-actions" class="sync-settings-actions"></div><p id="sync-manual-status" role="status" aria-live="polite"></p></details>' +
-      '<div class="sync-settings-actions">' +
-      '<a id="sync-folder" class="button ghost is-hidden" target="_blank" rel="noopener noreferrer">Open Drive folder</a>' +
-      '<button type="button" id="sync-retry" class="button ghost is-hidden">Check Drive again</button>' +
-      '<button type="button" id="sync-recreate" class="button ghost is-hidden">Create replacement sync file…</button>' +
-      '<button type="button" id="sync-show-recovery" class="button ghost is-hidden">Recovery versions…</button>' +
-      '<button type="button" id="sync-disconnect" class="button ghost is-hidden">Disconnect all devices</button>' +
-      '</div></details></div>';
+      '<a id="sync-folder" class="sync-folder is-hidden" target="_blank" rel="noopener noreferrer">Am I Going Broke?</a>' +
+      '<div id="sync-help-actions" class="sync-settings-actions is-hidden"><button type="button" id="sync-retry" class="button ghost is-hidden">Try again</button>' +
+      '<button type="button" id="sync-recreate" class="button ghost is-hidden">Repair sync…</button></div>' +
+      '<section id="sync-recovery" class="is-hidden" aria-labelledby="sync-recovery-title"><h3 id="sync-recovery-title">Recover a previous plan</h3><div id="sync-recovery-list" class="sync-settings-actions"></div></section>' +
+      '<details id="sync-options"><summary>Connection settings</summary><div class="sync-settings-actions">' +
+      '<button type="button" id="sync-show-recovery" class="button ghost is-hidden">Recover previous plan…</button>' +
+      '<button type="button" id="sync-disconnect" class="button ghost is-hidden">Disconnect Google Drive</button></div>' +
+      '<p>Sync runs while the app is open. Offline changes stay on this device until it reconnects. <a href="./privacy.html#automatic-sync">Privacy details</a></p></details></div>';
     document.body.appendChild(dialog);
-    // Move the original controls, preserving their existing listeners and backup behavior.
-    ["save-drive", "restore-drive", "drive-backup-status"].forEach(function (id) {
-      var control = document.getElementById(id);
-      if (id !== "drive-backup-status") control.className = "button ghost";
-      dialog.querySelector("#sync-manual-actions").appendChild(control);
-    });
     var toggle = dialog.querySelector("#sync-enabled");
     var accountText = dialog.querySelector("#sync-account");
     var connect = dialog.querySelector("#sync-connect");
@@ -147,7 +137,8 @@
       toggle.closest("label").classList.toggle("is-hidden", !view.toggle);
       if (session && !session.available) toggle.checked = rememberedEnabled();
       var reviewing = !!controller && !!controller.snapshot().conflict;
-      dialog.querySelector("#sync-introduction").classList.toggle("is-hidden", reviewing);
+      dialog.querySelector("#sync-introduction").classList.toggle("is-hidden", reviewing || view.toggle || !!session && !session.available);
+      accountText.classList.toggle("is-hidden", !authenticated);
       dialog.querySelector("#sync-explanation").classList.toggle("is-hidden", !view.toggle || reviewing);
       dialog.querySelector("#sync-consent").classList.toggle("is-hidden", !view.setup || reviewing);
       if (reviewing) toggle.closest("label").classList.add("is-hidden");
@@ -155,9 +146,23 @@
       connect.classList.toggle("is-hidden", !view.setup && !!session && session.available !== false);
       connect.textContent = view.action || "Connect Google Drive";
       if (session && !session.available) connect.classList.add("is-hidden");
+      dialog.querySelector("#sync-options").classList.toggle("is-hidden", !authenticated && !localRecovery());
+    }
+    function localRecovery() {
+      try {
+        var owner = session && session.accountId || read("aigb-sync-plan-owner");
+        var text = owner && read("aigb-sync-before-replace:" + owner) || read("aigb-drive-before-load");
+        var candidate = text && JSON.parse(text);
+        return candidate && root.DriveSync.validPlan(candidate.plan) ? candidate : null;
+      } catch (error) { return null; }
+    }
+    function showRecoveryAction() {
+      var candidate = controller && controller.recovery();
+      dialog.querySelector("#sync-show-recovery").classList.toggle("is-hidden", !candidate && !localRecovery());
     }
     function showStatus(value) {
       var text = LABELS[value.status] || "Sync needs attention";
+      if (value.status === "off" && (!session || read("aigb-sync-service-backups") !== session.accountId)) text = "Connect to start syncing";
       if (value.status === "missing") text += ". Your plan is still on this device. Check the folder or reconnect.";
       if (indicatorText.textContent !== text) indicatorText.textContent = text;
       if (statusText.textContent !== text) statusText.textContent = text;
@@ -179,8 +184,10 @@
       }
       if (value.status === "reconnect") sessionExpired = true;
       if (value.status === "synced") sessionExpired = false;
+      showRecoveryAction();
       dialog.querySelector("#sync-retry").classList.toggle("is-hidden", ["missing", "remote", "storage", "service"].indexOf(value.status) === -1);
       dialog.querySelector("#sync-recreate").classList.toggle("is-hidden", value.status !== "missing");
+      dialog.querySelector("#sync-help-actions").classList.toggle("is-hidden", ["missing", "remote", "storage", "service"].indexOf(value.status) === -1);
       presentConnection();
     }
     function setBusy(value) {
@@ -273,13 +280,13 @@
         toggle.disabled = !rememberedEnabled(); connect.disabled = true;
         if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
         else { indicator.classList.add("is-hidden"); statusText.textContent = LABELS.unavailable; }
-        presentConnection(); return;
+        showRecoveryAction(); presentConnection(); return;
       }
       if (!busy) { toggle.disabled = false; connect.disabled = false; }
-      accountText.textContent = session.authenticated ? "Connected account: " + session.email : "Choose your Google account during setup.";
+      accountText.textContent = session.authenticated ? "Connected account: " + session.email : "Choose your Google account to sync your plan.";
       sessionExpired = false;
       disconnect.classList.toggle("is-hidden", !session.authenticated);
-      dialog.querySelector("#sync-show-recovery").classList.toggle("is-hidden", !session.authenticated);
+      showRecoveryAction();
       if (session.authenticated && session.folderUrl && /^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]+$/.test(session.folderUrl)) {
         folder.href = session.folderUrl; folder.classList.remove("is-hidden");
       } else folder.classList.add("is-hidden");
@@ -308,7 +315,7 @@
       if (options.getPlan().sampleScenario) { statusText.textContent = LABELS.sample; toggle.checked = false; return; }
       if (options.hasInvalidDraft && options.hasInvalidDraft()) { statusText.textContent = LABELS.invalid; toggle.checked = false; return; }
       var owner = read("aigb-sync-plan-owner");
-      if (owner && owner !== session.accountId) {
+      if (owner && owner !== session.accountId && (Number(options.getPlan().startingBalance) !== 0 || options.getPlan().recurringRules.length)) {
         var accepted = await options.confirm({ title: "Use this plan with another account?", action: "Use this plan", message:
           "This device’s plan was linked to another Google account. Continuing will use it with " + session.email + ". Any different Drive plan will be reviewed before replacement." });
         if (!accepted) { toggle.checked = false; return; }
@@ -319,7 +326,6 @@
         if (setup.accountId !== session.accountId || !/^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]+$/.test(setup.folderUrl)) throw new Error("Invalid setup response");
         save("aigb-sync-plan-owner", session.accountId); save(enabledKey(), "true");
         save("aigb-sync-service-backups", session.accountId);
-        if (options.resetManualAuth) options.resetManualAuth();
         localStorage.removeItem("aigb-sync-setup-pending");
         session.folderUrl = setup.folderUrl;
         await attach();
@@ -329,7 +335,9 @@
         try { save(enabledKey(), "false"); } catch (storageError) { /* Keep the local plan even if preferences cannot be saved. */ }
         if (controller) controller.enable(false);
         toggle.checked = false;
-        statusText.textContent = "Setup is unfinished. Your plan remains on this device. Try again when connected.";
+        if (error.code === "auth") sessionExpired = true;
+        statusText.textContent = error.code === "auth" ? "Reconnect Google Drive to finish setup. Your plan is unchanged." : "Setup is unfinished. Your plan remains on this device. Try again when connected.";
+        presentConnection();
       } finally { setBusy(false); }
     }
     connect.addEventListener("click", function () { enableSync(); });
@@ -356,14 +364,13 @@
     disconnect.addEventListener("click", async function () {
       if (busy) return;
       var proceed = await options.confirm({ title: "Disconnect Google Drive?", action: "Disconnect", message:
-        "This removes the server’s saved Google connection and pauses sync on all devices for this account. Your local plan, Drive files, and manual backups stay intact." });
+        "This removes the server’s saved Google connection and pauses sync on all devices for this account. Your device plan and Drive files stay intact." });
       if (!proceed) return;
       setBusy(true);
       try {
         if (controller) { controller.enable(false); controller.destroy(); controller = null; }
         save(enabledKey(), "false"); await request("disconnect", {});
         localStorage.removeItem("aigb-sync-service-backups");
-        if (options.resetManualAuth) options.resetManualAuth();
         await refreshSession();
         showStatus({ status: "off", enabled: false });
       } catch (error) { statusText.textContent = "Could not confirm disconnection. Try again or remove access in your Google Account."; }
@@ -389,47 +396,49 @@
       finally { setBusy(false); }
     });
     dialog.querySelector("#sync-show-recovery").addEventListener("click", async function () {
-      if (!controller || busy) return;
-      if (controller.snapshot().conflict) { statusText.textContent = "Resolve the different current versions before choosing a recovery version."; return; }
+      if (busy) return;
+      if (controller && controller.snapshot().conflict) { statusText.textContent = "Resolve the different current versions before choosing a recovery version."; return; }
       var versions = [];
+      dialog.querySelector("#sync-options").open = false;
       setBusy(true);
       try {
-        var candidates = controller.recovery();
+        var candidates = controller && controller.recovery();
         if (candidates) {
           var recoveredAt = new Date(candidates.at).toISOString();
           if (root.DriveSync.validPlan(candidates.local)) versions.push({ plan: candidates.local, label: "This device before version review", at: recoveredAt });
           if (candidates.remote && root.DriveSync.validPlan(candidates.remote.plan)) versions.push({ plan: candidates.remote.plan, label: "Drive before version review", at: recoveredAt });
         }
-        var local = read("aigb-sync-before-replace:" + session.accountId);
-        if (local) {
-          local = JSON.parse(local);
-          if (local.accountId === session.accountId && root.DriveSync.validPlan(local.plan)) versions.push({ plan: local.plan, label: "Before " + local.reason + " on this device", at: local.at });
+        var local = localRecovery();
+        if (local) versions.push({ plan: local.plan, label: "Previous device plan", at: local.at });
+        if (controller && session && session.authenticated) {
+          var result = await request("recovery");
+          if (result.accountId !== session.accountId || !Array.isArray(result.versions)) throw new Error("Invalid recovery response");
+          result.versions.slice(0, 3).forEach(function (version) {
+            if (!root.DriveSync.validPlan(version.plan)) throw new Error("Invalid recovery version");
+            versions.push({ plan: version.plan, label: "Previous synced plan", at: version.savedAt });
+          });
         }
-        var result = await request("recovery");
-        if (result.accountId !== session.accountId || !Array.isArray(result.versions)) throw new Error("Invalid recovery response");
-        result.versions.slice(0, 3).forEach(function (version) {
-          if (!root.DriveSync.validPlan(version.plan)) throw new Error("Invalid recovery version");
-          versions.push({ plan: version.plan, label: "Previous synced plan", at: version.savedAt });
-        });
       } catch (error) { statusText.textContent = "Could not load Drive recovery history. Any available local recovery is shown below."; }
       finally { setBusy(false); }
       var list = dialog.querySelector("#sync-recovery-list"); list.replaceChildren();
       dialog.querySelector("#sync-recovery").classList.remove("is-hidden");
-      if (!versions.length) { var empty = document.createElement("p"); empty.textContent = "No recovery versions are available yet. You can import a file from Data or open Manual Drive backups below."; list.appendChild(empty); }
+      if (!versions.length) { var empty = document.createElement("p"); empty.textContent = "There are no earlier plans to recover. You can still import a file backup from Data."; list.appendChild(empty); }
       versions.forEach(function (version) {
         var action = document.createElement("button"); action.type = "button"; action.className = "button ghost";
         var date = !Number.isNaN(Date.parse(version.at)) ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(version.at)) : "date unavailable";
         action.textContent = preview(version.label + " · " + date, version.plan);
         action.addEventListener("click", async function () {
-          if (busy || !controller || controller.snapshot().conflict) return;
+          if (busy || controller && controller.snapshot().conflict) return;
           var accepted = await options.confirm({ title: "Restore this recovery version?", action: "Restore", message:
-            preview("Selected plan", version.plan) + (controller.snapshot().enabled ? " This replaces the synced plan on connected devices." : " This replaces this device’s plan. Automatic sync is off.") });
+            preview("Selected plan", version.plan) + (controller && controller.snapshot().enabled ? " This replaces the synced plan on connected devices." : " This replaces this device’s plan. Automatic sync is off.") });
           if (!accepted) return;
           try {
-            save("aigb-sync-before-replace:" + session.accountId, JSON.stringify({ accountId: session.accountId, plan: options.getPlan(), reason: "recovery restore", at: new Date().toISOString() }));
+            var account = session && session.accountId || read("aigb-sync-plan-owner");
+            save(account ? "aigb-sync-before-replace:" + account : "aigb-drive-before-load", JSON.stringify({ accountId: account, plan: options.getPlan(), reason: "recovery restore", at: new Date().toISOString() }));
             changingRemote = true;
             try { options.applyPlan(version.plan); } finally { changingRemote = false; }
-            controller.setPlan(enginePlan());
+            if (controller) controller.setPlan(enginePlan());
+            else statusText.textContent = "Previous plan loaded on this device. Drive files are unchanged.";
             dialog.querySelector("#sync-recovery").classList.add("is-hidden");
           } catch (error) { statusText.textContent = "Recovery could not be completed safely. Check browser storage and try again."; }
         });
@@ -490,30 +499,17 @@
         open(); statusText.textContent = "Setup was not completed. Your plan remains on this device.";
       }
     }).catch(function () {
-      statusText.textContent = "Could not reach Drive sync. Local saving and manual backups still work. Try connecting again when online.";
+      statusText.textContent = "Could not reach Drive sync. Your plan still saves on this device. Try connecting again when online.";
       if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
     });
     return {
       changed: changed,
       enabled: function () { return !!controller && controller.snapshot().enabled; },
       connected: function () { return !!controller && !!session && session.authenticated && !!session.folderUrl && !sessionExpired; },
-      usesService: function () { return !!read("aigb-sync-service-backups"); },
-      backup: async function () {
-        if (!controller || !session || !session.authenticated || read("aigb-sync-service-backups") !== session.accountId) throw new Error("Reconnect the selected Google account before saving a Drive snapshot.");
-        var result = await request("backup", { accountId: session.accountId, operationId: crypto.randomUUID(), plan: options.getPlan() });
-        if (result.accountId !== session.accountId) throw new Error("Account mismatch");
-        return result;
-      },
-      restore: async function () {
-        if (!controller || !session || !session.authenticated || read("aigb-sync-service-backups") !== session.accountId) throw new Error("Reconnect the selected Google account before restoring a Drive snapshot.");
-        var result = await request("backup");
-        if (result.accountId !== session.accountId) throw new Error("Account mismatch");
-        return result.backup;
-      },
       beforeReplace: async function (kind) {
         if (!controller || !controller.snapshot().enabled) return true;
         var accepted = await options.confirm({ title: kind === "reset" ? "Start over on connected devices?" : "Replace the synced plan?",
-          action: "Continue", message: "This change will update the plan on your connected devices after syncing. Drive manual backups stay intact. The previous synced versions remain in recovery." });
+          action: "Continue", message: "This change will update the plan on your connected devices after syncing. Your previous plan is kept for recovery." });
         if (!accepted) return false;
         try {
           save("aigb-sync-before-replace:" + session.accountId, JSON.stringify({ accountId: session.accountId,

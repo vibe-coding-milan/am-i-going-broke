@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-28 — Unify Google Drive around automatic sync
+
+- Replace the browser-only connection and manual Drive transfer controls with one server-backed Connect action. Connecting enables automatic sync; local file download/import remain independent.
+- Show the account, actual sync status, one pause/resume toggle and the Am I Going Broke? folder. Keep disconnect and contextual recovery secondary. Remove the misleading last-backup indicator.
+- During connection, copy a legacy cloud plan into a separate current sync file inside the app folder without modifying the original. Continue protecting empty devices and genuinely competing edits.
+- Retire the public manual Drive backup routes, old browser OAuth code and obsolete transfer tests. Update privacy disclosures for the single server-backed flow.
+- Verification: 108 retained JavaScript regression runs, 61 isolated PHP assertions, and responsive mock connection/automatic-write checks. Private configuration is provisioned; actual authorization and refresh verification are recorded separately in the [release log](docs/DRIVE_SYNC_RELEASE.md).
+
 ## 2026-10-28 — Read Drive before saving and simplify plan choices
 
 - Make Google Drive… the entry point on ordinary visits. Connecting checks for an existing plan first and makes no Drive writes; an empty session can pick it up directly. Different populated plans show two short summaries, the Drive save date, and two choices.

@@ -48,7 +48,7 @@ if (spawnSync("php", ["-v"], { stdio: "ignore" }).status === 0) {
 }
 
 console.log("Drive sync state-machine regressions");
-run(process.execPath, ["--test", "tests/drive-sync.test.cjs", "tests/drive-sync-ui.test.cjs", "tests/drive-connection.test.cjs"]);
+run(process.execPath, ["--test", "tests/drive-sync.test.cjs", "tests/drive-sync-ui.test.cjs"]);
 
 for (const TZ of ["America/New_York", "Pacific/Auckland"]) {
   console.log(`Scheduling regressions: ${TZ}`);

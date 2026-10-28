@@ -43,12 +43,12 @@ test('legacy Drive backup authorization never appears as automatic sync consent'
   const result = view({ legacy: true });
   assert.equal(result.action, 'Connect Google Drive');
   assert.equal(result.toggle, false);
-  assert.match(result.description, /older backups stay available/);
+  assert.match(result.description, /sync your saved plan/);
   assert.equal(result.setup, true, 'old manual authorization never enables sync by itself');
 });
 test('an authenticated account still needs explicit setup on this device', () => {
   const result = view({ authenticated: true });
-  assert.equal(result.action, 'Turn on sync');
+  assert.equal(result.action, 'Connect Google Drive');
   assert.equal(result.setup, true);
   assert.equal(result.toggle, false);
 });

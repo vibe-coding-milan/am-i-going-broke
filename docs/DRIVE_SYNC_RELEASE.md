@@ -1,5 +1,13 @@
 # Drive sync production preview — October 28, 2026
 
+## Unified automatic connection — prepared for activation
+
+Owner requested retiring manual Drive imports/exports and making Connect enable syncing in Am I Going Broke?. The browser-only path and its status indicator are removed, while local file download/import remain. The owner supplied a new secret privately and reported adding the callback. It is installed outside the website, initially disabled, with owner-only permissions and a separately protected encryption-key copy. No secret is in source control.
+
+108 retained JavaScript regressions and 61 isolated PHP assertions pass. The retired browser-only tests were removed with their implementation. Mock callback completion enabled sync and adopted an existing plan; a balance edit triggered exactly one automatic write after five seconds, with no manual snapshots. New settings fit desktop/tablet/phone/landscape widths. Real Google sign-in and refresh remain to be confirmed before the old secret is retired.
+
+Publication, activation and real-account proof will be recorded after the live test.
+
 ## Returning-user refinement
 
 Published in [PR #42](https://github.com/vibe-coding-milan/am-i-going-broke/pull/42), release [54fa83f](https://github.com/vibe-coding-milan/am-i-going-broke/commit/54fa83f04d3ccf3c7d371669fbca292aef2919e3), and deployed. [CI passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40721287050). The deployment preview/publication succeeded; all eight public app files match release source and the service still reports available:false. The ordinary site now has the read-first connection and four-action Data menu. The local-recovery visibility safeguard was published in [PR #43](https://github.com/vibe-coding-milan/am-i-going-broke/pull/43), release [037798d](https://github.com/vibe-coding-milan/am-i-going-broke/commit/037798d3e8b6c14a727b28adaf31f23eb19e04aa), and deployed with a new connection asset version. [Its CI passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40722002525). Live index.html and driveConnection.js match that release byte-for-byte; the other six public files remain unchanged from the verified read-first release. A live browser check confirmed the four-action menu and minimal Connect Google Drive entry without initiating authorization or transfers. Automatic sync still requires private OAuth configuration; the ordinary browser connection does not promise background sync.
