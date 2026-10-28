@@ -2,7 +2,11 @@
 
 ## Publication and deployment
 
-Prepared for publication; final commit, PR, CI and live verification will be recorded after completion. Owner authorized publication for testing, not a claim that real OAuth/cross-device acceptance has passed.
+Published and deployed on October 28, 2026. [PR #41](https://github.com/vibe-coding-milan/am-i-going-broke/pull/41) merged as [bed88ba](https://github.com/vibe-coding-milan/am-i-going-broke/commit/bed88ba814d19a98431138f15a0ef628989214b9). [PR project checks passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40714906599). Owner authorized publication for testing; real OAuth/cross-device acceptance has not passed.
+
+The configured deployment preview and publication succeeded, retaining private backups of replaced files. Live index.html, app.js, styles.css, privacy.html, terms.html and both sync modules match the release byte-for-byte. The homepage and policy pages return HTTP 200. The live status endpoint returns HTTP 200 with {"available":false}; direct HTTP requests for the server class and configuration-template path return 403. No actual configuration/credentials were uploaded.
+
+Live browser smoke checks confirmed four primary Data actions in the explicit preview and five manual/file/reset actions on ordinary visits, with no sync controls introduced on ordinary visits. The preview truthfully displays unavailable; real authorization remains blocked on private OAuth configuration. No real financial plan or Drive file was modified by these smoke checks.
 
 - Preview: https://amigoingbroke.me/?drive-sync=preview
 - Ordinary visits: original manual Drive paths, with clearer labels and calm app error dialogs.

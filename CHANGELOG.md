@@ -1,10 +1,11 @@
 # Changelog
 
-## 2026-10-28 — Prepare production-URL sync preview and simplify error dialogs
+## 2026-10-28 — Publish production-URL sync preview and simplify error dialogs
 
 - Add an explicit `?drive-sync=preview` entry on the production origin, retaining it through the fixed OAuth callback. Ordinary visitors retain manual Drive controls until general activation.
 - Replace alarming generic error dialogs with concise titles, plain guidance, and one OK action. Cancelled/blocked Google sign-in, missing backups, expired permission, failed downloads, and invalid imports get specific messages; raw Google errors stay out of app dialogs. Destructive confirmations retain their warnings.
 - Validation: 116 JavaScript regression runs; final PHP lint and 49 isolated service assertions; cancellation dialogs checked at desktop/tablet/phone/landscape widths without overflow.
+- Published in [PR #41](https://github.com/vibe-coding-milan/am-i-going-broke/pull/41), release bed88ba; deployed and verified against the live public files. The service reports unavailable until private OAuth setup is completed.
 - Publication/deployment/configuration status: [production preview release record](docs/DRIVE_SYNC_RELEASE.md). Real Google OAuth configuration and cross-device owner acceptance remain separate gates; see [#40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40).
 
 ## 2026-10-28 — Build optional automatic Drive sync behind an inactive flag
