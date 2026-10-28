@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-28 — Keep dialog text inside its controls
+
+- Replace the compressed confirmation-button row with a two-column action grid and a full-width backup action. Wrap long labels and error text; constrain dialogs to the viewport and allow vertical scrolling.
+- Refresh shared stylesheet URLs across the app and policy pages.
+- Checked backup-update, reset, invalid-import, restore-preview, and simulated long-error dialogs across desktop, tablet, phone, and short landscape layouts; inspected both themes and enlarged text. Details and limitations: [Dialog review](docs/DIALOG_REVIEW.md).
+- Prepared locally; not yet published or deployed.
+
 ## 2026-10-28 — Clarify privacy policy for Google Drive verification
 
 - Identify the developer and app domain, and describe the exact Drive permission, backup contents, file metadata, and manual export/import purposes.
