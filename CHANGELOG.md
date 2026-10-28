@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-28 — Responsive chart inspection
+
+- Anchor desktop date/balance cards near the selected point, keep them within the viewport, and choose among four positions to reduce overlap with balance segments and chart labels. Keep the current side when practical and allow the card itself to be hovered.
+- Use a reserved readout below the plot on narrow screens and for touch/pen input, including wide tablets. Support tap selection, horizontal scrubbing, previous/next-day buttons and Close while preserving vertical page scrolling.
+- Remove payment names from the card; Transactions retains payment details. Preserve keyboard date navigation and Escape dismissal, announce deliberate date changes without announcing every mouse movement, and dismiss on outside interaction.
+- Validation and production publication are recorded in [chart inspection release notes](docs/CHART_INSPECTION_RELEASE.md).
+
 ## 2026-10-28 — First-use examples and safe personal-plan entry
 
 - Give generated example payments deterministic IDs within each scenario to prevent random collisions during rapid creation. Personal payment IDs are unchanged.

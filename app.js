@@ -759,6 +759,12 @@
   var ledgerLimit = 20;
   var inspectChartDay = function () {};
   var chartInspectionIndex = null;
+  var chartInspectionInput = null;
+  document.addEventListener("pointerdown", function (event) {
+    if (!projectionChart.parentNode.contains(event.target)) {
+      projectionChart.parentNode.classList.remove("is-inspecting");
+    }
+  });
   var answerRefreshRequested = false;
   var mobileQuery = window.matchMedia("(max-width: 860px)");
   var appearanceMenu = document.querySelector(".appearance-menu");
@@ -1820,43 +1826,174 @@
       '<g id="chart-inspection-marker" aria-hidden="true"><line x1="0" x2="0" y1="' + pad.top + '" y2="' + (height - pad.bottom) + '" stroke="var(--muted)" stroke-dasharray="3 4" /><circle cx="0" cy="0" r="4" fill="var(--text)" stroke="var(--bg)" stroke-width="2" /></g>' +
       "</svg>";
 
-    inspectChartDay = function (index) {
+    var plotWrap = projectionChart.parentNode;
+    var inspector = plotWrap.querySelector(".chart-inspector");
+    var inspectionValue = document.querySelector("#chart-inspection-value");
+    var announcement = document.querySelector("#chart-inspection-announcement");
+    var previousDay = document.querySelector("#chart-previous-day");
+    var nextDay = document.querySelector("#chart-next-day");
+    var preferredSide = null;
+    var gesture = null;
+
+    function setInspectionMode(input) {
+      if (input) chartInspectionInput = input;
+      var docked = containerWidth < 560 || chartInspectionInput === "touch" ||
+        (!chartInspectionInput && window.matchMedia("(hover: none)").matches);
+      plotWrap.classList.toggle("is-inspection-docked", docked);
+      return docked;
+    }
+
+    function positionInspector() {
+      if (setInspectionMode() || !plotWrap.classList.contains("is-inspecting")) return;
+      var svgRect = projectionChart.querySelector("svg").getBoundingClientRect();
+      var wrapRect = plotWrap.getBoundingClientRect();
+      var box = inspector.getBoundingClientRect();
+      var point = chartRows[chartInspectionIndex];
+      var px = svgRect.left - wrapRect.left + xFor(chartInspectionIndex) / width * svgRect.width;
+      var py = svgRect.top - wrapRect.top + yFor(point.balance) / height * svgRect.height;
+      var gap = 16;
+      var inset = 8;
+      var minX = Math.max(inset, inset - wrapRect.left);
+      var maxX = Math.min(wrapRect.width - inset, window.innerWidth - wrapRect.left - inset) - box.width;
+      var minY = Math.max(inset, inset - wrapRect.top);
+      var maxY = Math.min(svgRect.bottom - wrapRect.top - inset, window.innerHeight - wrapRect.top - inset) - box.height;
+      // In cramped or magnified views, use the same unobstructed readout as touch.
+      if (maxX < minX || maxY < minY) {
+        plotWrap.classList.add("is-inspection-docked");
+        return;
+      }
+      var candidates = [
+        { side: "above-right", x: px + gap, y: py - box.height - gap },
+        { side: "above-left", x: px - box.width - gap, y: py - box.height - gap },
+        { side: "below-right", x: px + gap, y: py + gap },
+        { side: "below-left", x: px - box.width - gap, y: py + gap },
+      ];
+      var labels = Array.from(projectionChart.querySelectorAll(".chart-axis-label, .chart-point-label, .chart-average-label, .chart-zone-label"))
+        .map(function (label) { return label.getBoundingClientRect(); });
+      candidates.forEach(function (candidate) {
+        var desiredX = candidate.x;
+        var desiredY = candidate.y;
+        candidate.x = Math.max(minX, Math.min(maxX, candidate.x));
+        candidate.y = Math.max(minY, Math.min(maxY, candidate.y));
+        candidate.score = Math.abs(candidate.x - desiredX) + Math.abs(candidate.y - desiredY) +
+          (preferredSide && candidate.side !== preferredSide ? 24 : 0);
+        var left = candidate.x - 6;
+        var right = candidate.x + box.width + 6;
+        var top = candidate.y - 6;
+        var bottom = candidate.y + box.height + 6;
+        candidate.obscuresPoint = px >= left && px <= right && py >= top && py <= bottom;
+        // Penalize segments crossing the card, including long segments between sparse points.
+        for (var i = 1; i < chartRows.length; i += 1) {
+          var x1 = svgRect.left - wrapRect.left + xFor(i - 1) / width * svgRect.width;
+          var x2 = svgRect.left - wrapRect.left + xFor(i) / width * svgRect.width;
+          if (x2 < left || x1 > right || x2 === x1) continue;
+          var y1 = svgRect.top - wrapRect.top + yFor(chartRows[i - 1].balance) / height * svgRect.height;
+          var y2 = svgRect.top - wrapRect.top + yFor(chartRows[i].balance) / height * svgRect.height;
+          var ya = y1 + (y2 - y1) * (Math.max(left, x1) - x1) / (x2 - x1);
+          var yb = y1 + (y2 - y1) * (Math.min(right, x2) - x1) / (x2 - x1);
+          if (Math.max(ya, yb) >= top && Math.min(ya, yb) <= bottom) candidate.score += 300;
+        }
+        labels.forEach(function (label) {
+          if (label.right - wrapRect.left > left && label.left - wrapRect.left < right &&
+              label.bottom - wrapRect.top > top && label.top - wrapRect.top < bottom) candidate.score += 100;
+        });
+      });
+      candidates = candidates.filter(function (candidate) { return !candidate.obscuresPoint; });
+      if (!candidates.length) {
+        plotWrap.classList.add("is-inspection-docked");
+        return;
+      }
+      candidates.sort(function (a, b) { return a.score - b.score; });
+      preferredSide = candidates[0].side;
+      inspector.style.left = candidates[0].x + "px";
+      inspector.style.top = candidates[0].y + "px";
+    }
+
+    inspectChartDay = function (index, announce) {
       chartInspectionIndex = Math.max(0, Math.min(chartRows.length - 1, Number(index)));
       var point = chartRows[chartInspectionIndex];
-      document.querySelector("#chart-inspection-value").textContent = formatProjectionHealthDate(point.dateKey) + " · " + formatCurrency(point.balance);
-      var items = rows.filter(function (row) { return row.dateKey === point.dateKey && !row.outsideWindow && !row.skipped; });
-      document.querySelector("#chart-inspection-note").textContent = items.length ? items.map(function (row) { return row.name; }).join(", ") : "No scheduled payments";
+      var value = formatProjectionHealthDate(point.dateKey) + " · " + formatCurrency(point.balance);
+      if (inspectionValue.textContent !== value) inspectionValue.textContent = value;
+      if (announce) announcement.textContent = value;
+      previousDay.disabled = chartInspectionIndex === 0;
+      nextDay.disabled = chartInspectionIndex === chartRows.length - 1;
       var marker = projectionChart.querySelector("#chart-inspection-marker");
       marker.querySelector("line").setAttribute("x1", xFor(chartInspectionIndex));
       marker.querySelector("line").setAttribute("x2", xFor(chartInspectionIndex));
       marker.querySelector("circle").setAttribute("cx", xFor(chartInspectionIndex));
       marker.querySelector("circle").setAttribute("cy", yFor(point.balance));
+      positionInspector();
     };
+    setInspectionMode();
     inspectChartDay(chartInspectionIndex === null ? lowIndex : chartInspectionIndex);
-    function inspectPointer(event) {
-      projectionChart.parentNode.classList.add("is-inspecting");
+    function inspectPointer(event, announce) {
+      var input = event.pointerType === "mouse" ? "mouse" : "touch";
+      var needsPosition = !plotWrap.classList.contains("is-inspecting") || chartInspectionInput !== input;
+      setInspectionMode(input);
+      plotWrap.classList.add("is-inspecting");
       var rect = projectionChart.querySelector("svg").getBoundingClientRect();
       var x = (event.clientX - rect.left) / rect.width * width;
-      inspectChartDay(Math.round((x - pad.left) / (width - pad.left - pad.right) * (chartRows.length - 1)));
+      var index = Math.max(0, Math.min(chartRows.length - 1,
+        Math.round((x - pad.left) / (width - pad.left - pad.right) * (chartRows.length - 1))));
+      if (needsPosition || index !== chartInspectionIndex || announce) inspectChartDay(index, announce);
     }
-    projectionChart.onpointerdown = function (event) { if (event.button === 0) inspectPointer(event); };
-    projectionChart.onpointermove = function (event) { if (event.pointerType === "mouse") inspectPointer(event); };
-    projectionChart.onpointerleave = function (event) {
-      if (event.pointerType === "mouse" && document.activeElement !== projectionChart) projectionChart.parentNode.classList.remove("is-inspecting");
+    projectionChart.onpointerdown = function (event) {
+      if (event.button !== 0) return;
+      setInspectionMode(event.pointerType === "mouse" ? "mouse" : "touch");
+      if (event.pointerType === "mouse") inspectPointer(event);
+      else gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, scrubbing: false };
     };
-    projectionChart.onfocus = function () { projectionChart.parentNode.classList.add("is-inspecting"); };
-    projectionChart.onblur = function () { projectionChart.parentNode.classList.remove("is-inspecting"); };
+    projectionChart.onpointermove = function (event) {
+      if (event.pointerType === "mouse") { inspectPointer(event); return; }
+      if (!gesture || gesture.id !== event.pointerId) return;
+      var dx = Math.abs(event.clientX - gesture.x);
+      var dy = Math.abs(event.clientY - gesture.y);
+      if (!gesture.scrubbing && dx > 8 && dx > dy * 1.2) {
+        gesture.scrubbing = true;
+        projectionChart.setPointerCapture(event.pointerId);
+      }
+      if (gesture.scrubbing) inspectPointer(event);
+    };
+    projectionChart.onpointerup = function (event) {
+      if (gesture && gesture.id === event.pointerId) {
+        if (gesture.scrubbing || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) < 8) inspectPointer(event, true);
+        gesture = null;
+      }
+    };
+    projectionChart.onpointercancel = function () { gesture = null; };
+    projectionChart.onlostpointercapture = function () { gesture = null; };
+    plotWrap.onpointerleave = function (event) {
+      if (event.pointerType === "mouse" && !plotWrap.contains(document.activeElement)) plotWrap.classList.remove("is-inspecting");
+    };
+    projectionChart.onfocus = function () {
+      plotWrap.classList.add("is-inspecting");
+      inspectChartDay(chartInspectionIndex);
+    };
+    plotWrap.onfocusout = function (event) {
+      if (!plotWrap.contains(event.relatedTarget)) plotWrap.classList.remove("is-inspecting");
+    };
+    function closeInspection() {
+      // Return keyboard focus before hiding the touch controls, then dismiss.
+      if (inspector.contains(document.activeElement)) projectionChart.focus({ preventScroll: true });
+      plotWrap.classList.remove("is-inspecting");
+      announcement.textContent = "";
+    }
+    document.querySelector("#chart-close-inspection").onclick = closeInspection;
+    previousDay.onclick = function () { inspectChartDay(chartInspectionIndex - 1, true); };
+    nextDay.onclick = function () { inspectChartDay(chartInspectionIndex + 1, true); };
+    plotWrap.onkeydown = function (event) {
+      if (event.key === "Escape") { event.preventDefault(); closeInspection(); }
+    };
     projectionChart.onkeydown = function (event) {
       var index = chartInspectionIndex;
       if (event.key === "ArrowLeft") index -= 1;
       else if (event.key === "ArrowRight") index += 1;
       else if (event.key === "Home") index = 0;
       else if (event.key === "End") index = chartRows.length - 1;
-      else if (event.key === "Escape") { projectionChart.parentNode.classList.remove("is-inspecting"); return; }
       else return;
       event.preventDefault();
-      projectionChart.parentNode.classList.add("is-inspecting");
-      inspectChartDay(index);
+      plotWrap.classList.add("is-inspecting");
+      inspectChartDay(index, true);
     };
   }
 
