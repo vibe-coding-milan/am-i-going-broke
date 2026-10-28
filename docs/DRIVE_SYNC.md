@@ -99,7 +99,7 @@ Private provisioning and live activation are separate from owner/device acceptan
 
 ## Unified connection release
 
-The normal Data menu now mounts the server-backed sync interface directly. There is no browser-only OAuth token path, manual Drive save/import UI, or last-backup status. Download a backup and Import a backup remain local-file actions. Completing Connect enables sync; pause/resume is then controlled by one toggle. Ordinary settings show the account, actual sync state/time, the Am I Going Broke? folder, and Done. Connection settings contains disconnect plus contextual recovery only.
+The normal Data menu now mounts the server-backed sync interface directly. There is no browser-only OAuth token path, manual Drive save/import UI, or last-backup status. Download a backup and Import a backup remain local-file actions. Completing Connect enables sync; pause/resume is then controlled by one toggle. Ordinary settings show the account, Automatic sync toggle and Am I Going Broke? folder, with Disconnect and Done in the footer. Routine status/time and mechanics are omitted; problems and recovery appear only when relevant. The Data icon carries the compact sync indication.
 
 Connect materializes an existing legacy cloud plan as a separate Current plan.json inside the app folder. It never replaces the old backup and does not pick between different device/cloud plans. Account-lock version checks handle concurrent migration and repeated connection makes no extra writes. The old public manual-backup API routes are retired; legacy reads stay available internally for migration.
 
