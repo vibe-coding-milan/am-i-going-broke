@@ -2,7 +2,7 @@
 
 ## October 28, 2026 — Inline export/import menu
 
-Status: reviewed locally and approved for publication on October 28, 2026. Production deployment and live owner verification are recorded in GitHub issue #11.
+Status: approved locally, published, and deployed October 28, 2026. [PR #36](https://github.com/vibe-coding-milan/am-i-going-broke/pull/36), release `f1cc73a68722fb502c1797d3749bca4b45d1131d`. Live owner acceptance remains pending in [issue #11](https://github.com/vibe-coding-milan/am-i-going-broke/issues/11).
 
 Approved design replaces section headings, icons, and explanatory paragraphs with five text actions: Export to file, Import from file…, Export to Google Drive, Import from Google Drive…, and Start over…. Only the destructive action has a divider. Known Drive backup time and relevant operation feedback remain visible. Appearance now stays outside Data in the header. Wide screens show the three theme choices in a pill-shaped group; at 860px and below a separate Appearance pill opens Device / Dark / Light choices, with the saved preference marked. Both popovers are mutually exclusive, close on outside click or Escape, and return focus appropriately. Theme selections apply immediately and persist. Resizing closes the compact Appearance popup and moves focus out of hidden content. The owner approved this responsive refinement for publication after local review.
 
@@ -10,7 +10,7 @@ Desktop pointer rows are 32px in a 280px panel. Narrow layouts (up to 860px) and
 
 Validation: syntax and 68 local link checks; 33 regressions in each of two time zones (66 passes). Browser review covered 1280px desktop, 768px tablet, and 320px phone layouts in light/dark themes. Measured action heights: 32px desktop, 44px tablet/phone; no horizontal overflow at 320px or 768px. A 568×320 landscape viewport bounds the panel and allows internal scrolling. Verified actual file export and import preview with the exported empty test plan, replacement warning, cancellation focus return, Start over confirmation/cancel, and Escape dismissal. Reload retained the selected theme. Existing tests cover backup compatibility and Drive operation cleanup/retry.
 
-Limits: no real Google authorization or transfer performed; physical touch devices and screen readers remain unverified. Production publication is tracked separately in issue #11.
+Limits: no real Google authorization or transfer performed; physical touch devices and screen readers remain unverified. Live verification confirmed exact source matches for index.html, app.js, and styles.css, plus HTTP 200 for the homepage and policy pages. Browser checks on production confirmed the five labels, separate Appearance controls, 44px rows and no overflow at 320px, mutually exclusive popovers, light-theme selection and focus return. Production deployment retained backups of replaced files.
 
 ### Owner review checklist
 

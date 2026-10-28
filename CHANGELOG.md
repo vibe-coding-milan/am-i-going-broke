@@ -7,7 +7,7 @@
 - Keep Appearance separate from Data, using a wide pill-shaped group and a compact Appearance pill/dropdown on narrow screens. Preserve saved Device/Light/Dark preferences and keyboard dismissal.
 - Retain the last Drive backup time, operation feedback, restore previews, and the separate Start over confirmation.
 - Validation: syntax/link checks and 66 regression runs; browser checks across desktop, tablet, phone, and short-screen layouts in both themes, including theme persistence and keyboard dismissal.
-- Approved for publication; production deployment is recorded separately after verification.
+- Published and deployed October 28, 2026 via [PR #36](https://github.com/vibe-coding-milan/am-i-going-broke/pull/36), release `f1cc73a`. The live HTML, JavaScript, and CSS match the approved source; phone layout and theme selection were checked on production. Live owner acceptance remains tracked in [issue #11](https://github.com/vibe-coding-milan/am-i-going-broke/issues/11).
 
 ## 2026-10-18 — Payment usability and local backup reliability
 
