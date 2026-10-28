@@ -454,8 +454,6 @@
     document.documentElement.setAttribute("data-theme-preference", preference);
     syncThemeControls(preference);
     syncThemeAssets(resolvedTheme);
-    var themeLabel = document.querySelector("#resolved-theme-label");
-    if (themeLabel) themeLabel.textContent = (preference === "system" ? "Device · " : "") + resolvedTheme;
 
     if (shouldPersist) {
       persistThemePreference(preference);
@@ -760,8 +758,7 @@
   var chartInspectionIndex = null;
   var answerRefreshRequested = false;
   var mobileQuery = window.matchMedia("(max-width: 860px)");
-  var themeSwitcher = document.querySelector(".theme-switcher");
-  var utilityHome = themeSwitcher.parentNode;
+  var appearanceMenu = document.querySelector(".appearance-menu");
   var chartOptions = document.querySelector(".chart-options");
   var pendingFocusRuleId = null;
   var pendingFocusField = null;
@@ -2133,7 +2130,7 @@
         hour: "numeric",
         minute: "2-digit",
       }).format(new Date(backupAt));
-      driveBackupStatus.textContent = "Last backup · " + formatted;
+      driveBackupStatus.textContent = "Last Drive backup: " + formatted;
       driveBackupStatus.classList.remove("is-hidden");
     } catch (error) {
       driveBackupStatus.textContent = "";
@@ -3087,7 +3084,25 @@
     dataMenu.querySelector("summary").focus();
   });
 
+  function closeAppearanceMenu(returnFocus) {
+    if (!mobileQuery.matches) return;
+    appearanceMenu.open = false;
+    if (returnFocus) appearanceMenu.querySelector("summary").focus();
+  }
+
+  appearanceMenu.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape" || !mobileQuery.matches) return;
+    event.preventDefault();
+    closeAppearanceMenu(true);
+  });
+  // Native details controls provide Enter/Space; keep the two popovers exclusive.
+  appearanceMenu.querySelector("summary").addEventListener("click", closeDataMenu);
+  dataMenu.querySelector("summary").addEventListener("click", function () {
+    closeAppearanceMenu(false);
+  });
+
   document.addEventListener("click", function (event) {
+    if (!appearanceMenu.contains(event.target)) closeAppearanceMenu(false);
     if (dataMenu && dataMenu.hasAttribute("open") && !dataMenu.contains(event.target)) {
       closeDataMenu();
     }
@@ -3147,6 +3162,7 @@
 
       if (nextPreference === "system" || nextPreference === "dark" || nextPreference === "light") {
         applyThemePreference(nextPreference, { persist: true, render: true });
+        closeAppearanceMenu(true);
       }
     });
   });
@@ -3422,12 +3438,13 @@
   }, { passive: true });
 
   function configureResponsiveUI() {
-    if (mobileQuery.matches) {
-      dataMenu.querySelector(".data-menu-panel").appendChild(themeSwitcher);
-      chartOptions.open = false;
-    } else {
-      utilityHome.appendChild(themeSwitcher);
-      chartOptions.open = true;
+    var focused = document.activeElement;
+    appearanceMenu.open = !mobileQuery.matches;
+    chartOptions.open = !mobileQuery.matches;
+    // A resize must not leave focus inside a now-hidden popup or trigger.
+    if (appearanceMenu.contains(focused)) {
+      if (mobileQuery.matches) appearanceMenu.querySelector("summary").focus();
+      else appearanceMenu.querySelector('[aria-pressed="true"]').focus();
     }
   }
   if (mobileQuery.addEventListener) mobileQuery.addEventListener("change", configureResponsiveUI);

@@ -2521,11 +2521,6 @@ button:disabled { opacity: .45; cursor: default; }
   .topbar-utilities { width: auto; flex: 0 0 auto; align-items: center; }
   .data-menu summary { min-height: 44px; padding: 4px 10px; }
   .data-menu-panel { position: absolute; right: 0; left: auto; width: min(330px, calc(100vw - 20px)); max-height: calc(100vh - 80px); max-height: calc(100dvh - 80px); max-height: calc(100svh - 80px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
-  .data-menu .theme-switcher { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 8px; border-radius: 0; background: none; }
-  .mobile-theme-heading { display: flex; grid-column: 1 / -1; justify-content: space-between; color: var(--muted); font-size: .8rem; padding: 4px 0 8px; }
-  .mobile-theme-heading small { font-weight: 500; }
-  .data-menu .theme-switcher button { width: 100%; height: auto; min-height: 44px; grid-auto-flow: column; gap: 5px; border-radius: 8px; }
-  .theme-choice-label { display: inline; font-size: .8rem; }
   .mobile-section-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; position: sticky; top: 0; z-index: 15; margin: 0 -10px 12px; padding: 6px 10px; background: var(--bg); border-bottom: 1px solid var(--line); }
   .mobile-section-nav a { display: grid; place-items: center; min-height: 44px; color: var(--text); font-size: .82rem; font-weight: 700; text-decoration: none; border-radius: 8px; background: var(--surface); }
   .mobile-section-nav a:focus-visible { outline: 3px solid var(--focus-ring); }
@@ -2689,24 +2684,125 @@ button:disabled { opacity: .45; cursor: default; }
   .hero .projection-answer { display: inline; font: inherit; line-height: inherit; }
 }
 
-/* Compact backup actions: visible labels, consistent icons, full touch targets. */
-.data-menu-panel { width: min(280px, calc(100vw - 24px)); }
-.data-menu-heading { display: block; margin: 0; padding: 7px 10px; background: none; color: var(--muted); font-size: .72rem; line-height: 1.4; }
-.data-menu-section { padding: 5px 4px; gap: 0; }
-.data-menu-label { margin: 3px 8px 5px; font-size: .65rem; letter-spacing: .05em; }
-.data-menu-group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding-right: 8px; }
-.data-menu-hint { color: var(--muted); font-size: .66rem; }
-.data-menu-action { grid-template-columns: 24px minmax(0, 1fr); min-height: 44px; gap: 9px; padding: 6px 8px; }
-.data-menu-icon, .danger-action .data-menu-icon { width: 24px; height: 24px; border: 0; border-radius: 0; background: none; }
-.data-menu-icon { color: var(--muted-strong); }
-.data-menu-action-copy > span { font-size: .84rem; line-height: 1.35; }
-.data-menu-note { padding: 3px 8px 2px; font-size: .68rem; }
-.data-menu-section-danger { padding: 5px 4px; }
+/* Text-first Data menu: compact pointer rows, larger targets on touch surfaces. */
+.data-menu-panel {
+  width: min(280px, calc(100vw - 20px));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  border-radius: 8px;
+}
+.data-menu-section { padding: 0; gap: 0; }
+.data-menu-action {
+  display: block;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+.data-menu-note {
+  padding: 4px 12px 6px;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.data-menu-section-danger { margin-top: 4px; padding-top: 4px; }
+:root[data-theme="light"] .data-menu .danger-action { color: #bd2547; }
+@media (max-width: 860px), (any-pointer: coarse) {
+  .data-menu-panel { width: min(300px, calc(100vw - 20px)); padding: 8px; }
+  .data-menu-action { min-height: 44px; padding-block: 12px; }
+}
+/* Appearance has its own pill, never becomes part of Data. */
+.appearance-menu { position: relative; flex: 0 0 auto; z-index: 20; }
+.appearance-menu > summary { display: none; }
+.appearance-menu .theme-switcher { min-height: 44px; align-items: center; }
+.appearance-menu .theme-switcher button { border-radius: 999px; }
+.appearance-menu button:focus-visible,
+.appearance-menu > summary:focus-visible,
+.data-menu > summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+@media (any-pointer: coarse) {
+  .appearance-menu .theme-switcher { grid-template-columns: repeat(3, 44px); }
+  .appearance-menu .theme-switcher button { width: 44px; height: 44px; }
+}
 @media (max-width: 860px) {
-  .data-menu-panel { width: min(300px, calc(100vw - 20px)); }
-  .data-menu .theme-switcher { gap: 4px; padding: 6px 4px; }
-  .mobile-theme-heading { padding: 2px 4px 4px; font-size: .74rem; }
-  .data-menu .theme-switcher button { min-height: 44px; }
+  .topbar-utilities { gap: 8px; }
+  .appearance-menu {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--white-glass);
+  }
+  .appearance-menu > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 44px;
+    min-height: 44px;
+    border-radius: 999px;
+    color: var(--muted-strong);
+    cursor: pointer;
+    list-style: none;
+    font-size: 18px;
+  }
+  .appearance-menu > summary::-webkit-details-marker { display: none; }
+  .appearance-menu > summary svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+  .appearance-menu > summary:hover,
+  .appearance-menu[open] > summary { background: var(--hover-bg); color: var(--text); }
+  .appearance-menu .theme-switcher {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: min(180px, calc(100vw - 20px));
+    padding: 6px;
+    gap: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-soft);
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+  }
+  .appearance-menu .theme-switcher button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: none;
+    box-shadow: none;
+    color: var(--text);
+    font-weight: 400;
+  }
+  .appearance-menu .theme-choice-label { display: inline; font-size: 14px; }
+  .appearance-menu .theme-switcher button > span:first-child { width: 18px; text-align: center; }
+  .appearance-menu .theme-switcher button:hover { background: var(--hover-bg); }
+  .appearance-menu .theme-switcher button[aria-pressed="true"] { background: var(--hover-bg); }
+  .appearance-menu .theme-switcher button[aria-pressed="true"]::after {
+    content: "✓";
+    margin-left: auto;
+  }
+  /* Account for the adjacent 46px Appearance pill and 8px header gap. */
+  .data-menu-panel { right: -54px; }
 }
 
 /* Chart options: matching toggles, followed by compact editable target fields. */
