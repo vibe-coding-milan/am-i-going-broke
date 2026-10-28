@@ -47,6 +47,9 @@ if (spawnSync("php", ["-v"], { stdio: "ignore" }).status === 0) {
   console.log("PHP unavailable locally: server lint/tests must pass separately before publication.");
 }
 
+console.log("Chart inspection regressions");
+run(process.execPath, ["--test", "tests/chart-inspection.test.cjs"]);
+
 console.log("Drive sync state-machine regressions");
 run(process.execPath, ["--test", "tests/drive-sync.test.cjs", "tests/drive-sync-ui.test.cjs"]);
 

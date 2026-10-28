@@ -41,7 +41,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20261028-checking-r1" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-chart-r1" />
     <link rel="stylesheet" href="./styles/projection-answer.css?v=usability-20261018-r2" />
   </head>
   <body>
@@ -177,11 +177,17 @@
             </div>
           </div>
           <div class="chart-plot-wrap">
-          <div id="projection-chart" tabindex="0" role="group" aria-label="Forecast chart. Hover or tap to inspect. Use left and right arrow keys to inspect dates; Home and End for the first and last day." aria-describedby="chart-inspection-value"></div>
+          <div id="projection-chart" tabindex="0" role="group" aria-label="Forecast chart. Hover, tap, or drag horizontally to inspect. Use left and right arrow keys to inspect dates; Home and End for the first and last day." aria-describedby="chart-inspection-value"></div>
           <div class="chart-inspector is-hidden" aria-label="Inspect forecast">
-            <div class="chart-inspection-heading"><output id="chart-inspection-value" aria-live="polite"></output><span id="chart-inspection-note"></span></div>
+            <div class="chart-inspection-heading"><output id="chart-inspection-value"></output></div>
+            <div class="chart-inspection-controls" aria-label="Inspect dates">
+              <button type="button" class="button secondary" id="chart-previous-day" aria-label="Inspect previous day">Previous</button>
+              <button type="button" class="button secondary" id="chart-next-day" aria-label="Inspect next day">Next</button>
+              <button type="button" class="button secondary" id="chart-close-inspection" aria-label="Close forecast inspection">Close</button>
+            </div>
           </div>
           </div>
+          <span id="chart-inspection-announcement" class="visually-hidden" role="status"></span>
           <details class="chart-options" open><summary>Chart options &amp; cushion targets</summary>
           <div class="chart-controls">
             <div class="chart-layer-controls">
@@ -300,6 +306,6 @@
     <script src="./components/projectionAnswer.js?v=usability-20261018-r2"></script>
     <script src="./driveSync.js?v=20261028-checking-r1"></script>
     <script src="./driveSyncUI.js?v=20261028-checking-r1"></script>
-    <script src="./app.js?v=20261028-checking-r1"></script>
+    <script src="./app.js?v=20261028-chart-r1"></script>
   </body>
 </html>

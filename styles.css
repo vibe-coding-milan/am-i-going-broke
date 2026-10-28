@@ -2722,10 +2722,14 @@ button:disabled { opacity: .45; cursor: default; }
 .forecast-metrics > div:last-child strong { font-size: .95rem; color: var(--muted-strong); }
 .balance-stale { color: var(--warning-text); }
 .chart-plot-wrap { position: relative; min-width: 0; }
-.chart-inspector { position: absolute; top: 6px; right: 12px; z-index: 2; display: none; max-width: min(80%, 340px); padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); box-shadow: var(--shadow-soft); pointer-events: none; }
-.chart-inspection-heading output { font-family: var(--mono); font-size: .8rem; }
-.chart-inspection-heading > span { font-size: .7rem; max-height: 3em; overflow: hidden; }
-.is-inspecting .chart-inspector:not(.is-hidden) { display: block; }
+.chart-inspector { position: absolute; top: 0; left: 0; right: auto; z-index: 2; display: block; visibility: hidden; max-width: min(calc(100% - 16px), 340px); padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); box-shadow: var(--shadow-soft); pointer-events: auto; }
+.chart-inspection-heading output { font-family: var(--mono); font-size: .8rem; line-height: 1.5; overflow-wrap: anywhere; }
+.chart-inspector .chart-inspection-controls { display: none; }
+.is-inspecting .chart-inspector:not(.is-hidden) { visibility: visible; }
+.is-inspection-docked .chart-inspector { position: relative; top: auto !important; left: auto !important; width: 100%; max-width: none; min-height: 100px; margin-top: 8px; box-shadow: none; }
+.is-inspection-docked .chart-inspection-controls { display: flex; gap: 8px; margin-top: 8px; }
+.is-inspection-docked .chart-inspection-controls .button { min-height: 44px; flex: 1; }
+.chart-inspector.is-hidden { display: none; }
 #chart-inspection-marker { display: none; }
 .is-inspecting #chart-inspection-marker { display: block; }
 #projection-chart:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 8px; }
