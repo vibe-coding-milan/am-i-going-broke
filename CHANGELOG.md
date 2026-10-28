@@ -4,7 +4,6 @@
 
 - Give generated example payments deterministic IDs within each scenario to prevent random collisions during rapid creation. Personal payment IDs are unchanged.
 - Remove the duplicate Sample scenario loaded notice from Payments when cycling examples. Keep the current story in the top banner and announce banner changes politely to assistive technology, without a new toast or automatic scrolling.
-
 - Keep Try an example as the sole empty-chart action. Personal entry uses the existing inputs; Drive and file import remain in Data. Preserve the personal dashboard and header voice.
 - Cycle eight fictional lives through the existing example banner, with one-sentence stories and varied starting horizons: restaurant wages/tips, growing savings, an explicit layoff with final pay/severance/26 weekly benefits, steady shared-household bills, staged emergency home repairs, an expiring contract plus delivery work, a student tuition installment, and stepped card payments. Longer forecasts reveal shortfalls in four initially solvent stories; positive stories remain available. Anchor schedules to upcoming dates and keep finite income bounds stable.
 - Start a clean draft directly from an example without a destructive reset dialog. Keep exploration available until personal financial input exists; personal import and Drive retrieval hide it. Use a quiet Fictional example label above the person, scenario and short narrative; keep the focus on each story.
@@ -12,7 +11,9 @@
 - Give all eight examples distinct red/yellow/green cushion targets reflecting their cash needs. Preserve personal defaults and existing threshold behavior; verify each example remains ordered and independent.
 - Track example origin and personal financial input explicitly. Disable empty/example downloads without feedback messages and omit irrelevant download-first prompts; retain zero-dollar personal plans and legacy backup compatibility.
 - Allow explicit Drive retrieval from examples without uploading them. Preserve existing revision checks, delayed writes, conflict protection and confirmed synced-reset behavior.
-- Local validation: syntax/link checks, 56 Drive/UI regressions and 37 scheduling/application regressions in each of two time zones (128 JavaScript runs). Browser checks cover desktop and 390px/320px phones, light/dark layouts, eight-story cycling, horizon changes, story persistence, direct personal setup, zero-dollar persistence, reset, and simulated Drive retrieval with zero uploads. Real multi-device Drive acceptance remains pending. Production publication and live verification are recorded in [first-use release notes](docs/FIRST_USE_RELEASE.md).
+- Local validation: syntax/link checks, 56 Drive/UI regressions and 37 scheduling/application regressions in each of two time zones (130 JavaScript runs). Browser checks cover desktop and 390px/320px phones, light/dark layouts, eight-story cycling, horizon changes, story persistence, direct personal setup, zero-dollar persistence, reset, and simulated Drive retrieval with zero uploads. Real multi-device Drive acceptance remains pending. Production publication and live verification are recorded in [first-use release notes](docs/FIRST_USE_RELEASE.md).
+
+- Publication: [PR #50](https://github.com/vibe-coding-milan/am-i-going-broke/pull/50), release [ff54a2e](https://github.com/vibe-coding-milan/am-i-going-broke/commit/ff54a2e047802421bc9a0915c5c85f851fedbe7a), is live. GitHub CI also passed 61 PHP assertions. The five changed website files match the tested source exactly over HTTPS, and isolated production first-use checks passed.
 
 ## 2026-10-28 — Signal Drive uploads and review batching
 

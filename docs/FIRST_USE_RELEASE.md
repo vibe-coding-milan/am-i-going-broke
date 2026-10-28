@@ -1,6 +1,6 @@
 # First-use experience release — October 28, 2026
 
-Status: release preparation; production verification pending.
+Status: live at [amigoingbroke.me](https://amigoingbroke.me/), October 28, 2026.
 
 ## Scope
 
@@ -20,6 +20,12 @@ Publish the owner-approved first-use experience: one introductory example action
 
 ## Publication and acceptance
 
-Source revision, CI, deployment and live smoke evidence will be recorded here after completion. Server code is unchanged; PHP validation runs in GitHub CI because PHP is unavailable in the local environment.
+- Source: [PR #50](https://github.com/vibe-coding-milan/am-i-going-broke/pull/50), merged as [ff54a2e](https://github.com/vibe-coding-milan/am-i-going-broke/commit/ff54a2e047802421bc9a0915c5c85f851fedbe7a).
+- [GitHub CI passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40784039674): 130 JavaScript regression runs, 61 isolated PHP assertions, syntax and tracked-file link checks. Server code is unchanged.
+- Configured deployment dry-run identified only app.js, driveSync.js, driveSyncUI.js, index.html and styles.css. Deployment replaced those five files and retained private backups through the existing script. Server-only configuration was preserved.
+- HTTPS verification returned 200 and exact byte matches for all five changed files. Homepage, privacy and terms checks also succeeded.
+- Existing saved production state remained personal; no existing plan was cleared or replaced. A separate Firefox private window provided a fresh first-use context without Google authorization.
+- Private-window production smoke passed: sole Try an example action; fictional identity; scenario and cushion changes; example persistence after reload; disabled example downloads with Drive/import available; direct clean personal setup with the introductory option retained; explicit zero-dollar personal input enables download and removes introductory controls. Personal cushion defaults returned to $1,000/$2,000/$5,000. The private test window was closed afterward.
+- Issue [#28](https://github.com/vibe-coding-milan/am-i-going-broke/issues/28) retains ready-to-verify with updated criteria; [#40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40) and [#25](https://github.com/vibe-coding-milan/am-i-going-broke/issues/25) have release follow-ups. These are not automatically closed by publication.
 
 Owner approval of the preview is recorded above. Physical mobile/browser-version and screen-reader checks remain separate from emulation. Real Drive multi-device acceptance remains open in [#40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40); no real OAuth authorization or personal-plan transfer is claimed for this release. First-use live/device follow-up belongs to [#28](https://github.com/vibe-coding-milan/am-i-going-broke/issues/28), with broader device testing in [#25](https://github.com/vibe-coding-milan/am-i-going-broke/issues/25).
