@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — Keep Drive settings focused on syncing
+
+- Remove the mixed device/Drive previous-plan list and recovery action from Google Drive settings. Keep internal safety copies and conflict reconciliation unchanged; downloaded backup/import actions remain in Data.
+- Rename the folder link to Open folder in Google Drive and tighten dialog width/spacing. Reset/import confirmation points to downloading a separate backup rather than offering the retired recovery browser.
+- Validation: 108 existing JavaScript regressions and syntax/link checks; responsive mock settings and conflict/missing-file states.
+
 ## 2026-10-28 — Simplify Google Drive settings
 
 - Keep the connected dialog focused on the account, Automatic sync toggle and app folder link. Remove routine sync mechanics, Up to date/last-sync rows, Connection settings disclosure and bottom explanatory copy.
