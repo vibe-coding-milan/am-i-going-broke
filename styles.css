@@ -586,13 +586,20 @@ h1 {
 .sync-settings-card h2 { font-size: 1.2rem; }
 .sync-settings-card h3 { font-size: 1rem; margin-bottom: 8px; }
 .sync-settings-card p { font-size: .86rem; line-height: 1.5; color: var(--muted-strong); }
-.sync-settings-card details summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: .86rem; font-weight: 700; }
-.sync-settings-card details summary::after { content: "+"; margin-left: auto; padding-left: 12px; flex: 0 0 auto; }
-.sync-settings-card details[open] summary::after { content: "−"; }
-.sync-settings-card details p + p { margin-top: 12px; }
-.sync-settings-card details > .sync-settings-actions { margin-top: 12px; }
 .sync-settings-card .data-menu-note { grid-column: 1 / -1; overflow-wrap: anywhere; }
 .sync-settings-card a { color: var(--primary); text-underline-offset: 3px; }
+#sync-settings-status:empty { display: none; }
+.sync-folder { display: inline-flex; align-items: center; min-height: 44px; width: fit-content; max-width: 100%; }
+.sync-secondary {
+  appearance: none; background: none; border: 0; box-shadow: none; color: var(--muted-strong);
+  padding: 8px 0; min-height: 44px; font: inherit; font-size: .86rem; cursor: pointer;
+  text-align: left; white-space: normal; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px;
+}
+.sync-secondary:hover { color: var(--text); }
+.sync-secondary:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+.sync-settings-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.sync-settings-footer .button { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.sync-settings-footer #sync-close { margin-left: auto; }
 .sync-switch { display: flex; gap: 16px; align-items: center; justify-content: space-between; min-height: 44px; font-weight: 700; }
 .sync-switch input {
   appearance: none; position: relative; flex: 0 0 48px; width: 48px; height: 28px; min-height: 28px;

@@ -70,24 +70,21 @@
       '<h2 id="sync-settings-title">Google Drive sync</h2>' +
       '<p id="sync-account">Choose your Google account during setup.</p>' +
       '<p id="sync-introduction"></p>' +
-      '<label class="sync-switch"><span>Automatic sync</span><input id="sync-enabled" type="checkbox" role="switch" aria-describedby="sync-explanation"></label>' +
-      '<p id="sync-explanation">Changes sync after a five-second pause. Your plan saves on this device immediately.</p>' +
+      '<label class="sync-switch"><span>Automatic sync</span><input id="sync-enabled" type="checkbox" role="switch"></label>' +
       '<p id="sync-consent">Connecting turns on automatic sync. <a href="./privacy.html#automatic-sync">Privacy details</a></p>' +
       '<p id="sync-settings-status" role="status" aria-live="polite" aria-atomic="true"></p>' +
-      '<p id="sync-last-saved" class="is-hidden"></p>' +
       '<section id="sync-conflict" class="is-hidden" aria-labelledby="sync-conflict-title">' +
       '<h3 id="sync-conflict-title">Choose the plan to keep using</h3><p>Both versions are preserved before your choice is applied. Other devices will receive the chosen plan.</p>' +
       '<p id="sync-local-preview"></p><p id="sync-remote-preview"></p>' +
       '<div class="sync-settings-actions"><button type="button" id="sync-use-local" class="button ghost">Use this device’s plan</button><button type="button" id="sync-use-remote" class="button ghost">Use Drive plan</button></div></section>' +
-      '<div class="sync-settings-actions"><button type="button" id="sync-connect" class="button primary">Connect Google Drive</button><button type="button" id="sync-close" class="button ghost">Done</button></div>' +
       '<a id="sync-folder" class="sync-folder is-hidden" target="_blank" rel="noopener noreferrer">Am I Going Broke?</a>' +
       '<div id="sync-help-actions" class="sync-settings-actions is-hidden"><button type="button" id="sync-retry" class="button ghost is-hidden">Try again</button>' +
       '<button type="button" id="sync-recreate" class="button ghost is-hidden">Repair sync…</button></div>' +
       '<section id="sync-recovery" class="is-hidden" aria-labelledby="sync-recovery-title"><h3 id="sync-recovery-title">Recover a previous plan</h3><div id="sync-recovery-list" class="sync-settings-actions"></div></section>' +
-      '<details id="sync-options"><summary>Connection settings</summary><div class="sync-settings-actions">' +
-      '<button type="button" id="sync-show-recovery" class="button ghost is-hidden">Recover previous plan…</button>' +
-      '<button type="button" id="sync-disconnect" class="button ghost is-hidden">Disconnect Google Drive</button></div>' +
-      '<p>Sync runs while the app is open. Offline changes stay on this device until it reconnects. <a href="./privacy.html#automatic-sync">Privacy details</a></p></details></div>';
+      '<button type="button" id="sync-show-recovery" class="sync-secondary is-hidden">Recover previous plan…</button>' +
+      '<footer class="sync-settings-footer"><button type="button" id="sync-connect" class="button primary">Connect Google Drive</button>' +
+      '<button type="button" id="sync-disconnect" class="sync-secondary is-hidden" aria-label="Disconnect Google Drive">Disconnect</button>' +
+      '<button type="button" id="sync-close" class="button ghost">Done</button></footer></div>';
     document.body.appendChild(dialog);
     var toggle = dialog.querySelector("#sync-enabled");
     var accountText = dialog.querySelector("#sync-account");
@@ -136,14 +133,12 @@
       var reviewing = !!controller && !!controller.snapshot().conflict;
       dialog.querySelector("#sync-introduction").classList.toggle("is-hidden", reviewing || view.toggle || !!session && !session.available);
       accountText.classList.toggle("is-hidden", !authenticated);
-      dialog.querySelector("#sync-explanation").classList.toggle("is-hidden", !view.toggle || reviewing);
       dialog.querySelector("#sync-consent").classList.toggle("is-hidden", !view.setup || reviewing);
       if (reviewing) toggle.closest("label").classList.add("is-hidden");
       dialog.querySelector("#sync-close").classList.toggle("is-hidden", reviewing);
       connect.classList.toggle("is-hidden", !view.setup && !!session && session.available !== false);
       connect.textContent = view.action || "Connect Google Drive";
       if (session && !session.available) connect.classList.add("is-hidden");
-      dialog.querySelector("#sync-options").classList.toggle("is-hidden", !authenticated && !localRecovery());
     }
     function localRecovery() {
       try {
@@ -157,18 +152,16 @@
       var candidate = controller && controller.recovery();
       dialog.querySelector("#sync-show-recovery").classList.toggle("is-hidden", !candidate && !localRecovery());
     }
+    function setDialogMessage(text) {
+      if (statusText.textContent !== text) statusText.textContent = text;
+    }
     function showStatus(value) {
       var text = LABELS[value.status] || "Sync needs attention";
       if (value.status === "off" && (!session || read("aigb-sync-service-backups") !== session.accountId)) text = "Connect to start syncing";
       if (value.status === "missing") text += ". Your plan is still on this device. Check the folder or reconnect.";
       presentIndicator(value.status, text, !!value.enabled || value.status === "unavailable");
-      if (statusText.textContent !== text) statusText.textContent = text;
-      statusText.classList.toggle("is-hidden", !!value.conflict);
-      var lastSaved = dialog.querySelector("#sync-last-saved");
-      lastSaved.classList.toggle("is-hidden", !value.savedAt || Number.isNaN(Date.parse(value.savedAt)));
-      if (value.savedAt && !Number.isNaN(Date.parse(value.savedAt))) {
-        lastSaved.textContent = "Last synced: " + new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value.savedAt));
-      }
+      var routine = ["off", "local", "pending", "checking", "saving", "synced", "editing"].indexOf(value.status) !== -1;
+      setDialogMessage(routine || value.conflict ? "" : text);
       toggle.checked = value.enabled === true;
       conflictPanel.classList.toggle("is-hidden", !value.conflict);
       if (value.conflict) {
@@ -243,7 +236,7 @@
       var previousOwner = read("aigb-sync-plan-owner");
       if (previousOwner && previousOwner !== session.accountId) {
         if (!dialog.open) dialog.showModal();
-        statusText.textContent = "This device’s plan was linked to a different Google account. It will not be uploaded automatically.";
+        setDialogMessage("This device’s plan was linked to a different Google account. It will not be uploaded automatically.");
         toggle.checked = false;
         sessionExpired = false;
         return;
@@ -275,7 +268,7 @@
       if (!session.available) {
         toggle.disabled = !rememberedEnabled(); connect.disabled = true;
         if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
-        else { presentIndicator("off", "", false); statusText.textContent = LABELS.unavailable; }
+        else { presentIndicator("off", "", false); setDialogMessage(LABELS.unavailable); }
         showRecoveryAction(); presentConnection(); return;
       }
       if (!busy) { toggle.disabled = false; connect.disabled = false; }
@@ -292,8 +285,8 @@
     }
     async function authorize() {
       if (busy) return;
-      if (options.getPlan().sampleScenario) { statusText.textContent = LABELS.sample; toggle.checked = false; return; }
-      if (options.hasInvalidDraft && options.hasInvalidDraft()) { statusText.textContent = LABELS.invalid; toggle.checked = false; return; }
+      if (options.getPlan().sampleScenario) { setDialogMessage(LABELS.sample); toggle.checked = false; return; }
+      if (options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
       setBusy(true);
       try {
         await refreshSession();
@@ -303,13 +296,13 @@
         var url = new URL(result.url);
         if (url.origin !== "https://accounts.google.com" || url.pathname !== "/o/oauth2/v2/auth") throw new Error("Unexpected authorization destination");
         location.assign(url.href);
-      } catch (error) { statusText.textContent = "Could not connect. Your plan remains on this device. Try again."; }
+      } catch (error) { setDialogMessage("Could not connect. Your plan remains on this device. Try again."); }
       finally { setBusy(false); }
     }
     async function enableSync() {
       if (!session || !session.authenticated || sessionExpired) return authorize();
-      if (options.getPlan().sampleScenario) { statusText.textContent = LABELS.sample; toggle.checked = false; return; }
-      if (options.hasInvalidDraft && options.hasInvalidDraft()) { statusText.textContent = LABELS.invalid; toggle.checked = false; return; }
+      if (options.getPlan().sampleScenario) { setDialogMessage(LABELS.sample); toggle.checked = false; return; }
+      if (options.hasInvalidDraft && options.hasInvalidDraft()) { setDialogMessage(LABELS.invalid); toggle.checked = false; return; }
       var owner = read("aigb-sync-plan-owner");
       if (owner && owner !== session.accountId && (Number(options.getPlan().startingBalance) !== 0 || options.getPlan().recurringRules.length)) {
         var accepted = await options.confirm({ title: "Use this plan with another account?", action: "Use this plan", message:
@@ -332,7 +325,7 @@
         if (controller) controller.enable(false);
         toggle.checked = false;
         if (error.code === "auth") sessionExpired = true;
-        statusText.textContent = error.code === "auth" ? "Reconnect Google Drive to finish setup. Your plan is unchanged." : "Setup is unfinished. Your plan remains on this device. Try again when connected.";
+        setDialogMessage(error.code === "auth" ? "Reconnect Google Drive to finish setup. Your plan is unchanged." : "Setup is unfinished. Your plan remains on this device. Try again when connected.");
         presentConnection();
       } finally { setBusy(false); }
     }
@@ -341,11 +334,11 @@
       if (toggle.checked) enableSync();
       else if (controller) {
         controller.enable(false);
-        try { save(enabledKey(), "false"); } catch (error) { statusText.textContent = LABELS.storage; }
+        try { save(enabledKey(), "false"); } catch (error) { setDialogMessage(LABELS.storage); }
       } else {
         var owner = read("aigb-sync-plan-owner");
         try { if (owner) save("aigb-sync-enabled:" + owner, "false"); showStatus({ status: "off", enabled: false }); }
-        catch (error) { statusText.textContent = LABELS.storage; }
+        catch (error) { setDialogMessage(LABELS.storage); }
       }
       presentConnection();
     });
@@ -369,13 +362,13 @@
         localStorage.removeItem("aigb-sync-service-backups");
         await refreshSession();
         showStatus({ status: "off", enabled: false });
-      } catch (error) { statusText.textContent = "Could not confirm disconnection. Try again or remove access in your Google Account."; }
+      } catch (error) { setDialogMessage("Could not confirm disconnection. Try again or remove access in your Google Account."); }
       finally { setBusy(false); }
     });
     dialog.querySelector("#sync-retry").addEventListener("click", async function () {
       if (busy) return; setBusy(true);
       try { if (controller) await controller.retry(); else await refreshSession(); }
-      catch (error) { statusText.textContent = "Drive is still unavailable. Your local plan is unchanged."; }
+      catch (error) { setDialogMessage("Drive is still unavailable. Your local plan is unchanged."); }
       finally { setBusy(false); }
     });
     dialog.querySelector("#sync-recreate").addEventListener("click", async function () {
@@ -388,14 +381,13 @@
         if (result.accountId !== session.accountId || !/^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]+$/.test(result.folderUrl)) throw new Error("Invalid destination");
         session.folderUrl = result.folderUrl; folder.href = result.folderUrl;
         await controller.recreateRemote();
-      } catch (error) { statusText.textContent = "The destination could not be replaced safely. Check Drive again before trying to create a replacement."; }
+      } catch (error) { setDialogMessage("The destination could not be replaced safely. Check Drive again before trying to create a replacement."); }
       finally { setBusy(false); }
     });
     dialog.querySelector("#sync-show-recovery").addEventListener("click", async function () {
       if (busy) return;
-      if (controller && controller.snapshot().conflict) { statusText.textContent = "Resolve the different current versions before choosing a recovery version."; return; }
+      if (controller && controller.snapshot().conflict) { setDialogMessage("Resolve the different current versions before choosing a recovery version."); return; }
       var versions = [];
-      dialog.querySelector("#sync-options").open = false;
       setBusy(true);
       try {
         var candidates = controller && controller.recovery();
@@ -414,7 +406,7 @@
             versions.push({ plan: version.plan, label: "Previous synced plan", at: version.savedAt });
           });
         }
-      } catch (error) { statusText.textContent = "Could not load Drive recovery history. Any available local recovery is shown below."; }
+      } catch (error) { setDialogMessage("Could not load Drive recovery history. Any available local recovery is shown below."); }
       finally { setBusy(false); }
       var list = dialog.querySelector("#sync-recovery-list"); list.replaceChildren();
       dialog.querySelector("#sync-recovery").classList.remove("is-hidden");
@@ -434,9 +426,9 @@
             changingRemote = true;
             try { options.applyPlan(version.plan); } finally { changingRemote = false; }
             if (controller) controller.setPlan(enginePlan());
-            else statusText.textContent = "Previous plan loaded on this device. Drive files are unchanged.";
+            else setDialogMessage("Previous plan loaded on this device. Drive files are unchanged.");
             dialog.querySelector("#sync-recovery").classList.add("is-hidden");
-          } catch (error) { statusText.textContent = "Recovery could not be completed safely. Check browser storage and try again."; }
+          } catch (error) { setDialogMessage("Recovery could not be completed safely. Check browser storage and try again."); }
         });
         list.appendChild(action);
       });
@@ -492,10 +484,10 @@
       if (outcome === "connected" && session.available && session.authenticated && pending && Date.now() - pending < 600000) {
         open(); await enableSync();
       } else if (outcome === "cancelled" || outcome === "failed") {
-        open(); statusText.textContent = "Setup was not completed. Your plan remains on this device.";
+        open(); setDialogMessage("Setup was not completed. Your plan remains on this device.");
       }
     }).catch(function () {
-      statusText.textContent = "Could not reach Drive sync. Your plan still saves on this device. Try connecting again when online.";
+      setDialogMessage("Could not reach Drive sync. Your plan still saves on this device. Try connecting again when online.");
       if (rememberedEnabled()) showStatus({ status: "service", enabled: true });
     });
     return {
@@ -511,7 +503,7 @@
           save("aigb-sync-before-replace:" + session.accountId, JSON.stringify({ accountId: session.accountId,
             plan: options.getPlan(), reason: kind, at: new Date().toISOString() }));
           return true;
-        } catch (error) { statusText.textContent = "Could not preserve your current plan. Free browser storage or download a backup before replacing it."; return false; }
+        } catch (error) { setDialogMessage("Could not preserve your current plan. Free browser storage or download a backup before replacing it."); return false; }
       },
     };
   }

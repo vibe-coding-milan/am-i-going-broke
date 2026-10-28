@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — Simplify Google Drive settings
+
+- Keep the connected dialog focused on the account, Automatic sync toggle and app folder link. Remove routine sync mechanics, Up to date/last-sync rows, Connection settings disclosure and bottom explanatory copy.
+- Place Disconnect and Done in a compact footer, with recovery and problem guidance shown only when relevant. Preserve first-connection consent/privacy links, conflict review, recovery, disconnection confirmation and all sync behavior.
+- Validation: 108 existing JavaScript regressions plus syntax/link checks; connected, first-connection and missing-file mock states; desktop/tablet/phone/landscape layouts and long-account text at 200% font size.
+
 ## 2026-10-28 — Keep backup downloads quiet
 
 - Close Data after starting a local backup download, without an inline success/request message or filename. Retain the error dialog when a download cannot start. Backup contents, timestamped filenames and delayed URL cleanup are unchanged.
