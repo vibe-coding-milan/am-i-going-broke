@@ -30,7 +30,7 @@ staging="$(mktemp -d)"
 trap 'rm -rf "$staging"' EXIT
 
 # Only tracked public app files are eligible. Never upload the repository itself.
-git ls-files -z -- index.html privacy.html terms.html styles.css app.js projectionHealth.js driveSync.js driveSyncUI.js assets components content styles api/drive-sync.php server/DriveSyncService.php server/.htaccess |
+git ls-files -z -- index.html privacy.html terms.html styles.css app.js projectionHealth.js driveSync.js driveSyncUI.js driveConnection.js assets components content styles api/drive-sync.php server/DriveSyncService.php server/.htaccess |
   while IFS= read -r -d '' file; do
     case "$file" in
       *.html|*.css|*.js|*.svg|*.png|*.jpg|*.jpeg|*.webp|*.ico|*.woff|*.woff2|api/drive-sync.php|server/DriveSyncService.php|server/.htaccess) ;;

@@ -1,6 +1,12 @@
 # Drive sync production preview — October 28, 2026
 
-## Publication and deployment
+## Returning-user refinement
+
+Prepared for publication: read-first connection on ordinary visits, the same four-action Data menu in both modes, focused two-choice comparisons, separate dated manual copies, and legacy-backup migration. Source/CI/deployment evidence will be recorded after release. Automatic sync still requires private OAuth configuration; the ordinary browser connection does not promise background sync.
+
+126 JavaScript runs and 57 isolated PHP assertions passed. Fake Drive fixtures confirmed zero writes during empty-session adoption, explicit local replacement/recovery, older-copy selection, and stale-choice rejection. Dialogs were checked at desktop/tablet/phone/landscape widths and doubled root font size. No conclusion about the owner’s previously saved Drive contents can be drawn from code or fixture tests.
+
+## Initial publication and deployment
 
 Published and deployed on October 28, 2026. [PR #41](https://github.com/vibe-coding-milan/am-i-going-broke/pull/41) merged as [bed88ba](https://github.com/vibe-coding-milan/am-i-going-broke/commit/bed88ba814d19a98431138f15a0ef628989214b9). [PR project checks passed](https://github.com/vibe-coding-milan/am-i-going-broke/actions/runs/40714906599). Owner authorized publication for testing; real OAuth/cross-device acceptance has not passed.
 

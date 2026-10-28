@@ -37,13 +37,14 @@ test('new and existing local-only users get one connect action before any sync s
   assert.equal(result.action, 'Connect Google Drive');
   assert.equal(result.setup, true);
   assert.equal(result.toggle, false);
-  assert.match(result.description, /Different existing plans are reviewed/);
+  assert.match(result.description, /Different plans are reviewed/);
 });
 test('legacy Drive backup authorization never appears as automatic sync consent', () => {
   const result = view({ legacy: true });
   assert.equal(result.action, 'Connect Google Drive');
   assert.equal(result.toggle, false);
-  assert.match(result.description, /older backup is never imported automatically/);
+  assert.match(result.description, /older backups stay available/);
+  assert.equal(result.setup, true, 'old manual authorization never enables sync by itself');
 });
 test('an authenticated account still needs explicit setup on this device', () => {
   const result = view({ authenticated: true });
