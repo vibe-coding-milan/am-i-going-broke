@@ -1,5 +1,11 @@
 # Automatic Drive sync implementation
 
+## Sync review entry and version dates
+
+Data retains its compact attention icon. When review is needed, the Google Drive menu item carries a visible ! Review sync cue. Conflicts show matching This device and Google Drive cards: balance, payment count, saved date/time with local time zone, and the cash-as-of date. The actions are Use this device and Use Drive; choosing still rechecks the remote revision before applying a resolution.
+
+The local storage envelope includes optional planSavedAt metadata, updated only when the financial fingerprint changes. Reloads and cosmetic saves preserve it. The date is displayed only when that stored fingerprint matches the device candidate being compared. Existing envelopes without a reliable timestamp display Time unavailable until a meaningful save; exportedAt and cash-as-of dates are not treated as local edit timestamps. This metadata does not change the cloud plan or trigger an upload.
+
 ## Activity and request frequency
 
 The existing Data icon rotates only while a current-plan upload is in flight, then draws a check once when synced. Waiting and remote checks remain static; reduced-motion preferences disable both animations. Status changes do not alter the pill width or delay network requests.

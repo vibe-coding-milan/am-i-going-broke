@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-28 — Guide users into sync review
+
+- Mark the Google Drive entry with ! Review sync when reconciliation or connection attention is needed. Keep the Data pill and its tooltip; leave the menu’s other actions unchanged.
+- Present competing plans in matching responsive cards with balance, payment count, saved date/time and time zone, and cash-as-of date. Shorten actions to Use this device and Use Drive.
+- Record a local plan-save timestamp only when financial contents change. Preserve it across reloads and cosmetic saves, and show Time unavailable for older metadata or a mismatched local version. No timestamp is inferred from cash-as-of or an export date.
+- Keep sync timing, version checks and conflict preservation unchanged. Validate local timestamp behavior and responsive conflict/reconciliation views.
+
 ## 2026-10-28 — Responsive chart inspection
 
 - Anchor desktop date/balance cards near the selected point, keep them within the viewport, and choose among four positions to reduce overlap with balance segments and chart labels. Keep the current side when practical and allow the card itself to be hovered.
