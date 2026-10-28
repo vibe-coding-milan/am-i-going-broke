@@ -52,7 +52,7 @@
     var indicatorText = document.createElement("span");
     indicatorText.className = "sync-status-announcement";
     indicatorText.setAttribute("role", "status"); indicatorText.setAttribute("aria-live", "polite");
-    indicatorText.setAttribute("aria-atomic", "true"); menu.appendChild(indicatorText);
+    indicatorText.setAttribute("aria-atomic", "true"); document.body.appendChild(indicatorText);
     function presentIndicator(status, text, visible) {
       var attention = ["offline", "reconnect", "conflict", "missing", "account", "remote", "retrying", "storage", "invalid", "unavailable", "service"].indexOf(status) !== -1;
       indicator.classList.toggle("sync-mark", visible);
