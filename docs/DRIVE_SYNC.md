@@ -1,5 +1,13 @@
 # Automatic Drive sync implementation
 
+## Activity and request frequency
+
+The existing Data icon rotates only while a current-plan upload is in flight, then draws a check once when synced. Waiting and remote checks remain static; reduced-motion preferences disable both animations. Status changes do not alter the pill width or delay network requests.
+
+Cash, payment additions/edits/removals, whole-payment inclusion/exclusion and transaction exceptions affect the saved plan. Meaningful changes reset a five-second inactivity timer. Active drafts block uploads; repeated committed edits retain a thirty-second maximum-wait deadline. An unchanged plan, a reverted edit, menu/theme changes or chart presentation changes produce no upload. Foreground/device-return checks are reads, throttled to one per ten seconds, rather than periodic backup writes. Local saving remains immediate.
+
+Temporary failures use exponential backoff with up to one second of random jitter, capped at five minutes; new edits cannot bypass that deadline. One request runs at a time, uploads update one current file, and revision checks protect competing devices. This follows [Google's Drive quota/backoff guidance](https://developers.google.com/workspace/drive/api/guides/limits); actual project quotas and deployment-scale usage must still be checked in Google Cloud.
+
 ## Current milestone
 
 There is now one Google Drive connection: the [server-backed sync interface](../driveSyncUI.js) and [sync engine](../driveSync.js). The browser-only connection, manual Drive transfer controls, and last-backup indicator have been retired. Data retains file download/import and Start over. Connecting explicitly enables automatic sync, discovers or creates Am I Going Broke?, and reconciles the current plan; an empty device adopts an existing plan, while genuinely different populated plans require a choice.

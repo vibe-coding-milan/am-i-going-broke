@@ -620,6 +620,13 @@ h1 {
 .data-menu .sync-mark { font-weight: 800; }
 .data-menu .sync-mark[data-sync-state="synced"] { color: var(--positive); }
 .data-menu .sync-mark[data-sync-state="attention"] { color: var(--warning-text); }
+.sync-mark svg { display: block; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .sync-mark[data-sync-state="saving"] { animation: sync-upload-turn .9s linear infinite; }
+  .sync-mark[data-sync-state="synced"] path { stroke-dasharray: 16; animation: sync-check-draw .25s ease-out; }
+}
+@keyframes sync-upload-turn { to { transform: rotate(360deg); } }
+@keyframes sync-check-draw { from { stroke-dashoffset: 16; } to { stroke-dashoffset: 0; } }
 .sync-status-announcement {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;

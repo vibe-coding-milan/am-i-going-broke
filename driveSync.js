@@ -85,6 +85,7 @@
     };
     var delay = options.delay == null ? 5000 : options.delay;
     var maxWait = options.maxWait == null ? 30000 : options.maxWait;
+    var random = options.random || Math.random;
     var validate = options.validate || validPlan;
     var timer = null;
     var firstEditAt = null;
@@ -201,7 +202,8 @@
       } else {
         retryCount += 1;
         // At most one request in flight. A fresh edit cannot bypass a scheduled retry.
-        retryNotBefore = clock.now() + Math.min(300000, 5000 * Math.pow(2, Math.min(retryCount, 6)));
+        // Jitter prevents connected devices from retrying together after an outage.
+        retryNotBefore = clock.now() + Math.min(300000, 5000 * Math.pow(2, Math.min(retryCount, 6)) + Math.floor(random() * 1000));
         emit(online ? "retrying" : "offline");
       }
     }
@@ -390,7 +392,7 @@
         if (editing) { cancelTimer(); if (record.enabled) emit("editing"); }
         else if (record.enabled) {
           if (!dirty() && eligible()) emit("synced");
-          else schedule(delay);
+          else schedule(Math.min(delay, firstEditAt === null ? delay : Math.max(0, firstEditAt + maxWait - clock.now())));
         }
       },
       check: function () {
