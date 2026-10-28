@@ -614,8 +614,22 @@ h1 {
 .sync-switch input:disabled { cursor: default; opacity: .5; }
 .sync-settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .sync-settings-actions .button { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; text-align: center; text-decoration: none; }
-#sync-conflict { padding: 12px; border: 1px solid var(--warning-line); border-radius: var(--radius-md); }
-#sync-conflict p { margin-bottom: 10px; }
+.data-menu-action.sync-drive-entry { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.data-menu-action.needs-review { color: var(--text); }
+.sync-menu-cue { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: var(--warning-text); font-size: .75rem; font-weight: 700; }
+.sync-menu-cue > span:first-child { display: inline-grid; place-items: center; border: 1px solid var(--warning-line); border-radius: 50%; width: 1.25em; height: 1.25em; }
+.sync-settings.is-reviewing { width: min(640px, calc(100vw - 24px)); }
+#sync-conflict > p { margin-bottom: 12px; }
+.sync-plan-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sync-plan-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px; }
+.sync-plan-card h4 { margin: 0; font-size: .95rem; }
+.sync-plan-card .sync-plan-balance { font-size: 1.2rem; color: var(--text); font-weight: 800; }
+.sync-plan-card dl { display: grid; gap: 3px; margin: 12px 0 0; font-size: .8rem; line-height: 1.45; color: var(--muted-strong); }
+.sync-plan-card dt { font-weight: 700; }
+.sync-plan-card dt:not(:first-child) { margin-top: 8px; }
+.sync-plan-card dd { margin: 0; }
+.sync-plan-card .button { margin-top: auto; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .sync-plan-comparison { grid-template-columns: minmax(0, 1fr); } }
 .data-menu > summary > span:first-child { display: inline-grid; place-items: center; width: 1em; flex: 0 0 1em; }
 .data-menu .sync-mark { font-weight: 800; }
 .data-menu .sync-mark[data-sync-state="synced"] { color: var(--positive); }

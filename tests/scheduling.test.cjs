@@ -157,6 +157,30 @@ test("storage failure is reported without interrupting the in-memory plan", () =
   assert.equal(stored.data.recurringRules[0].endDate, "2026-12-25");
 });
 
+test("local plan save time records material edits without relabeling legacy or cosmetic saves", () => {
+  let now = Date.parse("2026-10-28T22:00:00Z");
+  class SavedDate extends Date { constructor(...args) { super(...(args.length ? args : [now])); } }
+  const original = { startingBalance: 1000, lastRefreshDate: "2026-10-28", projectionDays: 30,
+    thresholds: { red: 100, yellow: 200, green: 300 }, skippedInstances: {}, recurringRules: [] };
+  let stored = JSON.stringify({ version: 3, exportedAt: "2026-10-28T20:00:00Z", data: original });
+  const isolated = isolatedFunctions("  function saveState(state)", "  function readBackupState(", {
+    Date: SavedDate, STORAGE_KEY: "plan", STORAGE_VERSION: 3, normalizeState: value => value,
+    window: { DriveSync: require("../driveSync.js"), localStorage: { getItem: () => stored, setItem: (key, value) => { stored = value; } } },
+    document: { querySelector: () => null },
+  });
+  assert.equal(isolated.saveState(original), true);
+  assert.equal(JSON.parse(stored).planSavedAt, null, "old save times are not invented");
+  const edited = { ...original, startingBalance: 1200 };
+  assert.equal(isolated.saveState(edited), true);
+  const stamp = JSON.parse(stored).planSavedAt;
+  assert.equal(stamp, "2026-10-28T22:00:00.000Z");
+  now += 60000;
+  isolated.saveState({ ...edited, theme: "dark", rulesCollapsed: true });
+  assert.equal(JSON.parse(stored).planSavedAt, stamp);
+  isolated.saveState({ ...edited, skippedInstances: { "payment:2026-10-29": true } });
+  assert.equal(JSON.parse(stored).planSavedAt, "2026-10-28T22:01:00.000Z");
+});
+
 test("today-based forecasts retain the balance confirmation date and original count anchor", () => {
   const saved = context.normalizeState({ startDate: "2026-01-01", lastRefreshDate: "2026-01-01",
     startingBalance: 750, recurringRules: [rule({ startDate: "", limitType: "count", instanceLimit: 3 })] });

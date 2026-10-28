@@ -46,7 +46,9 @@
     } catch (error) { return null; }
     var menu = document.querySelector(".data-menu");
     var entry = document.createElement("button");
-    entry.type = "button"; entry.className = "data-menu-action"; entry.textContent = "Google Drive…";
+    entry.type = "button"; entry.className = "data-menu-action sync-drive-entry";
+    entry.innerHTML = '<span>Google Drive</span><span class="sync-menu-cue is-hidden"><span aria-hidden="true">!</span> <span>Review sync</span></span>';
+    var menuCue = entry.querySelector(".sync-menu-cue");
     menu.querySelector(".data-menu-section").prepend(entry);
     var dataSummary = menu.querySelector("summary");
     var indicator = dataSummary.querySelector("span");
@@ -88,9 +90,11 @@
       '<p id="sync-consent">Connecting turns on automatic sync. <a href="./privacy.html#automatic-sync">Privacy details</a></p>' +
       '<p id="sync-settings-status" role="status" aria-live="polite" aria-atomic="true"></p>' +
       '<section id="sync-conflict" class="is-hidden" aria-labelledby="sync-conflict-title">' +
-      '<h3 id="sync-conflict-title">Choose the plan to keep using</h3><p>Both versions are preserved before your choice is applied. Other devices will receive the chosen plan.</p>' +
-      '<p id="sync-local-preview"></p><p id="sync-remote-preview"></p>' +
-      '<div class="sync-settings-actions"><button type="button" id="sync-use-local" class="button ghost">Use this device’s plan</button><button type="button" id="sync-use-remote" class="button ghost">Use Drive plan</button></div></section>' +
+      '<h3 id="sync-conflict-title">Choose a plan</h3><p>Your choice will sync to your connected devices.</p>' +
+      '<div class="sync-plan-comparison"><section class="sync-plan-card" aria-labelledby="sync-local-title"><h4 id="sync-local-title">This device</h4>' +
+      '<div id="sync-local-preview"></div><button type="button" id="sync-use-local" class="button ghost">Use this device</button></section>' +
+      '<section class="sync-plan-card" aria-labelledby="sync-remote-title"><h4 id="sync-remote-title">Google Drive</h4>' +
+      '<div id="sync-remote-preview"></div><button type="button" id="sync-use-remote" class="button ghost">Use Drive</button></section></div></section>' +
       '<a id="sync-folder" class="sync-folder is-hidden" target="_blank" rel="noopener noreferrer">Open folder in Google Drive</a>' +
       '<div id="sync-help-actions" class="sync-settings-actions is-hidden"><button type="button" id="sync-retry" class="button ghost is-hidden">Try again</button>' +
       '<button type="button" id="sync-recreate" class="button ghost is-hidden">Repair sync…</button></div>' +
@@ -125,11 +129,25 @@
         },
       };
     }
-    function preview(label, plan) {
-      if (!plan) return label + ": no saved plan";
-      var amount = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(plan.startingBalance);
-      var asOf = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(plan.lastRefreshDate + "T12:00:00"));
-      return label + ": " + amount + " · " + plan.recurringRules.length + (plan.recurringRules.length === 1 ? " payment" : " payments") + " · Cash as of " + asOf;
+    function savedTime(value) {
+      if (!value || Number.isNaN(Date.parse(value))) return "Time unavailable";
+      return new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(value));
+    }
+    function renderPlanPreview(target, plan, savedAt) {
+      target.replaceChildren();
+      if (!plan) { target.textContent = "No saved plan"; return; }
+      var amount = document.createElement("p"); amount.className = "sync-plan-balance";
+      amount.textContent = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(plan.startingBalance);
+      var count = document.createElement("p");
+      count.textContent = plan.recurringRules.length + (plan.recurringRules.length === 1 ? " payment" : " payments");
+      var details = document.createElement("dl");
+      var date = plan.lastRefreshDate || plan.startDate;
+      [["Saved", savedTime(savedAt)], ["Cash as of", new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(date + "T12:00:00"))]].forEach(function (item) {
+        var label = document.createElement("dt"); label.textContent = item[0];
+        var value = document.createElement("dd"); value.textContent = item[1];
+        details.append(label, value);
+      });
+      target.append(amount, count, details);
     }
     function presentConnection() {
       var owner = read("aigb-sync-plan-owner");
@@ -164,11 +182,14 @@
       setDialogMessage(routine || value.conflict ? "" : text);
       toggle.checked = value.enabled === true;
       conflictPanel.classList.toggle("is-hidden", !value.conflict);
+      dialog.classList.toggle("is-reviewing", !!value.conflict);
+      var needsReview = !!value.conflict || ["reconnect", "missing", "account", "remote", "storage"].indexOf(value.status) !== -1;
+      menuCue.classList.toggle("is-hidden", !needsReview);
+      entry.classList.toggle("needs-review", needsReview);
       if (value.conflict) {
-        dialog.querySelector("#sync-local-preview").textContent = preview("This device", value.conflict.local);
-        var remoteDate = value.conflict.remote.savedAt;
-        var savedLabel = remoteDate && !Number.isNaN(Date.parse(remoteDate)) ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(remoteDate)) : "date unavailable";
-        dialog.querySelector("#sync-remote-preview").textContent = preview("Drive · saved " + savedLabel, value.conflict.remote.plan);
+        renderPlanPreview(dialog.querySelector("#sync-local-preview"), value.conflict.local, options.getLocalSavedAt ? options.getLocalSavedAt(value.conflict.local) : null);
+        renderPlanPreview(dialog.querySelector("#sync-remote-preview"), value.conflict.remote.plan, value.conflict.remote.savedAt);
+        dialog.querySelector("#sync-use-remote").disabled = busy || !value.conflict.remote.plan;
       }
       if (value.status === "reconnect") sessionExpired = true;
       if (value.status === "synced") sessionExpired = false;
@@ -181,7 +202,8 @@
       busy = value;
       [toggle, connect, disconnect, dialog.querySelector("#sync-use-local"), dialog.querySelector("#sync-use-remote"), dialog.querySelector("#sync-retry"), dialog.querySelector("#sync-recreate")].forEach(function (control) {
         var unavailable = session && session.available === false;
-        control.disabled = value || (!!unavailable && (control === connect || control === disconnect || (control === toggle && !rememberedEnabled())));
+        var reviewing = controller && controller.snapshot().conflict;
+        control.disabled = value || (control.id === "sync-use-remote" && !!reviewing && !reviewing.remote.plan) || (!!unavailable && (control === connect || control === disconnect || (control === toggle && !rememberedEnabled())));
       });
       dialog.setAttribute("aria-busy", String(value));
     }

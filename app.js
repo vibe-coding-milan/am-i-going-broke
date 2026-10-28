@@ -269,11 +269,21 @@
 
   function saveState(state) {
     try {
+      var previous = null;
+      try { previous = JSON.parse(window.localStorage.getItem(STORAGE_KEY)); } catch (error) { /* Older/unreadable metadata must not block saving. */ }
+      var planSavedAt = previous && previous.planSavedAt || null;
+      try {
+        if (window.DriveSync && (!previous || !previous.data ||
+            window.DriveSync.fingerprint(normalizeState(previous.data)) !== window.DriveSync.fingerprint(state))) {
+          planSavedAt = new Date().toISOString();
+        }
+      } catch (error) { /* An unfinished input must still save locally. */ }
       window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
         version: STORAGE_VERSION,
         exportedAt: new Date().toISOString(),
+        planSavedAt: planSavedAt,
         data: state,
       }),
       );
@@ -3191,6 +3201,12 @@
   try {
     if (window.DriveSyncUI) automaticDriveSync = window.DriveSyncUI.mount({
       getPlan: function () { return state; },
+      getLocalSavedAt: function (plan) {
+        try {
+          var saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+          return window.DriveSync.fingerprint(saved.data) === window.DriveSync.fingerprint(plan) ? saved.planSavedAt || null : null;
+        } catch (error) { return null; }
+      },
       hasInvalidDraft: function () {
         return Boolean(document.querySelector('#balance-error:not(.is-hidden), .rule-error:not(.is-hidden)'));
       },
