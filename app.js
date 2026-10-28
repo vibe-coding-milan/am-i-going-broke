@@ -2133,7 +2133,7 @@
         hour: "numeric",
         minute: "2-digit",
       }).format(new Date(backupAt));
-      driveBackupStatus.textContent = "Last backup · " + formatted;
+      driveBackupStatus.textContent = "Last Drive backup: " + formatted;
       driveBackupStatus.classList.remove("is-hidden");
     } catch (error) {
       driveBackupStatus.textContent = "";

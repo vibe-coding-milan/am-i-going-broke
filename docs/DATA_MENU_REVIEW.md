@@ -1,4 +1,25 @@
-# Data menu review — October 17, 2026
+# Data menu review
+
+## October 28, 2026 — Inline export/import menu
+
+Status: implemented for local/PR review; not deployed or owner-accepted. Related: GitHub issue #11.
+
+Approved design replaces section headings, icons, and explanatory paragraphs with five text actions: Export to file, Import from file…, Export to Google Drive, Import from Google Drive…, and Start over…. Only the destructive action has a divider. Known Drive backup time and relevant operation feedback remain visible. Mobile Appearance controls remain in the menu.
+
+Desktop pointer rows are 32px in a 280px panel. Narrow layouts (up to 860px) and devices with any coarse pointer use 44px rows in a panel up to 300px. Width is bounded by viewport gutters; short screens scroll internally. Light mode uses a darker red for readable destructive text.
+
+Validation: syntax and 68 local link checks; 33 regressions in each of two time zones (66 passes). Browser review covered 1280px desktop, 768px tablet, and 320px phone layouts in light/dark themes. Measured action heights: 32px desktop, 44px tablet/phone; no horizontal overflow at 320px or 768px. A 568×320 landscape viewport bounds the panel and allows internal scrolling. Verified actual file export and import preview with the exported empty test plan, replacement warning, cancellation focus return, Start over confirmation/cancel, and Escape dismissal. Reload retained the selected theme. Existing tests cover backup compatibility and Drive operation cleanup/retry.
+
+Limits: no real Google authorization or transfer performed; physical touch devices and screen readers remain unverified. No production deployment.
+
+### Owner review checklist
+
+- [ ] Review spacing and labels on desktop in both themes.
+- [ ] Review phone/tablet tapping, Appearance controls, and short-screen scrolling.
+- [ ] Confirm file export/import and Google Drive actions with a disposable test plan.
+- [ ] Confirm Start over remains separated and requires confirmation.
+
+## October 17, 2026 — Previous simplification
 
 Status: implemented after user approval. The original audit and proposed scope are retained below.
 

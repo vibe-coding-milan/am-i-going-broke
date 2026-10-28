@@ -2689,22 +2689,41 @@ button:disabled { opacity: .45; cursor: default; }
   .hero .projection-answer { display: inline; font: inherit; line-height: inherit; }
 }
 
-/* Compact backup actions: visible labels, consistent icons, full touch targets. */
-.data-menu-panel { width: min(280px, calc(100vw - 24px)); }
-.data-menu-heading { display: block; margin: 0; padding: 7px 10px; background: none; color: var(--muted); font-size: .72rem; line-height: 1.4; }
-.data-menu-section { padding: 5px 4px; gap: 0; }
-.data-menu-label { margin: 3px 8px 5px; font-size: .65rem; letter-spacing: .05em; }
-.data-menu-group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding-right: 8px; }
-.data-menu-hint { color: var(--muted); font-size: .66rem; }
-.data-menu-action { grid-template-columns: 24px minmax(0, 1fr); min-height: 44px; gap: 9px; padding: 6px 8px; }
-.data-menu-icon, .danger-action .data-menu-icon { width: 24px; height: 24px; border: 0; border-radius: 0; background: none; }
-.data-menu-icon { color: var(--muted-strong); }
-.data-menu-action-copy > span { font-size: .84rem; line-height: 1.35; }
-.data-menu-note { padding: 3px 8px 2px; font-size: .68rem; }
-.data-menu-section-danger { padding: 5px 4px; }
+/* Text-first Data menu: compact pointer rows, larger targets on touch surfaces. */
+.data-menu-panel {
+  width: min(280px, calc(100vw - 20px));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  border-radius: 8px;
+}
+.data-menu-section { padding: 0; gap: 0; }
+.data-menu-action {
+  display: block;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+.data-menu-note {
+  padding: 4px 12px 6px;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.data-menu-section-danger { margin-top: 4px; padding-top: 4px; }
+:root[data-theme="light"] .data-menu .danger-action { color: #bd2547; }
+@media (max-width: 860px), (any-pointer: coarse) {
+  .data-menu-panel { width: min(300px, calc(100vw - 20px)); padding: 8px; }
+  .data-menu-action { min-height: 44px; padding-block: 12px; }
+}
 @media (max-width: 860px) {
-  .data-menu-panel { width: min(300px, calc(100vw - 20px)); }
-  .data-menu .theme-switcher { gap: 4px; padding: 6px 4px; }
+  .data-menu .theme-switcher { gap: 4px; padding: 6px 4px; border-top: 1px solid var(--line); }
   .mobile-theme-heading { padding: 2px 4px 4px; font-size: .74rem; }
   .data-menu .theme-switcher button { min-height: 44px; }
 }

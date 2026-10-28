@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — Compact Data menu (source change; not deployed)
+
+- Use inline Export/Import labels for files and Google Drive; remove section headings, icons, and explanatory copy.
+- Use compact desktop rows and larger targets for narrow screens and touch-capable devices, preserving mobile Appearance controls.
+- Retain the last Drive backup time, operation feedback, restore previews, and the separate Start over confirmation.
+
 ## 2026-10-18 — Payment usability and local backup reliability
 
 - Clearly label fictional example projections, retain an example banner after reload, and provide a confirmed path to start a personal plan.
