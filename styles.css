@@ -550,8 +550,11 @@ h1 {
   grid-column: 2;
 }
 .data-dialog.is-notice .data-dialog-icon,
-.data-dialog.is-notice .data-dialog-kicker { display: none; }
-.data-dialog.is-notice .data-dialog-card { grid-template-columns: minmax(0, 1fr); }
+.data-dialog.is-notice .data-dialog-kicker,
+.data-dialog.is-plain .data-dialog-icon,
+.data-dialog.is-plain .data-dialog-kicker { display: none; }
+.data-dialog.is-notice .data-dialog-card,
+.data-dialog.is-plain .data-dialog-card { grid-template-columns: minmax(0, 1fr); }
 .data-dialog.is-notice #data-dialog-confirm { grid-column: 1 / -1; }
 
 .data-dialog.is-danger .data-dialog-icon {
@@ -589,6 +592,10 @@ h1 {
 .sync-settings-card details p + p { margin-top: 12px; }
 .sync-settings-card details > .sync-settings-actions { margin-top: 12px; }
 .sync-settings-card .data-menu-note { grid-column: 1 / -1; overflow-wrap: anywhere; }
+.drive-connection select { min-width: 0; max-width: 100%; width: 100%; font: inherit; text-overflow: ellipsis; }
+.drive-connection #drive-local-recovery .button { width: 100%; min-width: 0; margin-top: 8px; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+.drive-connection.is-settled #drive-done { grid-column: 1 / -1; }
+#drive-connection-status:empty { display: none; }
 .sync-settings-card a { color: var(--primary); text-underline-offset: 3px; }
 .sync-switch { display: flex; gap: 16px; align-items: center; justify-content: space-between; min-height: 44px; font-weight: 700; }
 .sync-switch input {

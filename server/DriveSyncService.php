@@ -282,7 +282,17 @@ final class DriveSyncService
         if (empty($account['current'])) {
             $files = $this->query($subject, $account, "appProperties has { key='purpose' and value='sync-current' } and '" . $this->id($account['folder']) . "' in parents");
             if (count($files) > 1) throw new SyncFailure('ambiguous', 409);
-            if (!$files) return ['format' => 1, 'plan' => null, 'revision' => null, 'savedAt' => null];
+            if (!$files) {
+                // Existing manual users are returning users too. Expose their latest
+                // backup as a read-only baseline; never replace that backup on migration.
+                $legacy = $this->manualBackup($subject, $account);
+                if (!$legacy) return ['format' => 1, 'plan' => null, 'revision' => null, 'savedAt' => null];
+                $data = $legacy['backup'];
+                if (($data['version'] ?? 3) > 3 || !empty($data['data']['sampleScenario']) || !self::validPlan($data['data'] ?? null)) throw new SyncFailure('remote', 422);
+                $plan = self::normalizePlan($data['data']);
+                return ['format' => 1, 'plan' => $plan, 'revision' => 'legacy:' . $legacy['id'] . ':' . self::hash($plan),
+                    'savedAt' => $data['exportedAt'] ?? $legacy['modifiedTime'], 'recovery' => []];
+            }
             $account['current'] = $files[0]['id']; $this->vault->put($subject, $account);
         }
         $meta = $this->drive($subject, $account, 'GET', self::DRIVE . '/' . $this->id($account['current']) . '?fields=id,trashed');
@@ -397,15 +407,21 @@ final class DriveSyncService
     public function latestBackup(string $subject): array
     {
         return $this->operation($subject, function (array &$account) use ($subject): array {
-            // Search app-owned snapshots including legacy backups at the Drive root.
-            $result = $this->drive($subject, $account, 'GET', self::DRIVE . '?' . http_build_query([
-                'q' => "trashed = false and appProperties has { key='app' and value='am-i-going-broke' } and appProperties has { key='purpose' and value='manual-backup' }",
-                'pageSize' => 1, 'orderBy' => 'modifiedTime desc', 'fields' => 'files(id)', 'spaces' => 'drive',
-            ]));
-            $id = $result['files'][0]['id'] ?? null;
-            if (!$id) throw new SyncFailure('no_backup', 404);
-            return ['accountId' => $subject, 'backup' => $this->drive($subject, $account, 'GET', self::DRIVE . '/' . $this->id($id) . '?alt=media')];
+            $legacy = $this->manualBackup($subject, $account);
+            if (!$legacy) throw new SyncFailure('no_backup', 404);
+            return ['accountId' => $subject, 'backup' => $legacy['backup']];
         });
+    }
+    private function manualBackup(string $subject, array &$account): ?array
+    {
+        $result = $this->drive($subject, $account, 'GET', self::DRIVE . '?' . http_build_query([
+            'q' => "trashed = false and appProperties has { key='app' and value='am-i-going-broke' } and appProperties has { key='purpose' and value='manual-backup' }",
+            'pageSize' => 1, 'orderBy' => 'modifiedTime desc', 'fields' => 'files(id,modifiedTime)', 'spaces' => 'drive',
+        ]));
+        $meta = $result['files'][0] ?? null;
+        if (!$meta) return null;
+        return ['id' => $meta['id'], 'modifiedTime' => $meta['modifiedTime'] ?? null,
+            'backup' => $this->drive($subject, $account, 'GET', self::DRIVE . '/' . $this->id($meta['id']) . '?alt=media')];
     }
     public function recovery(string $subject): array
     {

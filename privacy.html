@@ -37,7 +37,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20261028-drive-sync-preview-r1" />
+    <link rel="stylesheet" href="./styles.css?v=20261028-drive-connection-r2" />
   </head>
   <body>
     <main class="policy-shell">
@@ -130,12 +130,16 @@
             request access to your entire Drive, Gmail, contacts, calendar, or Google profile.
           </p>
           <p>
-            <strong>Data accessed and purpose.</strong> On export, the app creates or updates a JSON
-            file named <code>am-i-going-broke-data.json</code>. It contains your financial plan,
+            <strong>Data accessed and purpose.</strong> Connecting first reads app-owned Drive files
+            to find an existing plan, including older <code>am-i-going-broke-data.json</code> backups.
+            Connecting does not upload or replace a Drive file. Saving a copy creates a separate,
+            dated JSON file. It contains your financial plan,
             including balances, payment names and amounts, income and expense schedules, dates,
-            projection settings, a backup format version, and the export time. On import, the app
-            downloads that file, checks its format, and asks for confirmation before replacing
-            your local plan. It also uses backup file IDs and app-specific file metadata to find
+            projection settings, a backup format version, and the export time. The app checks a
+            saved plan's format before loading it. An empty session can pick up an existing plan;
+            different populated plans are shown for an explicit choice. One local recovery slot
+            preserves the device plan before replacement. The app uses file IDs, modification dates,
+            and app-specific file metadata to find
             its backups. This Google user data is used only to provide the backup and restore
             actions you request. These manual backups are separate from the optional automatic
             sync working file described below.
@@ -238,8 +242,8 @@
             plan. Downloaded backups remain wherever you save them until you delete them.
           </p>
           <p>
-            Drive backups remain in your Google Drive until you delete them. Export may replace
-            the existing backup after your confirmation; the app does not automatically expire
+            Drive backups remain in your Google Drive until you delete them. Manual saves create
+            separate dated copies rather than replacing existing backups; the app does not automatically expire
             old backups. Google's trash and file-history retention rules apply to copies held
             by Google. Deleting local data, revoking Google access, and deleting a Drive backup
             are separate actions; none automatically performs the others.
