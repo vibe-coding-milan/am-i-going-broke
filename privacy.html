@@ -47,7 +47,7 @@
           <span>Am I Going Broke?</span>
         </a>
         <h1>Privacy Policy</h1>
-        <p class="policy-updated">Effective and last updated: October 16, 2026</p>
+        <p class="policy-updated">Effective and last updated: October 28, 2026</p>
       </header>
 
       <details class="policy-toc"><summary>On this page</summary><nav aria-label="Page contents"><a href="#overview">Overview</a><a href="#information-you-provide">Information you provide</a><a href="#how-information-is-used">How information is used</a><a href="#not-financial-advice">Not financial advice</a><a href="#google-drive-access">Google Drive access</a><a href="#local-storage-and-retention">Local storage and retention</a><a href="#external-services">External services and backups</a><a href="#hosting-logs">Hosting logs</a><a href="#future-analytics">Future analytics</a><a href="#your-choices">Your choices</a><a href="#changes-to-this-policy">Changes to this policy</a><a href="#contact">Contact</a></nav></details>
@@ -56,7 +56,9 @@
           <h2>Overview</h2>
           <p>
             Am I Going Broke? is a personal cash-flow and budgeting projection tool made by an
-            independent developer. Your financial plan is stored locally in your browser by
+            independent developer, Milan Mijatovic, at <a href="https://amigoingbroke.me/">amigoingbroke.me</a>.
+            This policy covers the website and its optional Google Drive backup feature.
+            Your financial plan is stored locally in your browser by
             default. The app does not currently operate a backend server, database, or backend API
             that receives or stores your financial plan.
           </p>
@@ -113,16 +115,47 @@
         <section id="google-drive-access">
           <h2>Google Drive access</h2>
           <p>
-            Connecting Google Drive is optional. When you connect it, the app requests the
-            <code>https://www.googleapis.com/auth/drive.file</code> scope. This limits access to
-            backup files the app creates or files you explicitly make available to it. The app
-            cannot browse or access your other Google Drive files.
+            Connecting Google Drive is optional. Choosing “Export to Google Drive” or “Import from
+            Google Drive…” in the Data menu starts Google authorization when needed. You choose
+            your Google Account and grant access on Google's authorization screen. Each person's
+            backups are saved in their own Drive. The app does not receive your Google password.
           </p>
           <p>
-            Backup data is transferred directly between your browser and Google Drive. It is used
-            only to save or restore your backup when you request it. The app does not share Google
-            user data except as necessary to provide that user-requested backup or restore
-            functionality, comply with applicable law, or protect security.
+            <strong>Permission requested.</strong> The app requests only the
+            <code>https://www.googleapis.com/auth/drive.file</code> scope. This limits access to
+            files the app creates or files you explicitly make available to it. The current
+            backup feature searches for and reads or updates its own backup files; it does not
+            request access to your entire Drive, Gmail, contacts, calendar, or Google profile.
+          </p>
+          <p>
+            <strong>Data accessed and purpose.</strong> On export, the app creates or updates a JSON
+            file named <code>am-i-going-broke-data.json</code>. It contains your financial plan,
+            including balances, payment names and amounts, income and expense schedules, dates,
+            projection settings, a backup format version, and the export time. On import, the app
+            downloads that file, checks its format, and asks for confirmation before replacing
+            your local plan. It also uses backup file IDs and app-specific file metadata to find
+            its backups. This Google user data is used only to provide the backup and restore
+            actions you request. Drive backup is manual, not continuous synchronization.
+          </p>
+          <p>
+            <strong>Storage and sharing.</strong> Backup contents travel directly between your
+            browser and Google Drive over HTTPS. Google stores the backup in your Drive under
+            your account's controls and Google's policies. Restored financial data is saved in
+            your browser. The app stores the backup file ID, last backup time, and a connection
+            indicator locally. Google access tokens are held only in the page's memory, are sent
+            to Google to authorize Drive requests, and are not saved in browser storage or on the
+            website server. Reloading or closing the page clears the app's in-memory token;
+            this does not revoke the permission you granted to Google.
+          </p>
+          <p>
+            The developer does not receive or retain your Drive backup contents or tokens on a
+            server, and the app does not automatically share your backup with the developer or
+            other users. Google receives the data necessary for authorization and the requested
+            Drive transfers. The app does not sell Google user data or provide it to advertisers
+            or data brokers, use it for credit or lending decisions, or use it to develop, improve,
+            or train AI or machine-learning models. There is no routine developer review of
+            your financial plan or Drive files. If you choose to email information for support,
+            the developer receives what you send; please do not send financial backups or tokens.
           </p>
           <p>
             The app's use and transfer of information received from Google APIs adheres to the
@@ -136,9 +169,24 @@
         <section id="local-storage-and-retention">
           <h2>Local storage and retention</h2>
           <p>
-            Your plan remains locally in your browser unless you choose Google Drive backup.
-            Clearing or deleting browser storage may permanently delete your local app data. If you
-            create a Google Drive backup, it remains in your own Google Drive until you delete it.
+            Your plan and preferences remain in this browser's local storage until you change or
+            remove them, or the browser clears them. There is no automatic retention deadline.
+            The app does not maintain a server copy from which the developer can recover your
+            plan. Downloaded backups remain wherever you save them until you delete them.
+          </p>
+          <p>
+            Drive backups remain in your Google Drive until you delete them. Export may replace
+            the existing backup after your confirmation; the app does not automatically expire
+            old backups. Google's trash and file-history retention rules apply to copies held
+            by Google. Deleting local data, revoking Google access, and deleting a Drive backup
+            are separate actions; none automatically performs the others.
+          </p>
+          <p>
+            <strong>Data protection.</strong> The website and Drive API requests use HTTPS to
+            protect data in transit. Drive permissions are limited to the scope described above,
+            and access tokens are kept in memory. Local plans and JSON backups are readable data:
+            the app does not add encryption or password protection to them. Their protection
+            depends on your device, browser, Google Account security, and file-sharing settings.
           </p>
           <p>
             No method of storage or transfer is completely secure, so absolute security cannot be
@@ -173,11 +221,22 @@
           <h2>Your choices</h2>
           <ul>
             <li>Use the app without connecting to Google Drive.</li>
-            <li>Use “Start over” in the Data menu or clear browser storage to delete local data.</li>
-            <li>Delete app-created backup files from your Google Drive.</li>
+            <li>
+              Use “Start over” in the Data menu to clear the current plan. To also remove saved
+              preferences and backup metadata, clear this site's storage in your browser settings.
+              Repeat on each browser or device where you used the app. Clearing storage can
+              permanently remove your local plan.
+            </li>
+            <li>
+              Delete <code>am-i-going-broke-data.json</code> backups in Google Drive and empty
+              Drive's trash to request permanent deletion, subject to Google's retention rules.
+              Delete any downloaded backups separately from your device or other storage.
+            </li>
             <li>
               Revoke the app's Google access in your
               <a href="https://myaccount.google.com/connections" rel="noopener">Google Account</a>.
+              Select this app and remove its access. Revoking access prevents further authorized
+              access without a new grant; it does not delete existing backups or local plans.
             </li>
           </ul>
         </section>
@@ -186,15 +245,18 @@
           <h2>Changes to this policy</h2>
           <p>
             This policy may be updated as the app changes. Material updates will be reflected on
-            this page with a new effective date.
+            this page with a new effective date. Changes to Google user data access or use will
+            be described here, and additional Google permissions will require your authorization.
           </p>
         </section>
 
         <section id="contact">
           <h2>Contact</h2>
           <p>
-            For privacy questions or requests, email
+            For privacy questions or deletion assistance, contact Milan Mijatovic at
             <a href="mailto:milan@mijatovic.com">milan@mijatovic.com</a>.
+            The developer cannot remotely delete plans stored only in your browser or backups in
+            your Drive; use the controls above. Support emails are used to answer your request.
           </p>
         </section>
       </article>
