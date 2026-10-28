@@ -147,7 +147,6 @@
       projectionWindowUpdated: "Forecast window updated.",
       cushionUpdated: "Cushion target updated.",
       sampleLoaded: "Sample scenario loaded.",
-      backupDownloaded: "Download requested. Check your browser’s Downloads for the JSON backup.",
       importSuccess: "Backup restored from file.",
       resetSuccess: "Start over complete. Fresh plan ready.",
       addedMoneyIn: "Added money in.",
@@ -2626,7 +2625,7 @@
       link.download = filename;
       document.body.appendChild(link);
       link.click();
-      showDataStatus(UI_COPY.status.backupDownloaded + " File: " + filename + " (UTC timestamp).", true);
+      closeDataMenu();
     } catch (error) {
       showDataIssue("Try again, then check Downloads. Your plan is unchanged.", "Couldn't start the download");
     } finally {
