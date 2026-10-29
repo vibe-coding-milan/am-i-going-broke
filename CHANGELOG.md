@@ -296,3 +296,15 @@
 - Screenshots saved outside the app source in the chat's payment-dates visualization folder. The review preview uses isolated demo data on port 8767.
 - Google authorization and actual Drive backup/restore were not exercised; backup field preservation is covered by JSON normalization/round-trip regression tests.
 - JavaScript syntax and git diff whitespace checks pass.
+
+## Pre-GitHub development history — May–June 2026
+
+This grouped retrospective summarizes notable local development recorded from May 20 through June 8, 2026, before the app's October 16 GitHub publication. Dates reflect preserved development commits, not verified release or deployment dates. Later entries above record subsequent changes and supersede earlier interface behavior.
+
+- Established the early cash-flow forecasting app with recurring income and expenses, projected balances, a chart and transaction ledger, and projection-health evaluation.
+- Separated money-in and money-out editing, improved shortfall-date messaging, and simplified projection health to Healthy, Building, Stable, Tight, and At Risk.
+- Refined responsive layouts, payment-card spacing and chart presentation; introduced the dark-neon visual identity and light-theme artwork.
+- Added the handwritten forecast-answer component and supporting response copy, then improved empty/setup guidance and chart readability.
+- Added fictional sample scenarios, refined cushion-input validation, and changed local JSON backup filenames to include the app name and an export timestamp.
+
+Reconstructed from the preserved local Git history, including commits `4c0026c`, `fa2f8b4`, `f70861d`, `d0563b5`, and `f177e5f`. This documentation backfill does not establish historical production testing or deployment, change application behavior, or rewrite existing commits.
