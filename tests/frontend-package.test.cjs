@@ -12,6 +12,8 @@ test("frontend package is reproducible, complete and excludes server/private mat
     const files = build(output);
     assert.ok(files.includes("index.html"));
     assert.ok(files.includes("driveServiceClient.js"));
+    for (const retired of ["assets/logo-full.svg", "assets/logo-full-light.svg", "assets/logo-text.svg", "assets/logo-text-light.svg"])
+      assert.equal(files.includes(retired), false, "Ignored historical artwork must not enter the package");
     assert.ok(files.every(file => !/^(?:api|server|tests|docs|\.local-backups)\//.test(file) && !/\.(?:php|env|key|sqlite)$/.test(file)));
     const snapshot = files.map(file => fs.readFileSync(path.join(output, file)).toString("base64"));
     fs.writeFileSync(path.join(output, "stale.js"), "old build");

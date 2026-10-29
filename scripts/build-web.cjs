@@ -6,23 +6,16 @@ const entryFiles = [
   "index.html", "privacy.html", "terms.html", "styles.css", "app.js",
   "forecastCore.js", "planData.js", "planRepository.js", "browserPlatform.js", "driveServiceClient.js",
   "projectionHealth.js", "driveSync.js", "driveSyncUI.js",
+  "assets/logo-icon.svg", "assets/logo-icon-light.svg",
+  "assets/oauth-consent-logo.png", "assets/oauth-consent-logo-512.png",
+  "components/projectionAnswer.js", "content/projectionAnswerCopy.js", "styles/projection-answer.css",
 ];
-const assetDirectories = ["assets", "components", "content", "styles"];
-const allowedAsset = /\.(?:html|css|js|svg|png|jpe?g|webp|ico|woff2?)$/;
 
 function frontendFiles() {
   const files = [...entryFiles];
-  function visit(relative) {
-    const source = path.join(root, relative);
-    const stat = fs.lstatSync(source);
-    if (stat.isSymbolicLink()) throw new Error("Frontend assets cannot be symlinks: " + relative);
-    if (stat.isDirectory()) {
-      for (const name of fs.readdirSync(source).sort()) visit(path.join(relative, name));
-    } else if (allowedAsset.test(relative)) files.push(relative);
-  }
-  for (const directory of assetDirectories) visit(directory);
   for (const file of files) {
-    if (!fs.lstatSync(path.join(root, file)).isFile()) throw new Error("Missing frontend file: " + file);
+    const stat = fs.lstatSync(path.join(root, file));
+    if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Missing or unsafe frontend file: " + file);
   }
   return files.sort();
 }
