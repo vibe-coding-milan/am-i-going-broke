@@ -1,52 +1,25 @@
 (function () {
-  function todayInputValue() {
-    var today = new Date();
-    return dateInputValue(today);
-  }
-
-  function dateInputValue(date) {
-    var year = date.getFullYear();
-    var month = String(date.getMonth() + 1).padStart(2, "0");
-    var day = String(date.getDate()).padStart(2, "0");
-    return year + "-" + month + "-" + day;
-  }
-
-  function exportFilename(date) {
-    return "am-i-going-broke-" + date.toISOString().replace(/[:.]/g, "-") + ".json";
-  }
-
-  function startOfDay(date) {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function parseInputDate(value) {
-    var parts = String(value || "").split("-");
-    if (parts.length !== 3) {
-      return startOfDay(new Date());
-    }
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  }
-
-  function addDays(date, days) {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
-  }
-
-  function calendarDayNumber(date) {
-    return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000;
-  }
-
-  function isValidInputDate(value) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(value || "") &&
-      dateInputValue(parseInputDate(value)) === value;
-  }
-
-  function formatDate(date) {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    }).format(date);
-  }
+  var platform = window.BrowserPlatform.create({ window: window, document: document });
+  var localStore = platform.local;
+  var core = window.ForecastCore;
+  var todayInputValue = core.todayInputValue;
+  var dateInputValue = core.dateInputValue;
+  var startOfDay = core.startOfDay;
+  var parseInputDate = core.parseInputDate;
+  var addDays = core.addDays;
+  var calendarDayNumber = core.calendarDayNumber;
+  var isValidInputDate = core.isValidInputDate;
+  var formatDate = core.formatDate;
+  var lastDayOfMonth = core.lastDayOfMonth;
+  var instanceKey = core.instanceKey;
+  var isRuleBaseDueOnDate = core.isRuleBaseDueOnDate;
+  var occurrenceNumberThroughDate = core.occurrenceNumberThroughDate;
+  var isRuleWithinLimit = core.isRuleWithinLimit;
+  var isRuleDueOnDate = core.isRuleDueOnDate;
+  var ruleScheduleIssue = core.ruleScheduleIssue;
+  var moveRuleWithinDirection = core.moveRuleWithinDirection;
+  var generateProjection = core.generateProjection;
+  var ruleInputError = core.ruleInputError;
 
   function formatShortDate(date) {
     return new Intl.DateTimeFormat("en-US", {
@@ -76,41 +49,7 @@
     return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
   }
 
-  var defaultState = {
-    startDate: todayInputValue(),
-    lastRefreshDate: todayInputValue(),
-    startingBalance: 0,
-    projectionDays: 30,
-    sampleScenario: "",
-    planOrigin: "empty",
-    hasPersonalData: false,
-    clearedPlan: false,
-    rulesCollapsed: false,
-    ruleGroups: {
-      moneyInOpen: true,
-      moneyOutOpen: true,
-    },
-    thresholds: {
-      red: 1000,
-      yellow: 2000,
-      green: 5000,
-    },
-    skippedInstances: {},
-    showCushionLines: true,
-    showAverageBalance: true,
-    showExtremaPoints: true,
-    recurringRules: [],
-  };
-
-  var STORAGE_KEY = "cash-flow-projector-state";
   var THEME_STORAGE_KEY = "cash-flow-projector-theme-preference";
-  var LEGACY_STORAGE_KEYS = [
-    "cash-flow-projector-state-v3",
-    "cash-flow-projector-state-v2",
-    "cash-flow-projector-state-v1",
-  ];
-  var STORAGE_VERSION = 3;
-  var MAX_CASH_BALANCE = 999999999.999;
   var FALLBACK_SEMANTIC_COLORS = {
     positive: { r: 39, g: 245, b: 154 },
     warning: { r: 255, g: 209, b: 102 },
@@ -181,112 +120,25 @@
         action: "Restore",
       },
 
-
     },
   };
 
-  function cloneDefaultState() {
-    return JSON.parse(JSON.stringify(defaultState));
-  }
+  var planData = window.PlanData.create({ calendar: core, makeId: makeId, ruleName: UI_COPY.defaults.ruleName });
+  var defaultState = planData.defaultState;
+  var cloneDefaultState = planData.cloneDefaultState;
+  var normalizeState = planData.normalizeState;
+  var clampCashBalance = planData.clampCashBalance;
+  var exportFilename = planData.exportFilename;
 
-  function normalizeState(candidate) {
-    var next = candidate || {};
-    return {
-      startDate: todayInputValue(),
-      lastRefreshDate: next.lastRefreshDate || next.startDate || todayInputValue(),
-      startingBalance: clampCashBalance(Number(next.startingBalance || 0)),
-      projectionDays: Number(next.projectionDays || 30),
-      sampleScenario: typeof next.sampleScenario === "string" ? next.sampleScenario : "",
-      sampleScenarioKey: typeof next.sampleScenarioKey === "string" ? next.sampleScenarioKey : "",
-      sampleStory: typeof next.sampleStory === "string" ? next.sampleStory : "",
-      // Legacy saved plans are conservatively personal, even at zero dollars.
-      planOrigin: next.sampleScenario ? "example" : ["empty", "personal"].indexOf(next.planOrigin) !== -1
-        ? next.planOrigin : Array.isArray(next.recurringRules) ? "personal" : "empty",
-      hasPersonalData: !next.sampleScenario && (next.hasPersonalData === true ||
-        (next.planOrigin === undefined && Array.isArray(next.recurringRules)) ||
-        Number(next.startingBalance || 0) !== 0 || (next.recurringRules || []).length > 0),
-      clearedPlan: next.clearedPlan === true,
-      rulesCollapsed: Boolean(next.rulesCollapsed),
-      ruleGroups: {
-        moneyInOpen:
-          next.ruleGroups && typeof next.ruleGroups.moneyInOpen === "boolean"
-            ? next.ruleGroups.moneyInOpen
-            : true,
-        moneyOutOpen:
-          next.ruleGroups && typeof next.ruleGroups.moneyOutOpen === "boolean"
-            ? next.ruleGroups.moneyOutOpen
-            : true,
-      },
-      thresholds: {
-        red:
-          next.thresholds && Number.isFinite(Number(next.thresholds.red))
-            ? Number(next.thresholds.red)
-            : 1000,
-        yellow:
-          next.thresholds && Number.isFinite(Number(next.thresholds.yellow))
-            ? Number(next.thresholds.yellow)
-            : 2000,
-        green:
-          next.thresholds && Number.isFinite(Number(next.thresholds.green))
-            ? Number(next.thresholds.green)
-            : 5000,
-      },
-      skippedInstances:
-        next.skippedInstances && typeof next.skippedInstances === "object"
-          ? Object.keys(next.skippedInstances).reduce(function (result, key) {
-              result[key] = Boolean(next.skippedInstances[key]);
-              return result;
-            }, {})
-          : {},
-      showCushionLines: next.showCushionLines !== false,
-      showAverageBalance: next.showAverageBalance !== false,
-      showExtremaPoints: next.showExtremaPoints !== false,
-      recurringRules: Array.isArray(next.recurringRules)
-        ? next.recurringRules.map(function (rule, index) {
-            return {
-              id: rule.id || makeId("rule"),
-              name: rule.name || UI_COPY.defaults.ruleName,
-              direction: rule.direction === "credit" ? "credit" : "debit",
-              amount: Number(rule.amount || 0),
-              variable: Boolean(rule.variable),
-              active: rule.active !== false,
-              scheduleType: rule.scheduleType || "monthly",
-              dayOfMonth: Number(rule.dayOfMonth || 1),
-              dayOfWeek: Number(rule.dayOfWeek || 0),
-              calculationOrder: Number.isFinite(rule.calculationOrder) ? rule.calculationOrder : index,
-              pendingSchedule: Boolean(rule.pendingSchedule),
-              scheduleDate: Object.prototype.hasOwnProperty.call(rule, "scheduleDate") ? (rule.scheduleDate || "") : todayInputValue(),
-              startDate: rule.startDate || (rule.limitType === "count" && typeof rule.pendingSchedule === "undefined" ? next.startDate || todayInputValue() : ""),
-              limitType:
-                rule.limitType === "count" || rule.limitType === "date" ? rule.limitType : "none",
-              instanceLimit: Math.max(1, Number(rule.instanceLimit || 1)),
-              endDate: rule.endDate || "",
-            };
-          })
-        : [],
-    };
-  }
+  var repository = window.PlanRepository.create({
+    storage: localStore, planData: planData,
+    fingerprint: window.DriveSync && window.DriveSync.fingerprint,
+    saveMigrated: function (plan) { saveState(plan); },
+  });
 
   function saveState(state) {
     try {
-      var previous = null;
-      try { previous = JSON.parse(window.localStorage.getItem(STORAGE_KEY)); } catch (error) { /* Older/unreadable metadata must not block saving. */ }
-      var planSavedAt = previous && previous.planSavedAt || null;
-      try {
-        if (window.DriveSync && (!previous || !previous.data ||
-            window.DriveSync.fingerprint(normalizeState(previous.data)) !== window.DriveSync.fingerprint(state))) {
-          planSavedAt = new Date().toISOString();
-        }
-      } catch (error) { /* An unfinished input must still save locally. */ }
-      window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        version: STORAGE_VERSION,
-        exportedAt: new Date().toISOString(),
-        planSavedAt: planSavedAt,
-        data: state,
-      }),
-      );
+      repository.save(state);
       var message = document.querySelector("#save-error");
       if (message) message.classList.add("is-hidden");
       if (typeof window.dispatchEvent === "function" && typeof window.CustomEvent === "function") {
@@ -305,32 +157,7 @@
     }
   }
 
-  function readBackupState(parsed) {
-    var candidate = parsed && (parsed.data || parsed);
-    if (!candidate || typeof candidate !== "object" || !Array.isArray(candidate.recurringRules) ||
-        !Object.prototype.hasOwnProperty.call(candidate, "startingBalance") ||
-        !Number.isFinite(Number(candidate.startingBalance)) ||
-        (candidate.startDate && !isValidInputDate(candidate.startDate)) ||
-        (candidate.projectionDays && [30, 60, 90, 120, 180, 365].indexOf(Number(candidate.projectionDays)) === -1) ||
-        candidate.recurringRules.some(function (rule) {
-          return !rule || !Number.isFinite(Number(rule.amount)) ||
-            (rule.startDate && !isValidInputDate(rule.startDate)) ||
-            (rule.endDate && !isValidInputDate(rule.endDate)) ||
-            (rule.scheduleDate && !isValidInputDate(rule.scheduleDate));
-        })) {
-      throw Object.assign(new Error("This file is not a valid financial plan backup. Your current plan is unchanged."), { code: "backup_invalid" });
-    }
-    if (parsed.version && Number(parsed.version) > STORAGE_VERSION) {
-      throw Object.assign(new Error("This backup was made by a newer app version. Your current plan is unchanged."), { code: "backup_newer" });
-    }
-    var restored = normalizeState(candidate);
-    if (!restored.sampleScenario) {
-      restored.planOrigin = "personal";
-      restored.hasPersonalData = true;
-      restored.clearedPlan = false;
-    }
-    return restored;
-  }
+  function readBackupState(parsed) { return planData.readBackupState(parsed); }
 
   function backupRestoreCopy(copy, restoredState, exportedAt) {
     var savedDate = exportedAt && !Number.isNaN(Date.parse(exportedAt))
@@ -342,15 +169,7 @@
   }
 
   function backupPayload(exportedAt) {
-    return JSON.stringify(
-      {
-        version: STORAGE_VERSION,
-        exportedAt: (exportedAt || new Date()).toISOString(),
-        data: state,
-      },
-      null,
-      2,
-    );
+    return planData.backupPayload(state, exportedAt);
   }
 
   function parseNumericValue(value, fallback) {
@@ -361,10 +180,6 @@
     return Number.isFinite(parsed) ? parsed : fallback;
   }
 
-  function clampCashBalance(value) {
-    return Math.max(-MAX_CASH_BALANCE, Math.min(MAX_CASH_BALANCE, Number(value || 0)));
-  }
-
   function formatNumberForInput(value, minimumFractionDigits) {
     var parsed = Number(value || 0);
     return new Intl.NumberFormat("en-US", {
@@ -373,49 +188,13 @@
     }).format(parsed);
   }
 
-  function lastDayOfMonth(date) {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  }
-
-  function instanceKey(ruleId, dateKey) {
-    return ruleId + "::" + dateKey;
-  }
-
-  function loadState() {
-    try {
-      var raw = window.localStorage.getItem(STORAGE_KEY);
-      var parsed;
-      var migratedState;
-      var i;
-
-      if (!raw) {
-        for (i = 0; i < LEGACY_STORAGE_KEYS.length; i += 1) {
-          raw = window.localStorage.getItem(LEGACY_STORAGE_KEYS[i]);
-          if (raw) {
-            parsed = JSON.parse(raw);
-            migratedState = normalizeState(parsed.data || parsed);
-            saveState(migratedState);
-            return migratedState;
-          }
-        }
-        return cloneDefaultState();
-      }
-
-      parsed = JSON.parse(raw);
-      if (parsed && parsed.version && parsed.data) {
-        return normalizeState(parsed.data);
-      }
-      return normalizeState(parsed);
-    } catch (error) {
-      return cloneDefaultState();
-    }
-  }
+  function loadState() { return repository.load(); }
 
   function getStoredThemePreference() {
     var stored;
 
     try {
-      stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+      stored = localStore.getItem(THEME_STORAGE_KEY);
     } catch (error) {
       stored = null;
     }
@@ -425,7 +204,7 @@
 
   function persistThemePreference(preference) {
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, preference);
+      localStore.setItem(THEME_STORAGE_KEY, preference);
     } catch (error) {
       return;
     }
@@ -516,146 +295,7 @@
     };
   }
 
-  function isRuleBaseDueOnDate(rule, date, includeExcluded) {
-    if ((!rule.active && !includeExcluded) || ruleScheduleIssue(rule)) {
-      return false;
-    }
-
-    if (rule.scheduleType === "weekly") {
-      return date.getDay() === Number(rule.dayOfWeek);
-    }
-
-    if (rule.scheduleType === "monthly") {
-      return date.getDate() === Math.min(Number(rule.dayOfMonth), lastDayOfMonth(date));
-    }
-
-    if (rule.scheduleType === "biweekly") {
-      var anchorDate = parseInputDate(rule.scheduleDate);
-      var diffInDays = calendarDayNumber(date) - calendarDayNumber(anchorDate);
-      return diffInDays >= 0 && diffInDays % 14 === 0;
-    }
-
-    if (rule.scheduleType === "adhoc") {
-      var exactDate = parseInputDate(rule.scheduleDate);
-      return startOfDay(date).getTime() === startOfDay(exactDate).getTime();
-    }
-
-    return false;
-  }
-
-  function occurrenceNumberThroughDate(rule, date, projectionStartDate) {
-    var countFrom = rule.startDate || (rule.scheduleType === "biweekly" ? rule.scheduleDate : "");
-    var cursor = countFrom ? parseInputDate(countFrom) : startOfDay(projectionStartDate);
-    var target = startOfDay(date);
-    var count = 0;
-
-    while (cursor.getTime() <= target.getTime()) {
-      if (isRuleBaseDueOnDate(rule, cursor, true)) {
-        count += 1;
-      }
-      cursor = addDays(cursor, 1);
-    }
-
-    return count;
-  }
-
-  function isRuleWithinLimit(rule, date, projectionStartDate) {
-    if (rule.scheduleType === "adhoc" || !rule.limitType || rule.limitType === "none") {
-      return true;
-    }
-
-    if (rule.limitType === "date") {
-      return startOfDay(date).getTime() <= startOfDay(parseInputDate(rule.endDate)).getTime();
-    }
-
-    if (rule.limitType === "count") {
-      return (
-        occurrenceNumberThroughDate(rule, date, projectionStartDate) <=
-        Math.max(1, Number(rule.instanceLimit || 1))
-      );
-    }
-
-    return true;
-  }
-
-  function isRuleDueOnDate(rule, date, projectionStartDate, includeExcluded) {
-    if (rule.scheduleType !== "adhoc" && rule.startDate &&
-        dateInputValue(date) < rule.startDate) {
-      return false;
-    }
-    return isRuleBaseDueOnDate(rule, date, includeExcluded) && isRuleWithinLimit(rule, date, projectionStartDate);
-  }
-
-  function ruleScheduleIssue(rule) {
-    if ((rule.scheduleType === "biweekly" || rule.scheduleType === "adhoc") && !isValidInputDate(rule.scheduleDate)) return "Choose a payment date";
-    if (rule.scheduleType !== "adhoc" && rule.limitType === "date" && !isValidInputDate(rule.endDate)) return "Choose an end date";
-    if (rule.scheduleType !== "adhoc" && rule.limitType === "count" && !rule.startDate && rule.scheduleType !== "biweekly") return "Choose when to count payments from";
-    if (rule.scheduleType !== "adhoc" && rule.limitType === "date" && rule.startDate && rule.endDate < rule.startDate) return "Check the date limits";
-    return "";
-  }
-
   // Reordering presentation must not change same-day transaction calculation order.
-  function moveRuleWithinDirection(rules, id, beforeId) {
-    var source = rules.find(function (rule) { return rule.id === id; });
-    var target = rules.find(function (rule) { return rule.id === beforeId; });
-    if (!source || (target && target.direction !== source.direction) || id === beforeId) return false;
-    if (beforeId && !target) return false;
-    var peers = rules.filter(function (rule) { return rule.direction === source.direction && rule.id !== id; });
-    var index = target ? peers.indexOf(target) : peers.length;
-    peers.splice(index, 0, source);
-    var cursor = 0;
-    rules.forEach(function (rule, position) {
-      if (rule.direction === source.direction) rules[position] = peers[cursor++];
-    });
-    return true;
-  }
-
-  function generateProjection(state, includeExcluded) {
-    var startDate = startOfDay(parseInputDate(state.startDate));
-    var totalDays = Number(state.projectionDays || 30);
-    var runningBalance = Number(state.startingBalance || 0);
-    var projection = [];
-    var index;
-
-    for (index = 0; index < totalDays; index += 1) {
-      var date = addDays(startDate, index);
-      var items = state.recurringRules
-        .filter(function (rule) {
-          return isRuleDueOnDate(rule, date, startDate, includeExcluded);
-        })
-        .sort(function (left, right) { return (left.calculationOrder || 0) - (right.calculationOrder || 0); })
-        .map(function (rule) {
-          var dateKey = dateInputValue(date);
-          return {
-            id: rule.id + ":" + date.toISOString(),
-            ruleId: rule.id,
-            wholeExcluded: !rule.active,
-            dateKey: dateKey,
-            name: rule.name,
-            direction: rule.direction,
-            amount: Number(rule.amount || 0),
-          };
-        });
-
-      projection.push({
-        date: date,
-        dateLabel: formatDate(date),
-        items: items,
-        balance: runningBalance,
-      });
-
-      items.forEach(function (item) {
-        if (item.wholeExcluded) return;
-        if (item.direction === "credit") {
-          runningBalance += item.amount;
-        } else if (item.direction === "debit") {
-          runningBalance -= item.amount;
-        }
-      });
-    }
-
-    return projection;
-  }
 
   function interpolateColor(startColor, endColor, ratio) {
     var safeRatio = Math.max(0, Math.min(1, ratio));
@@ -1051,128 +691,11 @@
   }
 
   function flattenProjectionRows() {
-    var projection = generateProjection(state, true);
-    var windowEndDate = addDays(
-      parseInputDate(state.startDate),
-      Number(state.projectionDays || 30) - 1,
-    );
-    var rows = [
-      {
-        type: "current",
-        dateLabel: formatDate(parseInputDate(state.startDate)),
-        name: UI_COPY.labels.startingBalance,
-        credit: null,
-        debit: null,
-        balance: state.startingBalance,
-      },
-    ];
-    var runningBalance = Number(state.startingBalance || 0);
-
-    projection.forEach(function (day) {
-      day.items.forEach(function (item) {
-        var dateKey = item.dateKey || dateInputValue(day.date);
-        var skipped = item.wholeExcluded || Boolean(state.skippedInstances[instanceKey(item.ruleId, dateKey)]);
-        var previousBalance = runningBalance;
-
-        if (!skipped && item.direction === "credit") {
-          runningBalance += item.amount;
-        } else if (!skipped && item.direction === "debit") {
-          runningBalance -= item.amount;
-        }
-
-        rows.push({
-          type: "item",
-          dateLabel: day.dateLabel,
-          dateKey: dateKey,
-          ruleId: item.ruleId,
-          skipped: skipped,
-          wholeExcluded: item.wholeExcluded,
-          name: item.name,
-          credit: item.direction === "credit" ? item.amount : null,
-          debit: item.direction === "debit" ? item.amount : null,
-          previousBalance: previousBalance,
-          balance: runningBalance,
-        });
-      });
-    });
-
-    appendOutsideWindowRows(rows, windowEndDate, runningBalance);
-
-    return rows;
-  }
-
-  function appendOutsideWindowRows(rows, windowEndDate, runningBalance) {
-    var outsideItems = state.recurringRules
-      .filter(function (rule) {
-        return (
-          !ruleScheduleIssue(rule) &&
-          rule.scheduleType === "adhoc" &&
-          parseInputDate(rule.scheduleDate).getTime() > startOfDay(windowEndDate).getTime()
-        );
-      })
-      .sort(function (left, right) {
-        return (
-          parseInputDate(left.scheduleDate).getTime() -
-          parseInputDate(right.scheduleDate).getTime()
-        );
-      });
-    outsideItems.forEach(function (rule) {
-      var scheduledDate = parseInputDate(rule.scheduleDate);
-      var amount = Number(rule.amount || 0);
-      var previousBalance = runningBalance;
-      var skipped = !rule.active || Boolean(state.skippedInstances[instanceKey(rule.id, rule.scheduleDate)]);
-
-      if (!skipped && rule.direction === "credit") {
-        runningBalance += amount;
-      } else if (!skipped) {
-        runningBalance -= amount;
-      }
-
-      rows.push({
-        type: "item",
-        dateLabel: formatDate(scheduledDate),
-        dateKey: rule.scheduleDate,
-        ruleId: rule.id,
-        skipped: skipped,
-        wholeExcluded: !rule.active,
-        name: rule.name,
-        credit: rule.direction === "credit" ? amount : null,
-        debit: rule.direction === "debit" ? amount : null,
-        previousBalance: previousBalance,
-        balance: runningBalance,
-        outsideWindow: true,
-      });
-    });
+    return core.flattenProjectionRows(state);
   }
 
   function projectionPointsFromRows(rows) {
-    var startDate = parseInputDate(state.startDate);
-    var days = Number(state.projectionDays || 30);
-    var rowsByDate = rows.reduce(function (result, row) {
-      if (row.outsideWindow) {
-        return result;
-      }
-      var key = row.dateKey || state.startDate;
-      result[key] = row.balance;
-      return result;
-    }, {});
-    var points = [];
-    var balance = Number(state.startingBalance || 0);
-    var index;
-
-    for (index = 0; index < days; index += 1) {
-      var date = addDays(startDate, index);
-      var key = dateInputValue(date);
-      if (Object.prototype.hasOwnProperty.call(rowsByDate, key)) {
-        balance = rowsByDate[key];
-      }
-      points.push({
-        date: key,
-        balance: balance,
-      });
-    }
-
-    return points;
+    return core.projectionPointsFromRows(rows, state);
   }
 
   function evaluateProjectionHealth(rows) {
@@ -2566,35 +2089,6 @@
     }
   }
 
-  function ruleInputError(rule, field, value) {
-    if (field === "amount") {
-      var cleaned = String(value).replace(/[$,\s]/g, "");
-      if (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(cleaned) || !Number.isFinite(Number(cleaned))) {
-        return "Enter an amount of $0 or more, with up to two decimal places.";
-      }
-    }
-    if (field === "dayOfMonth" || field === "instanceLimit") {
-      var maximum = field === "dayOfMonth" ? 31 : 260;
-      if (!/^\d+$/.test(value) || Number(value) < 1 || Number(value) > maximum) {
-        return "Enter a whole number from 1 to " + maximum + ".";
-      }
-    }
-    if ((field === "startDate" || field === "endDate" || field === "scheduleDate") && !value) return "";
-    if (field === "scheduleDate" || field === "endDate" || (field === "startDate" && value)) {
-      if (!isValidInputDate(value)) {
-        return "Choose a valid payment date.";
-      }
-    }
-    var start = field === "startDate" ? value : rule.startDate;
-    var end = field === "endDate" ? value : rule.endDate;
-    var limitType = field === "limitType" ? value : rule.limitType;
-    if ((field === "startDate" || field === "endDate") &&
-        limitType === "date" && start && end && end < start) {
-      return "The last payment date must be on or after the start date.";
-    }
-    return "";
-  }
-
   function validateRuleField(input, card, rule) {
     var error = ruleInputError(rule, input.getAttribute("data-field"), input.value);
     var errorElement = card.querySelector(".rule-error");
@@ -2712,26 +2206,12 @@
 
   function downloadLocalBackup() {
     if (!canDownloadPlan()) return;
-    var url;
-    var link;
     try {
       var exportedAt = new Date();
-      var filename = exportFilename(exportedAt);
-      var blob = new Blob([backupPayload(exportedAt)], { type: "application/json" });
-      url = window.URL.createObjectURL(blob);
-      link = document.createElement("a");
-      link.href = url;
-      link.addEventListener("click", function (event) { event.stopPropagation(); });
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
+      platform.download(backupPayload(exportedAt), exportFilename(exportedAt));
       closeDataMenu();
     } catch (error) {
       showDataIssue("Try again, then check Downloads. Your plan is unchanged.", "Couldn't start the download");
-    } finally {
-      if (link) link.remove();
-      // Keep the Blob alive while the browser takes ownership of the download.
-      if (url) window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 60000);
     }
   }
 
@@ -2766,16 +2246,14 @@
 
   importFileInput.addEventListener("change", function (event) {
     var file = event.target.files && event.target.files[0];
-    var reader;
 
     if (!file) {
       return;
     }
 
-    reader = new FileReader();
-    reader.onload = function () {
+    platform.readText(file, function (text) {
       try {
-        var parsed = JSON.parse(reader.result);
+        var parsed = JSON.parse(text);
         var restoredState = readBackupState(parsed);
         requestDataConfirmation(backupRestoreCopy(UI_COPY.confirms.restoreFile, restoredState, parsed.exportedAt)).then(function (confirmed) {
           if (confirmed) {
@@ -2791,8 +2269,7 @@
         showDataIssue(UI_COPY.errors.importInvalid, "Couldn't import this backup");
       }
       importFileInput.value = "";
-    };
-    reader.readAsText(file);
+    });
   });
 
   resetDataButton.addEventListener("click", function () {
@@ -3188,9 +2665,8 @@
     var changed = document.documentElement.getAttribute("data-theme") !== resolveThemePreference("system");
     applyThemePreference("system", { persist: false, render: changed });
   }
-  ["pageshow", "focus"].forEach(function (name) { window.addEventListener(name, refreshDeviceTheme); });
-  document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) refreshDeviceTheme();
+  platform.onResume(function (event) {
+    if (event.type !== "visibilitychange" || !document.hidden) refreshDeviceTheme();
   });
   configureResponsiveUI();
   persistAndRender();
@@ -3201,12 +2677,7 @@
   try {
     if (window.DriveSyncUI) automaticDriveSync = window.DriveSyncUI.mount({
       getPlan: function () { return state; },
-      getLocalSavedAt: function (plan) {
-        try {
-          var saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
-          return window.DriveSync.fingerprint(saved.data) === window.DriveSync.fingerprint(plan) ? saved.planSavedAt || null : null;
-        } catch (error) { return null; }
-      },
+      getLocalSavedAt: repository.savedAt,
       hasInvalidDraft: function () {
         return Boolean(document.querySelector('#balance-error:not(.is-hidden), .rule-error:not(.is-hidden)'));
       },

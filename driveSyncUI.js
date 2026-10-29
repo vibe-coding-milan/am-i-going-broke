@@ -30,19 +30,24 @@
     if (!configured && previewMode) configured = "/api/drive-sync.php";
     // Deliberately inert by default: no DOM changes, storage access, or requests.
     if (!configured || !root.DriveSync) return null;
-    var endpoint;
-    try {
-      endpoint = new URL(configured, location.href);
-      if (endpoint.origin !== location.origin || endpoint.username || endpoint.password || endpoint.hash) return null;
-      if (endpoint.protocol !== "https:" && ["localhost", "127.0.0.1", "[::1]"].indexOf(endpoint.hostname) === -1) return null;
-    } catch (error) { return null; }
+    var endpoint = root.DriveServiceClient.resolveEndpoint(configured, location);
+    if (!endpoint) return null;
+    var platform = root.BrowserPlatform.create({ window: window, document: document });
+    var localStore = platform.local;
+    var tabStore = platform.session;
     var controller = null, session = null, busy = false, lastCheck = 0, changingRemote = false;
     var sessionExpired = false;
     var sessionLoad = null, resumeTimer = null;
+    var service = root.DriveServiceClient.create({ endpoint: endpoint,
+      getSession: function () { return session; },
+      fetch: function (url, options) { return fetch(url, options); }, AbortController: AbortController,
+      setTimeout: setTimeout, clearTimeout: clearTimeout,
+    });
+    var request = service.request;
     var tabId;
     try {
-      tabId = sessionStorage.getItem("aigb-sync-tab");
-      if (!tabId) { tabId = crypto.randomUUID(); sessionStorage.setItem("aigb-sync-tab", tabId); }
+      tabId = tabStore.getItem("aigb-sync-tab");
+      if (!tabId) { tabId = crypto.randomUUID(); tabStore.setItem("aigb-sync-tab", tabId); }
     } catch (error) { return null; }
     var menu = document.querySelector(".data-menu");
     var entry = document.createElement("button");
@@ -111,8 +116,8 @@
     var conflictPanel = dialog.querySelector("#sync-conflict");
     var trigger = entry;
 
-    function read(key) { try { return localStorage.getItem(key); } catch (error) { return null; } }
-    function save(key, value) { localStorage.setItem(key, value); }
+    function read(key) { try { return localStore.getItem(key); } catch (error) { return null; } }
+    function save(key, value) { localStore.setItem(key, value); }
     function rememberedEnabled() {
       var owner = read("aigb-sync-plan-owner");
       return !!owner && read("aigb-sync-enabled:" + owner) === "true";
@@ -207,30 +212,6 @@
       });
       dialog.setAttribute("aria-busy", String(value));
     }
-    async function request(action, body) {
-      var url = new URL(endpoint); url.searchParams.set("action", action);
-      var headers = { Accept: "application/json" };
-      if (body !== undefined) { headers["Content-Type"] = "application/json"; headers["X-Sync-CSRF"] = session && session.csrf || ""; }
-      var abort = new AbortController();
-      var timeout = setTimeout(function () { abort.abort(); }, 35000);
-      try {
-        var response = await fetch(url.href, { method: body === undefined ? "GET" : "POST", credentials: "same-origin", cache: "no-store",
-          headers: headers, body: body === undefined ? undefined : JSON.stringify(body), signal: abort.signal });
-        var data;
-        try { data = await response.json(); } catch (error) { throw Object.assign(new Error("Unavailable"), { code: "unavailable" }); }
-        if (!response.ok) {
-          var code = data.error || "temporary";
-          if (code === "csrf") code = "auth";
-          if (code === "invalid") code = "remote";
-          if (code === "ambiguous" || code === "setup") code = "missing";
-          var messages = { auth: "Reconnect Google Drive to continue.", no_backup: "No manual Google Drive backup was found for this app.",
-            missing: "The Drive folder or plan is unavailable. Your local plan is unchanged.",
-            conflict: "The Drive plan changed on another device. Review sync settings.", remote: "The Drive file could not be read safely. Your local plan is unchanged." };
-          throw Object.assign(new Error(messages[code] || "Drive sync is temporarily unavailable. Your local plan is unchanged."), { code: code });
-        }
-        return data;
-      } finally { clearTimeout(timeout); }
-    }
     function open(event) {
       trigger = event && event.currentTarget || entry;
       menu.removeAttribute("open");
@@ -316,9 +297,7 @@
         if (!session.available) return;
         save("aigb-sync-setup-pending", String(Date.now()));
         var result = await request("authorize", { disclosureAccepted: true, preview: previewMode });
-        var url = new URL(result.url);
-        if (url.origin !== "https://accounts.google.com" || url.pathname !== "/o/oauth2/v2/auth") throw new Error("Unexpected authorization destination");
-        location.assign(url.href);
+        platform.navigate(service.authorizationDestination(result.url));
       } catch (error) { setDialogMessage("Could not connect. Your plan remains on this device. Try again."); }
       finally { setBusy(false); }
     }
@@ -337,7 +316,7 @@
         if (setup.accountId !== session.accountId || !/^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]+$/.test(setup.folderUrl)) throw new Error("Invalid setup response");
         save("aigb-sync-plan-owner", session.accountId); save(enabledKey(), "true");
         save("aigb-sync-service-backups", session.accountId);
-        localStorage.removeItem("aigb-sync-setup-pending");
+        localStore.removeItem("aigb-sync-setup-pending");
         session.folderUrl = setup.folderUrl;
         await attach();
         folder.href = setup.folderUrl; folder.classList.remove("is-hidden");
@@ -382,7 +361,7 @@
       try {
         if (controller) { controller.enable(false); controller.destroy(); controller = null; }
         save(enabledKey(), "false"); await request("disconnect", {});
-        localStorage.removeItem("aigb-sync-service-backups");
+        localStore.removeItem("aigb-sync-service-backups");
         await refreshSession();
         showStatus({ status: "off", enabled: false });
       } catch (error) { setDialogMessage("Could not confirm disconnection. Try again or remove access in your Google Account."); }
@@ -427,8 +406,8 @@
     document.addEventListener("focusout", function (event) {
       if (controller && event.target.matches("#starting-balance, [data-field]")) { changed(); controller.setEditing(false); }
     });
-    window.addEventListener("online", function () { if (controller) controller.setOnline(true); else resume(); });
-    window.addEventListener("offline", function () { if (controller) controller.setOnline(false); });
+    platform.onConnectivity(function () { if (controller) controller.setOnline(true); else resume(); },
+      function () { if (controller) controller.setOnline(false); });
     function resume() {
       if (resumeTimer !== null) { clearTimeout(resumeTimer); resumeTimer = null; }
       if (document.visibilityState === "hidden") return;
@@ -439,8 +418,7 @@
       if (controller) controller.check();
       else if (rememberedEnabled()) refreshSession().catch(function () { showStatus({ status: "service", enabled: true }); });
     }
-    window.addEventListener("focus", resume); window.addEventListener("pageshow", resume);
-    document.addEventListener("visibilitychange", resume);
+    platform.onResume(resume);
     window.addEventListener("storage", function (event) {
       if (event.key === "cash-flow-projector-state") resume();
       if (session && event.key === enabledKey() && event.newValue === "false" && controller) controller.enable(false);

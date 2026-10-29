@@ -4,7 +4,7 @@
 
 Source publication and website deployment are separate. Pushes and pull requests run automated checks without production credentials. Production publication is started manually and defaults to a preview.
 
-The maintainer can run `node scripts/check-project.cjs` to check syntax, local documentation and HTML link targets, and scheduling regressions in two time zones. Browser interactions and actual Google Drive authorization and transfers need separate manual verification when affected by a change.
+The maintainer can run `node scripts/check-project.cjs` to check syntax, local documentation and HTML link targets, chart interactions, Drive sync/browser safety, and scheduling/application regressions in two time zones. With PHP 8.2+ and the required extensions available, the checker also runs server lint and service tests; CI requires these checks even when PHP is unavailable locally. Browser interactions and actual Google Drive authorization and transfers need separate manual verification when affected by a change.
 
 Workflows use specified operating-system and Node.js versions, with actions pinned to commit SHAs. Dependabot proposes updates for maintainer review; updates are not automatically merged.
 
@@ -28,4 +28,4 @@ The original development history has a verified private recovery copy. Its locat
 
 ## Product backlog
 
-Completed changes are recorded in the [changelog](../CHANGELOG.md). Dashboard redesign, richer scenarios, compact mobile editing, and additional integrations remain ideas, not scheduled commitments. The [cleanup inventory](./CLEANUP.md) records retired project files.
+Completed changes are recorded in the [changelog](../CHANGELOG.md). Current proposals and acceptance results live in [GitHub issues](https://github.com/vibe-coding-milan/am-i-going-broke/issues); older planning documents are historical records, not a parallel backlog. [Issue #54](https://github.com/vibe-coding-milan/am-i-going-broke/issues/54) tracks proposed mobile/desktop preparation, [#55](https://github.com/vibe-coding-milan/am-i-going-broke/issues/55) tracks document cleanup, and [#25](https://github.com/vibe-coding-milan/am-i-going-broke/issues/25) coordinates device/accessibility acceptance. The [cleanup inventory](./CLEANUP.md) records retired project files.

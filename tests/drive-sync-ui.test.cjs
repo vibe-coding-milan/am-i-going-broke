@@ -9,6 +9,7 @@ function fixture(flag, engine = {}) {
   const context = vm.createContext({ URL, location: { href: 'https://amigoingbroke.me/', origin: 'https://amigoingbroke.me' },
     document: { querySelector(selector) { queries++; assert.equal(selector, 'meta[name="google-drive-sync-endpoint"]'); return flag === null ? null : { getAttribute: () => flag }; } },
     DriveSync: engine,
+    DriveServiceClient: require("../driveServiceClient.js"),
     fetch() { throw new Error('Disabled sync must make no requests'); },
   });
   Object.defineProperty(context, 'localStorage', { get() { throw new Error('Disabled sync must not access storage'); } });
@@ -86,7 +87,7 @@ test('rapid foreground returns schedule a trailing refresh instead of losing the
     setTimeout(fn, wait) { job = { fn, wait }; return 1; }, clearTimeout() { job = null; },
   });
   const start = source.indexOf('    function resume()');
-  const end = source.indexOf('    window.addEventListener("focus"', start);
+  const end = source.indexOf('    platform.onResume(', start);
   vm.runInContext(source.slice(start, end), context);
   context.resume(); assert.equal(checks, 1);
   now += 1000; context.resume(); assert.equal(checks, 1); assert.equal(job.wait, 9000);

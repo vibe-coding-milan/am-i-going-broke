@@ -1,5 +1,7 @@
 # Payment usability release — October 18, 2026
 
+Historical release record. The [first-use release](FIRST_USE_RELEASE.md) supersedes the example-discard confirmation; later changelog entries record quiet downloads and automatic Drive sync. Current acceptance checklists are maintained in [GitHub issue #25](https://github.com/vibe-coding-milan/am-i-going-broke/issues/25) and the individual issues below. The captured checks link to preserved Git history so the old image files need not remain in the working tree.
+
 ## Implemented scope
 
 | Issue | Result |
@@ -35,14 +37,14 @@ Whole-item exclusions still enumerate scheduled dates for display, including rec
 
 ## Captured checks
 
-1. First-time entry — clear fictional-example choices. ![First-time phone](usability-release-2026-10-18/01-empty-phone.png)
-2. Example loaded — persistent banner and personal-plan action, including after reload. ![Example phone](usability-release-2026-10-18/02-example-phone.png)
-3. Biweekly editor — one first payday, blank end date, explicit pending state, and move controls. ![Biweekly phone](usability-release-2026-10-18/03-biweekly-phone.png)
-4. Transactions — excluded parent occurrences remain visible with unchanged balances. ![Excluded transactions](usability-release-2026-10-18/04-excluded-transactions-phone.png)
-5. Payment list — saved manual order and excluded item treatment. ![Payment list](usability-release-2026-10-18/05-payments-excluded-phone.png)
-6. Download — persistent initiation feedback and timestamped file. ![Download feedback](usability-release-2026-10-18/06-download-feedback-desktop.png)
-7. Desktop — reordered expenses, weekly/monthly previews, and transaction states in dark appearance. ![Desktop](usability-release-2026-10-18/07-desktop-dark.png)
-8. Narrow phone — readable exclusion labels and controls at 320px. ![Narrow transactions](usability-release-2026-10-18/08-transactions-320-dark.png)
+1. First-time entry — clear fictional-example choices. [First-time phone — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/01-empty-phone.png)
+2. Example loaded — persistent banner and personal-plan action, including after reload. [Example phone — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/02-example-phone.png)
+3. Biweekly editor — one first payday, blank end date, explicit pending state, and move controls. [Biweekly phone — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/03-biweekly-phone.png)
+4. Transactions — excluded parent occurrences remain visible with unchanged balances. [Excluded transactions — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/04-excluded-transactions-phone.png)
+5. Payment list — saved manual order and excluded item treatment. [Payment list — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/05-payments-excluded-phone.png)
+6. Download — persistent initiation feedback and timestamped file. [Download feedback — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/06-download-feedback-desktop.png)
+7. Desktop — reordered expenses, weekly/monthly previews, and transaction states in dark appearance. [Desktop — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/07-desktop-dark.png)
+8. Narrow phone — readable exclusion labels and controls at 320px. [Narrow transactions — historical screenshot](https://github.com/vibe-coding-milan/am-i-going-broke/blob/09ef509986e5f06bc6f5aab16e9ef570421cae20/docs/usability-release-2026-10-18/08-transactions-320-dark.png)
 
 ## Remaining validation
 
