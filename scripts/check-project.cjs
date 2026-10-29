@@ -42,6 +42,7 @@ if (spawnSync("php", ["-v"], { stdio: "ignore" }).status === 0) {
   run("php", ["-r", 'if (PHP_VERSION_ID < 80200) { fwrite(STDERR, "PHP 8.2 or newer required\\n"); exit(1); }']);
   for (const file of files.filter(file => file.endsWith(".php"))) run("php", ["-l", file]);
   run("php", ["tests/drive-service.test.php"]);
+  run("php", ["tests/plan-contract.test.php"]);
 } else {
   if (process.env.CI) throw new Error("PHP 8.2+ with PDO SQLite, sodium, and cURL is required for server checks in CI.");
   console.log("PHP unavailable locally: server lint/tests must pass separately before publication.");
@@ -53,7 +54,10 @@ run(process.execPath, ["--test", "tests/chart-inspection.test.cjs"]);
 console.log("Drive sync state-machine regressions");
 run(process.execPath, ["--test", "tests/drive-sync.test.cjs", "tests/drive-sync-ui.test.cjs"]);
 
+console.log("Platform adapters and frontend package");
+run(process.execPath, ["--test", "tests/platform-adapters.test.cjs", "tests/frontend-package.test.cjs"]);
+
 for (const TZ of ["America/New_York", "Pacific/Auckland"]) {
   console.log(`Scheduling regressions: ${TZ}`);
-  run(process.execPath, ["--test", "tests/scheduling.test.cjs"], { ...process.env, TZ });
+  run(process.execPath, ["--test", "tests/scheduling.test.cjs", "tests/plan-persistence.test.cjs", "tests/forecast-responses.test.cjs", "tests/examples.test.cjs", "tests/plan-compatibility.test.cjs"], { ...process.env, TZ });
 }

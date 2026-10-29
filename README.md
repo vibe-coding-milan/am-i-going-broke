@@ -47,6 +47,8 @@ This is a solo-maintained project; unsolicited code contributions are not curren
 
 The app uses HTML, CSS, and JavaScript. Source is available for inspection, with automated checks covering source syntax, documentation links, and scheduling regressions. Changes to this repository do not automatically publish a new website version.
 
+With Node.js 24, run `npm run check` for project checks or `npm run build:web` for a reproducible frontend-only package in `dist/`; no dependency installation is needed. PHP server checks also require PHP 8.2+ and its service extensions. See [platform boundaries and compatibility](docs/PLATFORM_READINESS.md) and [maintenance](docs/MAINTENANCE.md) before packaging or publishing.
+
 ## Ownership
 
 Copyright © 2026 Milan Mijatovic. All rights reserved. This project is not offered under an open-source license. See [LICENSE.md](./LICENSE.md) for the rights notice, GitHub platform exceptions, and third-party terms.

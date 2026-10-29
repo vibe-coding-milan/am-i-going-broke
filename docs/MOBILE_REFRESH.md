@@ -2,7 +2,7 @@
 
 > The subsequent [forecast refinement](REFINEMENT_REVIEW.md) supersedes the slider, balance-date selector, summary density, and header treatment described in this initial implementation record.
 
-Status: implemented locally for review; not recorded as deployed. This follows the [mobile audit](MOBILE_UX_AUDIT.md) and the earlier desktop/UX findings.
+Historical status at the time of this review: implemented locally; deployment had not yet been recorded. Subsequent refinement and publication are recorded in the [changelog](../CHANGELOG.md). This document follows the [mobile audit](MOBILE_UX_AUDIT.md) and retains the initial implementation evidence; it is not the current UI specification or acceptance checklist. Current device follow-up is tracked in [issue #25](https://github.com/vibe-coding-milan/am-i-going-broke/issues/25).
 
 ## Scope and boundaries
 

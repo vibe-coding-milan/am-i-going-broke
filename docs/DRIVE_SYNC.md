@@ -1,5 +1,7 @@
 # Automatic Drive sync implementation
 
+The integration contract and unified connection describe the current architecture. Earlier preview behavior is retained in explicitly historical sections below; it does not require restoring retired controls. Current settings are described in [Unified connection release](#unified-connection-release), with live/device acceptance in [issue #40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40).
+
 ## Sync review entry and version dates
 
 Data retains its compact attention icon. When review is needed, the Google Drive menu item carries a visible ! Review sync cue. Conflicts show matching This device and Google Drive cards: balance, payment count, saved date/time with local time zone, and the cash-as-of date. The actions are Use this device and Use Drive; choosing still rechecks the remote revision before applying a resolution.
@@ -20,7 +22,7 @@ There is now one Google Drive connection: the [server-backed sync interface](../
 
 This simplification is live. The owner created an additional Google OAuth secret, stored it in the ignored private credential file, and reported registering the callback. The new credential has been installed in a disabled private server configuration with a separately backed-up encryption key. Real Google authorization and renewal with the new secret have passed; exact folder/current-file names and readability were verified without exposing financial contents. Cross-device and physical-device acceptance remain separate. When the service is unavailable, the unified interface reports that truthfully rather than presenting a backup connection as sync. Earlier releases and their acceptance evidence are retained in [release history](DRIVE_SYNC_RELEASE.md).
 
-Existing hosting was checked read-only: PHP 8.2 with cURL, PDO SQLite, and sodium is available. No server configuration, Google permission, or production file was changed by that runtime check. A subsequent configuration-presence check found no private OAuth configuration installed.
+Before provisioning, existing hosting was checked read-only: PHP 8.2 with cURL, PDO SQLite, and sodium was available, but private OAuth configuration was not yet installed. That is historical setup evidence; provisioning and activation subsequently completed as recorded above and in the release log.
 
 ## Implemented behavior
 
@@ -70,6 +72,8 @@ Status values are internal state, not finished UI copy. The browser adapter must
 
 ## Implemented browser/service integration
 
+This section records the initial preview integration. Its manual-transfer controls, previous-plan browsing, routine status rows and separate header status were subsequently replaced by the unified connection described below. The authorization, account isolation, durable outbox and revision guarantees remain relevant.
+
 - Redirect authorization-code flow with PKCE and a single-use, expiring session state. Google account identity comes from Google's userinfo endpoint using the server-exchanged access token; a verified email is required. The client secret and refresh tokens never reach browser JavaScript.
 - Encrypted SQLite credential records and account-specific filesystem locks outside the served website. Secure HTTP-only SameSite session cookies, CSRF-protected mutations, exact-origin checks, rate limits, payload/response bounds, strict TLS, and generic public errors.
 - Atomic version checks among all writers routed through this service. Initial creates use reserved Google file IDs; duplicate retries and lost initial-create responses do not generate multiple working files. Direct external editing of the working JSON file during an upload is outside that serialization guarantee and is not a supported editing surface.
@@ -81,7 +85,7 @@ Status values are internal state, not finished UI copy. The browser adapter must
 - Reset and restore include an additional cross-device warning when sync is on and preserve a fixed local recovery copy before replacing the plan. Recovery selection is explicit and applies as a new local change.
 - On narrow screens, status appears below the header so it cannot squeeze the title or Data/Appearance controls. Desktop status stays beside Data. The disabled feature adds no interface elements.
 
-## Checks performed
+## Historical preview checks
 
 - 48 JavaScript sync/browser-safety regressions plus 30 retained scheduling/app regressions in each of two time zones: 108 passing tests. Retired browser-only transfer tests were removed with that implementation. The feature-off checks prohibit network, storage, or DOM side effects from mounting the optional UI. Project syntax and local links pass.
 - PHP files linted on the existing PHP 8.2 host. 61 service assertions passed in an isolated temporary directory using simulated Google requests; temporary credential/lock/database files were removed. The JavaScript suite also models phone → work computer → phone → new tablet convergence, and offline phone/work edits preserved through conflict, restart, and deliberate resolution. PHP tests cover encrypted storage, account locks, stale revisions, idempotency, lost initial-create responses, token refresh/revocation failure, bounded recovery, snapshot compatibility, and disconnect retaining Drive data. No real OAuth grant or Drive file was used.
@@ -95,11 +99,13 @@ Status values are internal state, not finished UI copy. The browser adapter must
 1. Provision the Web client secret and a random backed-up 32-byte encryption key in a 0600 private configuration outside the served website, with a 0700 private state directory. Never overwrite an encryption key when account records exist. No credential belongs in Git or chat. This provisioning is complete; configuration was enabled after checked deployment.
 2. Register exactly `https://amigoingbroke.me/api/drive-sync.php?action=callback` on the existing Web OAuth client. The owner saved this and the real Google authorization flow passed; opening the callback directly is not a sign-in test.
 3. Deploy the unified interface and matching PHP service. Check the web runtime, HTTPS/secure-cookie behavior, protected server paths, and status response. Enable private configuration only after the published code matches the checked release.
-4. Have the owner choose Connect on the live URL and approve Google authorization. Verify server-side identity exchange and token refresh with the new secret, without exposing tokens, identity details or plans in logs. Then the owner can retire the old secret in Google Cloud.
+4. Have the owner choose Connect on the live URL and approve Google authorization. Verify server-side identity exchange and token refresh without exposing tokens, identity details or plans in logs. Initial authorization, renewal and owner-managed retirement of the old secret are complete as recorded in the release log; they are not pending setup tasks. Later releases still need checks appropriate to their changes.
 5. Complete same-account new-device adoption, folder creation, delayed updates, concurrency/conflict, pause, reconnect, recovery, and disconnect acceptance. Keep Current plan.json app-managed and all service writers on the same coordinated host.
 6. Record physical Android/iOS, browser zoom/OS scaling, keyboard and screen-reader acceptance separately from emulated viewport checks. Publication alone is not acceptance. Track unresolved results in [#40](https://github.com/vibe-coding-milan/am-i-going-broke/issues/40).
 
-## Returning-user connection and minimal dialogs
+## Historical returning-user preview and minimal dialogs
+
+The browser-only/manual snapshot and More options flows in this section are retired. Preserve this record as evidence of the transition; use the unified connection below for current behavior.
 
 - Connecting makes only reads. A fresh empty session adopts a nonempty saved plan, with zero Drive writes. A latest empty copy does not erase a populated device; older saved copies remain selectable under More options.
 - Prefer an existing current sync file over manual snapshots. Discover app-owned files afresh through the currently authorized account, rather than trusting a cached file ID. Ask Google to select the account for a new browser authorization.

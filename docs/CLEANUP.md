@@ -12,4 +12,6 @@ Four unused logo variants and the completed payment-scheduling implementation pl
 
 Active theme icons, OAuth consent artwork, application modules, tests, policies, and operating files are retained. Assets used by external services should be checked against those services before removal, even if the application source does not reference them.
 
+The eight October 18 usability-release screenshots were removed from the working tree during owner cleanup. [Their release record](USABILITY_RELEASE.md) now links to the preserved images at a fixed Git commit. Useful backlog and review findings are recorded in [issue #55](https://github.com/vibe-coding-milan/am-i-going-broke/issues/55) and its linked issues; no acceptance is inferred from removing historical files. Private operational/recovery material is not part of this cleanup.
+
 Removing a file from the current repository does not erase previous commits or remove copies from a deployed website. No history rewrite or live-server deletion was part of this cleanup.

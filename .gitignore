@@ -4,6 +4,7 @@
 !.env.example
 !.env.sample
 node_modules/
+dist/
 *.pem
 *.key
 credentials.json

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-28 — Prepare shared modules for future app packaging
+
+- Extract forecasting/scheduling, ledger/chart data, plan normalization/backups and local persistence into reusable modules while preserving existing date, financial and version-3 data behavior.
+- Separate browser storage/file/lifecycle operations and the same-origin Drive HTTP client from UI presentation. Keep server code, cookies/CSRF checks, sync timing, conflict handling and existing controls unchanged.
+- Add a dependency-free frontend packaging command and explicit asset allowlist, excluding PHP and private material. Include the new scripts in guarded website deployment and versioned page loading; no native platform or offline cache is introduced.
+- Retain all existing regressions, organize application tests by responsibility, and add pre-refactor compatibility fixtures, cross-language plan contracts, adapter checks and reproducible-package validation.
+- Clarify historical review documents and replace removed screenshot references with fixed-commit history links. Current proposals and acceptance remain in GitHub issues.
+- Implementation, compatibility and release handling: [platform readiness](docs/PLATFORM_READINESS.md), [#54](https://github.com/vibe-coding-milan/am-i-going-broke/issues/54), and [#55](https://github.com/vibe-coding-milan/am-i-going-broke/issues/55). Publication and live verification are recorded separately after successful release.
+
 ## 2026-10-28 — Use familiar sync-review iconography
 
 - Replace the circled text exclamation beside Review sync with the same outlined warning-triangle SVG used by the app’s confirmation dialogs. Keep the review label, semantic theme color, menu layout and sync behavior unchanged.

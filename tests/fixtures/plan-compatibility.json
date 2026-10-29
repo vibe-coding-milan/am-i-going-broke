@@ -1,0 +1,1873 @@
+{
+  "baseline": "09ef509986e5f06bc6f5aab16e9ef570421cae20",
+  "today": "2026-10-28",
+  "cases": [
+    {
+      "name": "legacy zero-dollar personal",
+      "input": {
+        "startDate": "2026-10-01",
+        "startingBalance": 0,
+        "recurringRules": []
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-01",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": []
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 0
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 0
+        }
+      ]
+    },
+    {
+      "name": "explicit empty draft",
+      "input": {
+        "planOrigin": "empty",
+        "hasPersonalData": false,
+        "startingBalance": 0,
+        "recurringRules": []
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "empty",
+        "hasPersonalData": false,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": []
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 0
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 0
+        }
+      ]
+    },
+    {
+      "name": "confirmed zero personal",
+      "input": {
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "startingBalance": 0,
+        "recurringRules": []
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": []
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 0
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 0
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 0
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 0
+        }
+      ]
+    },
+    {
+      "name": "edited fictional plan",
+      "input": {
+        "sampleScenario": "Fictional",
+        "sampleScenarioKey": "tight",
+        "sampleStory": "Edited example",
+        "startingBalance": 700,
+        "recurringRules": [
+          {
+            "id": "rent",
+            "name": "rent",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none"
+          }
+        ]
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 700,
+        "projectionDays": 30,
+        "sampleScenario": "Fictional",
+        "sampleScenarioKey": "tight",
+        "sampleStory": "Edited example",
+        "planOrigin": "example",
+        "hasPersonalData": false,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": [
+          {
+            "id": "rent",
+            "name": "rent",
+            "direction": "debit",
+            "amount": 120,
+            "variable": false,
+            "active": true,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 0,
+            "pendingSchedule": false,
+            "scheduleDate": "2026-10-28",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          }
+        ]
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 700
+        },
+        {
+          "type": "item",
+          "dateLabel": "Sat, Oct 31",
+          "dateKey": "2026-10-31",
+          "ruleId": "rent",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "rent",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 700,
+          "balance": 580
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 700
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 700
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 700
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 580
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 580
+        }
+      ]
+    },
+    {
+      "name": "legacy count origin",
+      "input": {
+        "startDate": "2026-10-01",
+        "startingBalance": 800,
+        "recurringRules": [
+          {
+            "id": "pay",
+            "name": "pay",
+            "active": true,
+            "direction": "credit",
+            "amount": 500,
+            "scheduleType": "weekly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "count",
+            "dayOfWeek": 5,
+            "instanceLimit": 5
+          }
+        ]
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-01",
+        "startingBalance": 800,
+        "projectionDays": 30,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": [
+          {
+            "id": "pay",
+            "name": "pay",
+            "direction": "credit",
+            "amount": 500,
+            "variable": false,
+            "active": true,
+            "scheduleType": "weekly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 5,
+            "calculationOrder": 0,
+            "pendingSchedule": false,
+            "scheduleDate": "2026-10-28",
+            "startDate": "2026-10-01",
+            "limitType": "count",
+            "instanceLimit": 5,
+            "endDate": ""
+          }
+        ]
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 800
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Oct 30",
+          "dateKey": "2026-10-30",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 500,
+          "debit": null,
+          "previousBalance": 800,
+          "balance": 1300
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 800
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 800
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 1300
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 1300
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 1300
+        }
+      ]
+    },
+    {
+      "name": "mixed order and exclusions",
+      "input": {
+        "startDate": "2026-10-28",
+        "startingBalance": 400,
+        "projectionDays": 60,
+        "skippedInstances": {
+          "rent::2026-10-31": true
+        },
+        "recurringRules": [
+          {
+            "id": "rent",
+            "name": "rent",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "calculationOrder": 2
+          },
+          {
+            "id": "pay",
+            "name": "pay",
+            "active": true,
+            "direction": "credit",
+            "amount": 700,
+            "scheduleType": "biweekly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "calculationOrder": 1,
+            "scheduleDate": "2026-10-30"
+          },
+          {
+            "id": "inactive",
+            "name": "inactive",
+            "active": false,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none"
+          },
+          {
+            "id": "future",
+            "name": "future",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "adhoc",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "scheduleDate": "2027-01-01"
+          }
+        ]
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 400,
+        "projectionDays": 60,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {
+          "rent::2026-10-31": true
+        },
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": [
+          {
+            "id": "rent",
+            "name": "rent",
+            "direction": "debit",
+            "amount": 120,
+            "variable": false,
+            "active": true,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 2,
+            "pendingSchedule": false,
+            "scheduleDate": "2026-10-28",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          },
+          {
+            "id": "pay",
+            "name": "pay",
+            "direction": "credit",
+            "amount": 700,
+            "variable": false,
+            "active": true,
+            "scheduleType": "biweekly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 1,
+            "pendingSchedule": false,
+            "scheduleDate": "2026-10-30",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          },
+          {
+            "id": "inactive",
+            "name": "inactive",
+            "direction": "debit",
+            "amount": 120,
+            "variable": false,
+            "active": false,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 2,
+            "pendingSchedule": false,
+            "scheduleDate": "2026-10-28",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          },
+          {
+            "id": "future",
+            "name": "future",
+            "direction": "debit",
+            "amount": 120,
+            "variable": false,
+            "active": true,
+            "scheduleType": "adhoc",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 3,
+            "pendingSchedule": false,
+            "scheduleDate": "2027-01-01",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          }
+        ]
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 400
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Oct 30",
+          "dateKey": "2026-10-30",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 700,
+          "debit": null,
+          "previousBalance": 400,
+          "balance": 1100
+        },
+        {
+          "type": "item",
+          "dateLabel": "Sat, Oct 31",
+          "dateKey": "2026-10-31",
+          "ruleId": "rent",
+          "skipped": true,
+          "wholeExcluded": false,
+          "name": "rent",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 1100,
+          "balance": 1100
+        },
+        {
+          "type": "item",
+          "dateLabel": "Sat, Oct 31",
+          "dateKey": "2026-10-31",
+          "ruleId": "inactive",
+          "skipped": true,
+          "wholeExcluded": true,
+          "name": "inactive",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 1100,
+          "balance": 1100
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Nov 13",
+          "dateKey": "2026-11-13",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 700,
+          "debit": null,
+          "previousBalance": 1100,
+          "balance": 1800
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Nov 27",
+          "dateKey": "2026-11-27",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 700,
+          "debit": null,
+          "previousBalance": 1800,
+          "balance": 2500
+        },
+        {
+          "type": "item",
+          "dateLabel": "Mon, Nov 30",
+          "dateKey": "2026-11-30",
+          "ruleId": "rent",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "rent",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 2500,
+          "balance": 2380
+        },
+        {
+          "type": "item",
+          "dateLabel": "Mon, Nov 30",
+          "dateKey": "2026-11-30",
+          "ruleId": "inactive",
+          "skipped": true,
+          "wholeExcluded": true,
+          "name": "inactive",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 2380,
+          "balance": 2380
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Dec 11",
+          "dateKey": "2026-12-11",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 700,
+          "debit": null,
+          "previousBalance": 2380,
+          "balance": 3080
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Dec 25",
+          "dateKey": "2026-12-25",
+          "ruleId": "pay",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "pay",
+          "credit": 700,
+          "debit": null,
+          "previousBalance": 3080,
+          "balance": 3780
+        },
+        {
+          "type": "item",
+          "dateLabel": "Fri, Jan 1",
+          "dateKey": "2027-01-01",
+          "ruleId": "future",
+          "skipped": false,
+          "wholeExcluded": false,
+          "name": "future",
+          "credit": null,
+          "debit": 120,
+          "previousBalance": 3780,
+          "balance": 3660,
+          "outsideWindow": true
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 400
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 400
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 1100
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 1100
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 1800
+        },
+        {
+          "date": "2026-11-27",
+          "balance": 2500
+        },
+        {
+          "date": "2026-11-28",
+          "balance": 2500
+        },
+        {
+          "date": "2026-11-29",
+          "balance": 2500
+        },
+        {
+          "date": "2026-11-30",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-01",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-02",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-03",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-04",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-05",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-06",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-07",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-08",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-09",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-10",
+          "balance": 2380
+        },
+        {
+          "date": "2026-12-11",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-12",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-13",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-14",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-15",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-16",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-17",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-18",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-19",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-20",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-21",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-22",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-23",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-24",
+          "balance": 3080
+        },
+        {
+          "date": "2026-12-25",
+          "balance": 3780
+        },
+        {
+          "date": "2026-12-26",
+          "balance": 3780
+        }
+      ]
+    },
+    {
+      "name": "pending schedule stays local",
+      "input": {
+        "startingBalance": 200,
+        "recurringRules": [
+          {
+            "id": "draft",
+            "name": "draft",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "biweekly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "scheduleDate": "",
+            "pendingSchedule": true
+          }
+        ]
+      },
+      "expectedNormalized": {
+        "startDate": "2026-10-28",
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 200,
+        "projectionDays": 30,
+        "sampleScenario": "",
+        "sampleScenarioKey": "",
+        "sampleStory": "",
+        "planOrigin": "personal",
+        "hasPersonalData": true,
+        "clearedPlan": false,
+        "rulesCollapsed": false,
+        "ruleGroups": {
+          "moneyInOpen": true,
+          "moneyOutOpen": true
+        },
+        "thresholds": {
+          "red": 1000,
+          "yellow": 2000,
+          "green": 5000
+        },
+        "skippedInstances": {},
+        "showCushionLines": true,
+        "showAverageBalance": true,
+        "showExtremaPoints": true,
+        "recurringRules": [
+          {
+            "id": "draft",
+            "name": "draft",
+            "direction": "debit",
+            "amount": 120,
+            "variable": false,
+            "active": true,
+            "scheduleType": "biweekly",
+            "dayOfMonth": 31,
+            "dayOfWeek": 0,
+            "calculationOrder": 0,
+            "pendingSchedule": true,
+            "scheduleDate": "",
+            "startDate": "",
+            "limitType": "none",
+            "instanceLimit": 1,
+            "endDate": ""
+          }
+        ]
+      },
+      "expectedRows": [
+        {
+          "type": "current",
+          "dateLabel": "Wed, Oct 28",
+          "name": "Starting balance",
+          "credit": null,
+          "debit": null,
+          "balance": 200
+        }
+      ],
+      "expectedPoints": [
+        {
+          "date": "2026-10-28",
+          "balance": 200
+        },
+        {
+          "date": "2026-10-29",
+          "balance": 200
+        },
+        {
+          "date": "2026-10-30",
+          "balance": 200
+        },
+        {
+          "date": "2026-10-31",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 200
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 200
+        }
+      ]
+    }
+  ],
+  "syncCases": [
+    {
+      "name": "valid personal zero",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": []
+      },
+      "valid": true
+    },
+    {
+      "name": "invalid calendar date",
+      "plan": {
+        "lastRefreshDate": "2026-02-30",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": []
+      },
+      "valid": false
+    },
+    {
+      "name": "pending rule",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": [
+          {
+            "id": "pending",
+            "name": "pending",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "pendingSchedule": true
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "name": "valid one-time schema",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": [
+          {
+            "id": "once",
+            "name": "once",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "adhoc",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none",
+            "scheduleDate": "2026-10-29"
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "name": "duplicate IDs",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": [
+          {
+            "id": "same",
+            "name": "same",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none"
+          },
+          {
+            "id": "same",
+            "name": "same",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "monthly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "none"
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "name": "invalid thresholds",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 300,
+          "yellow": 200,
+          "green": 100
+        },
+        "skippedInstances": {},
+        "recurringRules": []
+      },
+      "valid": false
+    },
+    {
+      "name": "unsupported horizon",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 45,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": []
+      },
+      "valid": false
+    },
+    {
+      "name": "unanchored count",
+      "plan": {
+        "lastRefreshDate": "2026-10-28",
+        "startingBalance": 0,
+        "projectionDays": 30,
+        "thresholds": {
+          "red": 100,
+          "yellow": 200,
+          "green": 300
+        },
+        "skippedInstances": {},
+        "recurringRules": [
+          {
+            "id": "count",
+            "name": "count",
+            "active": true,
+            "direction": "debit",
+            "amount": 120,
+            "scheduleType": "weekly",
+            "dayOfMonth": 31,
+            "startDate": "",
+            "limitType": "count",
+            "dayOfWeek": 5,
+            "instanceLimit": 2
+          }
+        ]
+      },
+      "valid": false
+    }
+  ]
+}
